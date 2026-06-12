@@ -20,7 +20,7 @@
   --brand:#2E6BFF; --brandink:#fff; --hot:#FF5A3C;
   --good:#1FA971; --mid:#F2A310; --warn:#F2701A; --bad:#E8412B;
   --shadow:0 1px 2px rgba(14,42,71,.05), 0 6px 24px rgba(14,42,71,.04);
-  --mapsky1:#EAF1FB; --mapsky2:#DCE7F4; --mapgrid:rgba(46,107,255,.10);
+  --mapsky1:#2E6BFF; --mapsky2:#5A8DFF; --mapsky3:#9DBEFF; --mapgrid:rgba(255,255,255,.16); --mapland:rgba(255,255,255,.06);
 }
 [data-theme="dark"]{
   --bg:#0A1019; --card:#121C2B; --card2:#0F1825; --ink:#E8EEF6; --muted:#90A2B6;
@@ -28,7 +28,7 @@
   --brand:#4F86FF; --hot:#FF6A4D;
   --good:#33C088; --mid:#F2A310; --warn:#FF8A3C; --bad:#FF5945;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
-  --mapsky1:#0E1B2E; --mapsky2:#0A1524; --mapgrid:rgba(79,134,255,.12);
+  --mapsky1:#0B1E3A; --mapsky2:#10325C; --mapsky3:#16447A; --mapgrid:rgba(120,170,255,.14); --mapland:rgba(120,170,255,.05);
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink)}
@@ -169,10 +169,11 @@ button{font-family:inherit}
 
 /* bet panel */
 /* bet panel */
-.flightmap{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--mapsky2)}
-.fm-code{font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;fill:var(--muted);letter-spacing:.5px}
+.flightmap{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--mapsky2);box-shadow:inset 0 0 30px rgba(0,0,0,.12)}
+.fm-code{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;fill:#fff;letter-spacing:.8px;paint-order:stroke;stroke:rgba(0,0,0,.18);stroke-width:2px}
 .fm-status{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
 .fm-status .fm-live{color:var(--good);font-weight:600}
+.panelbox .flightmap{margin-bottom:0}
 .betpanel{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .opt{flex:1 1 46%;text-align:left;background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s}
@@ -353,7 +354,7 @@ function Breakdown({m,total}){
 const SEED=[
   {id:"f1",type:"flight",code:"AA 100",subcode:"American",codename:"Sturmschwalbe",liveIdent:"AAL100",pool:1466,comments:212,
    from:{cc:"US",flag:"🇺🇸",name:"New York JFK",dep:"18:30"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
-   fromLL:[40.64,-73.78],toLL:[51.47,-0.45],
+   fromLL:[40.64,-73.78],toLL:[51.47,-0.45],depISO:null,
    stops:0,schedArr:"06:25",actualArr:"08:09",status:"bad",delay:"+104m",risk:44,
    dist:[9,7,4,3,3,4,6,9,13,16,18,17,13,8,4],marker:11,
    axis:["0m","30m","60m","90m","120m"],
@@ -764,48 +765,91 @@ function FlightMap({ m }){
     <div className="flightmap">
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMid slice" style={{display:"block"}}>
         <defs>
-          <linearGradient id={uid+"sky"} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={uid+"sky"} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="var(--mapsky1)"/>
-            <stop offset="1" stopColor="var(--mapsky2)"/>
+            <stop offset="0.55" stopColor="var(--mapsky2)"/>
+            <stop offset="1" stopColor="var(--mapsky3)"/>
           </linearGradient>
+          <radialGradient id={uid+"glow"} cx="50%" cy="42%" r="70%">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.18"/>
+            <stop offset="1" stopColor="#fff" stopOpacity="0"/>
+          </radialGradient>
+          <filter id={uid+"blur"} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2.2"/>
+          </filter>
         </defs>
         <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}sky)`}/>
-        {/* graticule */}
-        {[0.2,0.4,0.6,0.8].map((t,i)=><line key={"v"+i} x1={W*t} y1="0" x2={W*t} y2={H} stroke="var(--mapgrid)" strokeWidth="1"/>)}
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}glow)`}/>
+        {/* graticule — curved latitude feel */}
+        {[0.18,0.36,0.54,0.72,0.9].map((t,i)=><line key={"v"+i} x1={W*t} y1="0" x2={W*t} y2={H} stroke="var(--mapgrid)" strokeWidth="1"/>)}
         {[0.25,0.5,0.75].map((t,i)=><line key={"h"+i} x1="0" y1={H*t} x2={W} y2={H*t} stroke="var(--mapgrid)" strokeWidth="1"/>)}
-        {/* route */}
-        <path d={arc} fill="none" stroke={tone} strokeWidth="2" strokeDasharray="1 6" strokeLinecap="round" opacity="0.85"/>
-        {/* airports */}
+        {/* route: soft glow underlay + crisp animated dashes on top */}
+        <path d={arc} fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" opacity="0.18" filter={`url(#${uid}blur)`}/>
+        <path d={arc} fill="none" stroke="#fff" strokeWidth="2.2" strokeDasharray="1 7" strokeLinecap="round" opacity="0.95">
+          <animate attributeName="stroke-dashoffset" from="16" to="0" dur="1.4s" repeatCount="indefinite"/>
+        </path>
+        {/* airports — white pins with halo */}
         <g>
-          <circle cx={o[0]} cy={o[1]} r="4.5" fill="var(--card)" stroke={tone} strokeWidth="2.2"/>
-          <circle cx={d[0]} cy={d[1]} r="4.5" fill={tone} stroke="var(--card)" strokeWidth="1.5"/>
-          <text x={o[0]} y={o[1]-9} textAnchor="middle" className="fm-code">{m.from?.name?.split(" ").pop()||"DEP"}</text>
-          <text x={d[0]} y={d[1]-9} textAnchor="middle" className="fm-code">{m.to?.name?.split(" ").pop()||"ARR"}</text>
+          <circle cx={o[0]} cy={o[1]} r="8" fill="#fff" opacity="0.18"/>
+          <circle cx={o[0]} cy={o[1]} r="4.5" fill="#fff" stroke="rgba(0,0,0,.12)" strokeWidth="1"/>
+          <circle cx={d[0]} cy={d[1]} r="8" fill="#fff" opacity="0.18"/>
+          <circle cx={d[0]} cy={d[1]} r="4.5" fill="#fff" stroke="rgba(0,0,0,.12)" strokeWidth="1"/>
+          <text x={o[0]} y={o[1]-11} textAnchor="middle" className="fm-code">{m.from?.name?.split(" ").pop()||"DEP"}</text>
+          <text x={d[0]} y={d[1]-11} textAnchor="middle" className="fm-code">{m.to?.name?.split(" ").pop()||"ARR"}</text>
         </g>
         {/* plane */}
         {plane && (
           <g transform={`translate(${plane[0]},${plane[1]}) rotate(${(pos.heading||0)})`}>
-            <circle r="11" fill={tone} opacity="0.16"/>
+            <circle r="13" fill="#fff" opacity="0.22"/>
+            <circle r="13" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5">
+              <animate attributeName="r" from="7" to="15" dur="1.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.8s" repeatCount="indefinite"/>
+            </circle>
             <path d="M0,-8 L2.4,-1 L8,3 L8,5 L1.6,3.2 L1.4,7 L4,9 L4,10.5 L0,9.5 L-4,10.5 L-4,9 L-1.4,7 L-1.6,3.2 L-8,5 L-8,3 L-2.4,-1 Z"
-                  fill={tone} stroke="var(--card)" strokeWidth="0.6"/>
+                  fill="#fff" stroke="rgba(0,0,0,.15)" strokeWidth="0.5"/>
           </g>
         )}
         {!plane && (
-          <g transform={`translate(${o[0]},${o[1]})`}>
-            <circle r="9" fill={tone} opacity="0.12"/>
+          <g transform={`translate(${o[0]},${o[1]})`} opacity="0.92">
             <path d="M0,-6 L1.8,-.8 L6,2.2 L6,3.8 L1.2,2.4 L1,5.2 L3,6.8 L3,7.9 L0,7.1 L-3,7.9 L-3,6.8 L-1,5.2 L-1.2,2.4 L-6,3.8 L-6,2.2 L-1.8,-.8 Z"
-                  fill={tone} stroke="var(--card)" strokeWidth="0.5" transform="rotate(45)"/>
+                  fill="#fff" stroke="rgba(0,0,0,.15)" strokeWidth="0.5" transform="rotate(45)"/>
           </g>
         )}
       </svg>
       <div className="fm-status">
         {state==="loading" && <span>◌ locating aircraft…</span>}
         {state==="airborne" && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
-        {state==="ground" && <span>● On the ground — no live track right now</span>}
-        {state==="static" && <span>Route map · live track unavailable</span>}
+        {state==="ground" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
+        {state==="static" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
       </div>
     </div>
   );
+}
+
+/* Countdown to scheduled departure. Uses m.depISO (full ISO) if present,
+   else interprets m.from.dep "HH:MM" as the next occurrence in local time. */
+function Countdown({ dep, fallback }){
+  const target = useRef(null);
+  if (target.current == null){
+    let t = null;
+    if (dep) t = new Date(dep);
+    else if (fallback && /^\d{1,2}:\d{2}$/.test(fallback)){
+      const [h,mi] = fallback.split(":").map(Number);
+      const now = new Date(); t = new Date(now);
+      t.setHours(h, mi, 0, 0);
+      if (t < now) t.setDate(t.getDate()+1); // next occurrence
+    }
+    target.current = t;
+  }
+  const [now, setNow] = useState(Date.now());
+  useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
+  if (!target.current) return <span>● On the ground — no live track</span>;
+  let diff = Math.floor((target.current - now)/1000);
+  if (diff <= 0) return <span className="fm-live">● Departed / departing now</span>;
+  const hh = Math.floor(diff/3600); diff%=3600;
+  const mm = Math.floor(diff/60); const ss = diff%60;
+  const pad = n => String(n).padStart(2,"0");
+  return <span>🛫 Departs in <b style={{color:"var(--ink)"}}>{hh>0?hh+"h ":""}{pad(mm)}m {pad(ss)}s</b></span>;
 }
 
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
@@ -857,6 +901,11 @@ function Detail({m,total,back,...bet}){
             <div className="tile"><div className="tl">Tracked</div><div className="tv">{m.stats.tracked}</div></div>
           </div>}
         </div>
+
+        {m.type==="flight" && m.fromLL && <div className="panelbox">
+          <div className="sectlbl">Live position</div>
+          <FlightMap m={m}/>
+        </div>}
 
         <div className="panelbox">
           <div className="sectlbl">Delay distribution · {m.stats?m.stats.tracked:""} tracked</div>
