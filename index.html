@@ -206,6 +206,33 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .empty{text-align:center;color:var(--muted);padding:26px 10px}
 .empty .e1{font-size:30px}.empty .e2{font-weight:700;margin-top:8px;color:var(--ink)}.empty .e3{font-size:13px;margin-top:3px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* airports page */
+.airports-hero{padding:18px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.apsuper{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.aphead{font-family:Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
+.apsub{color:var(--muted);font-size:14px;margin-top:6px;max-width:520px;line-height:1.55}
+.sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sortpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
+.sortpill:hover{color:var(--ink)}
+.sortpill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+[data-theme="dark"] .sortpill.on{background:var(--brand);border-color:var(--brand)}
+.aplist{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+.aprow{display:grid;grid-template-columns:38px 1fr 110px 110px 24px;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .12s}
+.aprow:last-child{border-bottom:none}
+.aprow:hover{background:var(--card2)}
+.apflag{font-size:22px}
+.apnames .apcode{font-family:Archivo;font-weight:800;font-size:18px;letter-spacing:-.3px}
+.apnames .apname{color:var(--muted);font-size:12.5px;margin-top:1px}
+.apstat{text-align:right}
+.apstat .aplbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.apstat .apval{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;margin-top:2px}
+.val-good{color:var(--good)}.val-mid{color:var(--mid)}.val-warn{color:var(--warn)}.val-bad{color:var(--bad)}.val-muted{color:var(--muted)}
+.apchev{color:var(--muted);font-size:22px;text-align:right}
+@media(max-width:660px){
+  .aprow{grid-template-columns:32px 1fr 78px 78px 18px;padding:13px 12px}
+  .apnames .apcode{font-size:16px}.apstat .apval{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -323,7 +350,7 @@ const SEED=[
    history:[{cn:"Teekiebitz",date:"Wed 11 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"},
             {cn:"Sternspecht",date:"Tue 10 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"}]},
 
-  {id:"a1",type:"aggregate",code:"LAX",subcode:"all departures · today",codename:"Chaosfink",liveAirport:"KLAX",pool:1320,comments:103,
+  {id:"a1",type:"aggregate",code:"LAX",subcode:"cancellations · today",codename:"Chaosfink",liveAirport:"KLAX",liveMetric:"cancel",pool:1320,comments:103,
    scope:"🇺🇸 Los Angeles LAX — share of departures cancelled today",
    status:"warn",delay:"2.4%",risk:38,
    dist:[14,12,9,7,6,7,9,11,9,6,4,3,2,2,2],marker:7,
@@ -335,6 +362,193 @@ const SEED=[
    stats:{avg:"2.1%",onTime:"—",tracked:"30d"},
    history:[{cn:"Chaosfink",date:"Wed 11 Jun",route:"LAX cancellations",out:"1.8%",tone:"mid"},
             {cn:"Nebelkrähe",date:"Tue 10 Jun",route:"LAX cancellations",out:"0.7%",tone:"good"}]},
+
+  {id:"a1d",type:"aggregate",code:"LAX",subcode:"avg dep delay · today",codename:"Schleppfuchs",liveAirport:"KLAX",liveMetric:"delay",pool:840,comments:41,
+   scope:"🇺🇸 Los Angeles LAX — average departure delay today",
+   status:"mid",delay:"+12m",risk:42,
+   dist:[8,11,14,15,12,10,8,6,5,4,3,2,1,1,1],marker:4,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:180},{id:"b",label:"5–15m",tone:"mid",pool:310},
+             {id:"c",label:"15–30m",tone:"warn",pool:220},{id:"d",label:"Over 30m",tone:"bad",pool:130}],
+   settles:"Average actual_off − scheduled_off across LAX departures (end of day)",
+   grade:{em:"🦔",word:"VOLATILITY · STEADY",blurb:"Crawls reliably late",tone:"mid"},
+   stats:{avg:"+11m",onTime:"—",tracked:"30d"},
+   history:[{cn:"Schleppfuchs",date:"Wed 11 Jun",route:"LAX avg delay",out:"+8m",tone:"mid"}]},
+
+  {id:"a2",type:"aggregate",code:"ORD",subcode:"cancellations · today",codename:"Sturmkrähe",liveAirport:"KORD",liveMetric:"cancel",pool:1180,comments:78,
+   scope:"🇺🇸 Chicago O'Hare ORD — share of departures cancelled today",
+   status:"warn",delay:"3.1%",risk:48,
+   dist:[10,9,8,8,9,11,12,11,8,6,4,3,2,2,1],marker:8,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:200},{id:"b",label:"1–3%",tone:"mid",pool:340},
+             {id:"c",label:"3–5%",tone:"warn",pool:380},{id:"d",label:"Over 5%",tone:"bad",pool:260}],
+   settles:"FlightAware end-of-day ORD cancellation total (00:00 CT)",
+   grade:{em:"❄️",word:"VOLATILITY · STORMY",blurb:"Weather punishes this hub",tone:"warn"},
+   stats:{avg:"3.4%",onTime:"—",tracked:"30d"},
+   history:[{cn:"Sturmkrähe",date:"Wed 11 Jun",route:"ORD cancellations",out:"2.6%",tone:"mid"}]},
+
+  {id:"a2d",type:"aggregate",code:"ORD",subcode:"avg dep delay · today",codename:"Bremsfink",liveAirport:"KORD",liveMetric:"delay",pool:720,comments:29,
+   scope:"🇺🇸 Chicago O'Hare ORD — average departure delay today",
+   status:"warn",delay:"+22m",risk:55,
+   dist:[6,8,10,12,13,12,11,9,7,5,3,2,1,1,0],marker:7,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:110},{id:"b",label:"5–15m",tone:"mid",pool:220},
+             {id:"c",label:"15–30m",tone:"warn",pool:240},{id:"d",label:"Over 30m",tone:"bad",pool:150}],
+   settles:"Average actual_off − scheduled_off across ORD departures (end of day)",
+   grade:{em:"🦏",word:"VOLATILITY · LUMBERING",blurb:"Routine grind",tone:"warn"},
+   stats:{avg:"+19m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a3",type:"aggregate",code:"JFK",subcode:"cancellations · today",codename:"Hafenadler",liveAirport:"KJFK",liveMetric:"cancel",pool:980,comments:54,
+   scope:"🇺🇸 New York JFK — share of departures cancelled today",
+   status:"mid",delay:"1.6%",risk:32,
+   dist:[14,13,11,10,9,9,8,7,5,4,3,2,2,2,1],marker:5,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:240},{id:"b",label:"1–3%",tone:"mid",pool:380},
+             {id:"c",label:"3–5%",tone:"warn",pool:230},{id:"d",label:"Over 5%",tone:"bad",pool:130}],
+   settles:"FlightAware end-of-day JFK cancellation total (00:00 ET)",
+   grade:{em:"🌧️",word:"VOLATILITY · MODERATE",blurb:"Holds up most days",tone:"mid"},
+   stats:{avg:"1.9%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a3d",type:"aggregate",code:"JFK",subcode:"avg dep delay · today",codename:"Tauchsturmvogel",liveAirport:"KJFK",liveMetric:"delay",pool:560,comments:18,
+   scope:"🇺🇸 New York JFK — average departure delay today",
+   status:"mid",delay:"+14m",risk:40,
+   dist:[10,12,13,13,12,10,8,6,5,4,3,2,1,1,0],marker:5,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:140},{id:"b",label:"5–15m",tone:"mid",pool:230},
+             {id:"c",label:"15–30m",tone:"warn",pool:130},{id:"d",label:"Over 30m",tone:"bad",pool:60}],
+   settles:"Average actual_off − scheduled_off across JFK departures (end of day)",
+   grade:{em:"🦅",word:"VOLATILITY · MODERATE",blurb:"Slips when ATC stretches",tone:"mid"},
+   stats:{avg:"+13m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a4",type:"aggregate",code:"LHR",subcode:"cancellations · today",codename:"Nebelbussard",liveAirport:"EGLL",liveMetric:"cancel",pool:1080,comments:92,
+   scope:"🇬🇧 London Heathrow LHR — share of departures cancelled today",
+   status:"good",delay:"0.7%",risk:18,
+   dist:[22,18,13,9,7,6,5,4,4,4,3,2,1,1,1],marker:2,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:520},{id:"b",label:"1–3%",tone:"mid",pool:310},
+             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:110}],
+   settles:"FlightAware end-of-day LHR cancellation total (00:00 BST)",
+   grade:{em:"🛡️",word:"VOLATILITY · STEADY",blurb:"Famously disciplined",tone:"good"},
+   stats:{avg:"0.9%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a4d",type:"aggregate",code:"LHR",subcode:"avg dep delay · today",codename:"Teekrabbe",liveAirport:"EGLL",liveMetric:"delay",pool:610,comments:24,
+   scope:"🇬🇧 London Heathrow LHR — average departure delay today",
+   status:"mid",delay:"+9m",risk:26,
+   dist:[14,16,15,12,10,8,6,5,4,3,2,2,1,1,1],marker:3,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:200},{id:"b",label:"5–15m",tone:"mid",pool:240},
+             {id:"c",label:"15–30m",tone:"warn",pool:110},{id:"d",label:"Over 30m",tone:"bad",pool:60}],
+   settles:"Average actual_off − scheduled_off across LHR departures (end of day)",
+   grade:{em:"🦦",word:"VOLATILITY · STEADY",blurb:"Polite delays",tone:"mid"},
+   stats:{avg:"+8m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a5",type:"aggregate",code:"FRA",subcode:"cancellations · today",codename:"Bahnhofsfalke",liveAirport:"EDDF",liveMetric:"cancel",pool:740,comments:36,
+   scope:"🇩🇪 Frankfurt FRA — share of departures cancelled today",
+   status:"mid",delay:"1.2%",risk:28,
+   dist:[16,15,12,10,9,8,7,6,5,4,3,2,1,1,1],marker:4,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:230},{id:"b",label:"1–3%",tone:"mid",pool:280},
+             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:90}],
+   settles:"FlightAware end-of-day FRA cancellation total (00:00 CEST)",
+   grade:{em:"⚙️",word:"VOLATILITY · ENGINEERED",blurb:"Predictably mid",tone:"mid"},
+   stats:{avg:"1.3%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a5d",type:"aggregate",code:"FRA",subcode:"avg dep delay · today",codename:"Pünktlichkeitsdrossel",liveAirport:"EDDF",liveMetric:"delay",pool:480,comments:21,
+   scope:"🇩🇪 Frankfurt FRA — average departure delay today",
+   status:"warn",delay:"+18m",risk:46,
+   dist:[8,10,11,12,13,12,11,9,7,4,2,1,0,0,0],marker:6,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:90},{id:"b",label:"5–15m",tone:"mid",pool:170},
+             {id:"c",label:"15–30m",tone:"warn",pool:140},{id:"d",label:"Over 30m",tone:"bad",pool:80}],
+   settles:"Average actual_off − scheduled_off across FRA departures (end of day)",
+   grade:{em:"🐢",word:"VOLATILITY · CREEPING",blurb:"Late by clockwork",tone:"warn"},
+   stats:{avg:"+16m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a6",type:"aggregate",code:"AMS",subcode:"cancellations · today",codename:"Tulpenkormoran",liveAirport:"EHAM",liveMetric:"cancel",pool:680,comments:31,
+   scope:"🇳🇱 Amsterdam Schiphol AMS — share of departures cancelled today",
+   status:"mid",delay:"1.4%",risk:30,
+   dist:[15,14,12,10,9,8,7,6,5,4,3,2,2,2,1],marker:4,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:200},{id:"b",label:"1–3%",tone:"mid",pool:260},
+             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:80}],
+   settles:"FlightAware end-of-day AMS cancellation total (00:00 CEST)",
+   grade:{em:"🌷",word:"VOLATILITY · MODERATE",blurb:"Reliable until it isn't",tone:"mid"},
+   stats:{avg:"1.6%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a6d",type:"aggregate",code:"AMS",subcode:"avg dep delay · today",codename:"Grachtenmöwe",liveAirport:"EHAM",liveMetric:"delay",pool:430,comments:14,
+   scope:"🇳🇱 Amsterdam Schiphol AMS — average departure delay today",
+   status:"mid",delay:"+11m",risk:33,
+   dist:[12,14,13,12,10,8,7,5,4,3,2,1,1,1,1],marker:3,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:130},{id:"b",label:"5–15m",tone:"mid",pool:170},
+             {id:"c",label:"15–30m",tone:"warn",pool:90},{id:"d",label:"Over 30m",tone:"bad",pool:40}],
+   settles:"Average actual_off − scheduled_off across AMS departures (end of day)",
+   grade:{em:"🚲",word:"VOLATILITY · MODERATE",blurb:"Mostly punctual",tone:"mid"},
+   stats:{avg:"+10m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a7",type:"aggregate",code:"CDG",subcode:"cancellations · today",codename:"Streikspatz",liveAirport:"LFPG",liveMetric:"cancel",pool:820,comments:67,
+   scope:"🇫🇷 Paris CDG — share of departures cancelled today",
+   status:"warn",delay:"2.8%",risk:44,
+   dist:[11,11,11,10,10,9,9,8,6,5,4,3,2,1,1],marker:6,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:160},{id:"b",label:"1–3%",tone:"mid",pool:300},
+             {id:"c",label:"3–5%",tone:"warn",pool:240},{id:"d",label:"Over 5%",tone:"bad",pool:120}],
+   settles:"FlightAware end-of-day CDG cancellation total (00:00 CEST)",
+   grade:{em:"🪧",word:"VOLATILITY · UNPREDICTABLE",blurb:"Strikes happen",tone:"warn"},
+   stats:{avg:"2.4%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a7d",type:"aggregate",code:"CDG",subcode:"avg dep delay · today",codename:"Boulevardamsel",liveAirport:"LFPG",liveMetric:"delay",pool:520,comments:25,
+   scope:"🇫🇷 Paris CDG — average departure delay today",
+   status:"warn",delay:"+19m",risk:48,
+   dist:[7,9,11,12,13,12,11,9,7,5,2,1,0,1,0],marker:6,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:80},{id:"b",label:"5–15m",tone:"mid",pool:170},
+             {id:"c",label:"15–30m",tone:"warn",pool:170},{id:"d",label:"Over 30m",tone:"bad",pool:100}],
+   settles:"Average actual_off − scheduled_off across CDG departures (end of day)",
+   grade:{em:"🥐",word:"VOLATILITY · ELEVATED",blurb:"Habitually late",tone:"warn"},
+   stats:{avg:"+17m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a8",type:"aggregate",code:"NRT",subcode:"cancellations · today",codename:"Sakurakrähe",liveAirport:"RJAA",liveMetric:"cancel",pool:540,comments:19,
+   scope:"🇯🇵 Tokyo Narita NRT — share of departures cancelled today",
+   status:"good",delay:"0.4%",risk:12,
+   dist:[26,20,12,7,5,4,4,3,3,3,3,3,2,2,1],marker:1,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:340},{id:"b",label:"1–3%",tone:"mid",pool:140},
+             {id:"c",label:"3–5%",tone:"warn",pool:40},{id:"d",label:"Over 5%",tone:"bad",pool:20}],
+   settles:"FlightAware end-of-day NRT cancellation total (00:00 JST)",
+   grade:{em:"🌸",word:"VOLATILITY · CALM",blurb:"Almost surreal punctuality",tone:"good"},
+   stats:{avg:"0.5%",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"a8d",type:"aggregate",code:"NRT",subcode:"avg dep delay · today",codename:"Bambusreiher",liveAirport:"RJAA",liveMetric:"delay",pool:380,comments:11,
+   scope:"🇯🇵 Tokyo Narita NRT — average departure delay today",
+   status:"good",delay:"+3m",risk:9,
+   dist:[28,18,11,7,5,4,4,4,4,4,3,3,2,2,1],marker:1,
+   axis:["0m","15m","30m","45m","60m"],
+   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:240},{id:"b",label:"5–15m",tone:"mid",pool:90},
+             {id:"c",label:"15–30m",tone:"warn",pool:30},{id:"d",label:"Over 30m",tone:"bad",pool:20}],
+   settles:"Average actual_off − scheduled_off across NRT departures (end of day)",
+   grade:{em:"⏱️",word:"VOLATILITY · CALM",blurb:"Watches set by it",tone:"good"},
+   stats:{avg:"+3m",onTime:"—",tracked:"30d"},history:[]},
+
+  {id:"hub-vs",type:"aggregate",code:"WORST HUB",subcode:"head-to-head · today",codename:"Schadenfreudfink",
+   liveAirports:["KLAX","KORD","KJFK","EGLL","EDDF","EHAM","LFPG","RJAA"],liveMetric:"worst-hub",pool:2140,comments:184,
+   scope:"🌐 Which global hub has the worst cancellation rate today?",
+   status:"warn",delay:"ORD leads · 3.1%",risk:50,
+   dist:[3,4,6,8,11,14,15,12,9,6,4,3,2,2,1],marker:6,
+   axis:["0%","2%","4%","6%","8%"],
+   outcomes:[
+     {id:"lax",label:"LAX",liveAirport:"KLAX",tone:"warn",pool:280},
+     {id:"ord",label:"ORD",liveAirport:"KORD",tone:"bad",pool:430},
+     {id:"jfk",label:"JFK",liveAirport:"KJFK",tone:"mid",pool:240},
+     {id:"lhr",label:"LHR",liveAirport:"EGLL",tone:"good",pool:160},
+     {id:"fra",label:"FRA",liveAirport:"EDDF",tone:"mid",pool:200},
+     {id:"ams",label:"AMS",liveAirport:"EHAM",tone:"mid",pool:210},
+     {id:"cdg",label:"CDG",liveAirport:"LFPG",tone:"warn",pool:380},
+     {id:"nrt",label:"NRT",liveAirport:"RJAA",tone:"good",pool:240},
+   ],
+   settles:"Airport with the highest end-of-day cancellation share across the 8 listed hubs",
+   grade:{em:"🏆",word:"FORMAT · HEAD-TO-HEAD",blurb:"The pile-up Olympics",tone:"warn"},
+   stats:{avg:"—",onTime:"—",tracked:"daily"},history:[]},
 
   {id:"d1",type:"daily",code:"DAILY",question:"Does LAX clear 85% on-time today?",
    yesterday:"Yesterday: 81%.",closes:"14h 26m",bonus:"1.8× early bonus",
@@ -528,6 +742,7 @@ function Detail({m,total,back,...bet}){
  * ---------------------------------------------------------------- */
 function useLiveData(markets){
   const [live, setLive] = useState({});
+  const [airportSnapshots, setAirportSnapshots] = useState({}); // {KLAX: {cancelSharePct, avgDelayMin, asOf}}
   const [status, setStatus] = useState(CONFIG.API_BASE ? "connecting" : "demo");
   const [lastUpdate, setLastUpdate] = useState(null);
 
@@ -536,49 +751,93 @@ function useLiveData(markets){
 
     let cancelled = false;
     async function tick(){
-      const updates = {};
+      // 1) Unique airports used across all markets (including 'worst-hub' lists)
+      const airportSet = new Set();
+      markets.forEach(m => {
+        if (m.liveAirport) airportSet.add(m.liveAirport);
+        if (Array.isArray(m.liveAirports)) m.liveAirports.forEach(a => airportSet.add(a));
+      });
+
+      const snaps = {};
       let anyOk = false, anyErr = false;
+
+      // Batch all airport fetches in parallel
+      await Promise.all([...airportSet].map(async code => {
+        try {
+          const r = await fetch(`${CONFIG.API_BASE}/api/airport?code=${encodeURIComponent(code)}`);
+          if (!r.ok) throw new Error(r.status);
+          const d = await r.json();
+          snaps[code] = {
+            cancelSharePct: d.departures.cancelSharePct,
+            avgDelayMin:    d.departures.avgDelayMin,
+            sampleSize:     d.departures.sampleSize,
+            asOf:           d.asOf,
+          };
+          anyOk = true;
+        } catch (e) { anyErr = true; }
+      }));
+
+      // 2) Per-market derived display overrides
+      const updates = {};
       await Promise.all(markets.map(async m => {
         try {
           if (m.liveIdent){
             const r = await fetch(`${CONFIG.API_BASE}/api/flight?ident=${encodeURIComponent(m.liveIdent)}`);
             if (!r.ok) throw new Error(r.status);
             const d = await r.json();
-            // Re-derive the display fields the card uses, leaving pools/outcomes alone.
             const sched = d.scheduledArr ? new Date(d.scheduledArr) : null;
             const actual = d.actualArr ? new Date(d.actualArr) : null;
             const fmtT = t => t ? t.toISOString().slice(11,16) : null;
             const delayMin = d.delayMin;
-            const status = d.cancelled ? "bad"
-                         : delayMin == null ? m.status
-                         : delayMin >= 60 ? "bad"
-                         : delayMin >= 30 ? "warn"
-                         : delayMin >= 10 ? "mid"
-                         : "good";
+            const st = d.cancelled ? "bad"
+                     : delayMin == null ? m.status
+                     : delayMin >= 60 ? "bad"
+                     : delayMin >= 30 ? "warn"
+                     : delayMin >= 10 ? "mid"
+                     : "good";
             updates[m.id] = {
               schedArr: fmtT(sched) || m.schedArr,
               actualArr: fmtT(actual) || m.actualArr,
               delay: d.cancelled ? "CANCELLED" : (delayMin == null ? m.delay : (delayMin >= 0 ? "+" : "") + delayMin + "m"),
-              status,
+              status: st,
               liveFresh: d.asOf,
             };
             anyOk = true;
           } else if (m.liveAirport){
-            const r = await fetch(`${CONFIG.API_BASE}/api/airport?code=${encodeURIComponent(m.liveAirport)}`);
-            if (!r.ok) throw new Error(r.status);
-            const d = await r.json();
-            const pct = d.departures.cancelSharePct;
-            const status = pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
-            updates[m.id] = {
-              delay: pct.toFixed(1) + "%",
-              status,
-              liveFresh: d.asOf,
-            };
-            anyOk = true;
+            const snap = snaps[m.liveAirport];
+            if (!snap) return;
+            if (m.liveMetric === "delay"){
+              const v = snap.avgDelayMin;
+              if (v == null) return;
+              const st = v >= 30 ? "bad" : v >= 15 ? "warn" : v >= 5 ? "mid" : "good";
+              updates[m.id] = { delay: (v>=0?"+":"") + v + "m", status: st, liveFresh: snap.asOf };
+            } else { // default: cancel share
+              const pct = snap.cancelSharePct;
+              const st = pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
+              updates[m.id] = { delay: pct.toFixed(1) + "%", status: st, liveFresh: snap.asOf };
+            }
+          } else if (m.liveAirports && m.liveMetric === "worst-hub"){
+            // Map each outcome's airport code to its live cancellation share,
+            // then re-rank: outcome tone good=lowest, bad=highest. Display
+            // shows the current leader.
+            const ranked = m.outcomes
+              .map(o => ({ o, v: snaps[o.liveAirport]?.cancelSharePct ?? null }))
+              .filter(x => x.v != null)
+              .sort((a,b) => b.v - a.v);
+            if (ranked.length){
+              const leader = ranked[0];
+              updates[m.id] = {
+                delay: leader.o.label.split(" ")[0] + " · " + leader.v.toFixed(1) + "%",
+                status: leader.v >= 3 ? "bad" : leader.v >= 1 ? "warn" : "good",
+                liveFresh: new Date().toISOString(),
+              };
+            }
           }
         } catch (e) { anyErr = true; }
       }));
+
       if (cancelled) return;
+      setAirportSnapshots(snaps);
       setLive(updates);
       setLastUpdate(Date.now());
       setStatus(anyOk ? "live" : (anyErr ? "offline" : "demo"));
@@ -588,12 +847,96 @@ function useLiveData(markets){
     return () => { cancelled = true; clearInterval(h); };
   }, [markets.length]); // re-tick when the market set changes
 
-  return { live, status, lastUpdate };
+  return { live, airportSnapshots, status, lastUpdate };
+}
+
+/* ----------------------------------------------------------------
+ * AirportsPage — the dedicated Airports tab. Top: sortable directory
+ * of the 8 hubs we cover, with live cancellation share / avg delay.
+ * Bottom: the aggregate market cards filtered to airports.
+ * ---------------------------------------------------------------- */
+const AIRPORTS = [
+  { code:"LAX", icao:"KLAX", flag:"🇺🇸", name:"Los Angeles",     city:"Los Angeles",     tz:"PT" },
+  { code:"ORD", icao:"KORD", flag:"🇺🇸", name:"Chicago O'Hare",   city:"Chicago",         tz:"CT" },
+  { code:"JFK", icao:"KJFK", flag:"🇺🇸", name:"New York JFK",     city:"New York",        tz:"ET" },
+  { code:"LHR", icao:"EGLL", flag:"🇬🇧", name:"London Heathrow",  city:"London",          tz:"BST" },
+  { code:"FRA", icao:"EDDF", flag:"🇩🇪", name:"Frankfurt",        city:"Frankfurt",       tz:"CEST" },
+  { code:"AMS", icao:"EHAM", flag:"🇳🇱", name:"Amsterdam",        city:"Amsterdam",       tz:"CEST" },
+  { code:"CDG", icao:"LFPG", flag:"🇫🇷", name:"Paris CDG",        city:"Paris",           tz:"CEST" },
+  { code:"NRT", icao:"RJAA", flag:"🇯🇵", name:"Tokyo Narita",     city:"Tokyo",           tz:"JST" },
+];
+
+function AirportsPage({ markets, total, betProps, airportSnapshots, openDetail }){
+  const [sort, setSort] = useState("worst"); // "worst" | "best" | "delay" | "az"
+
+  const rows = AIRPORTS.map(a => {
+    const snap = airportSnapshots?.[a.icao] || {};
+    return { ...a, cancel: snap.cancelSharePct ?? null, delay: snap.avgDelayMin ?? null };
+  });
+
+  const sorted = [...rows].sort((x, y) => {
+    if (sort === "az")    return x.code.localeCompare(y.code);
+    if (sort === "delay") return (y.delay ?? -Infinity) - (x.delay ?? -Infinity);
+    if (sort === "best")  return (x.cancel ?? Infinity)  - (y.cancel ?? Infinity);
+    /* worst */            return (y.cancel ?? -Infinity) - (x.cancel ?? -Infinity);
+  });
+
+  const airportMarkets = markets.filter(m => m.liveAirport || m.liveAirports);
+
+  const toneFor = (pct) => pct == null ? "muted" : pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
+  const toneForDelay = (mn) => mn == null ? "muted" : mn >= 30 ? "bad" : mn >= 15 ? "warn" : mn >= 5 ? "mid" : "good";
+
+  return <div>
+    <div className="airports-hero">
+      <div>
+        <div className="apsuper">8 hubs · global</div>
+        <div className="aphead">Airports</div>
+        <div className="apsub">Cancellation share and average departure delay, live from FlightAware. Tap a row to jump to that hub's markets.</div>
+      </div>
+    </div>
+
+    <div className="sortbar">
+      {[["worst","Worst today"],["best","Best today"],["delay","Most delayed"],["az","A–Z"]].map(([k,l]) =>
+        <button key={k} className={"sortpill"+(sort===k?" on":"")} onClick={()=>setSort(k)}>{l}</button>)}
+    </div>
+
+    <div className="aplist">
+      {sorted.map(a => {
+        const cTone = toneFor(a.cancel);
+        const dTone = toneForDelay(a.delay);
+        return <div key={a.code} className="aprow" onClick={()=>{
+          // Open the cancellation market for this airport if it exists
+          const m = markets.find(x => x.liveAirport === a.icao && x.liveMetric !== "delay");
+          if (m) openDetail(m.id);
+        }}>
+          <span className="apflag">{a.flag}</span>
+          <div className="apnames">
+            <div className="apcode">{a.code}</div>
+            <div className="apname">{a.name}</div>
+          </div>
+          <div className="apstat">
+            <div className="aplbl">Cancel</div>
+            <div className={"apval val-"+cTone}>{a.cancel == null ? "—" : a.cancel.toFixed(1)+"%"}</div>
+          </div>
+          <div className="apstat">
+            <div className="aplbl">Avg delay</div>
+            <div className={"apval val-"+dTone}>{a.delay == null ? "—" : (a.delay>=0?"+":"")+Math.round(a.delay)+"m"}</div>
+          </div>
+          <div className="apchev">›</div>
+        </div>;
+      })}
+    </div>
+
+    <div className="sectlbl" style={{margin:"24px 2px 12px"}}>Airport markets · open</div>
+    <div className="grid">
+      {airportMarkets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={openDetail} {...betProps}/>)}
+    </div>
+  </div>;
 }
 
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
-  const [markets,setMarkets]=useState(()=>store.get("fb_m2",SEED));
+  const [markets,setMarkets]=useState(()=>store.get("fb_m3",SEED));
   const [wallet,setWallet]=useState(()=>store.get("fb_w2",925));
   const [positions,setPositions]=useState(()=>store.get("fb_p2",{}));
   const [view,setView]=useState({page:"home"});
@@ -605,7 +948,7 @@ function App(){
   const [tab,setTab]=useState("flights");
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
-  useEffect(()=>store.set("fb_m2",markets),[markets]);
+  useEffect(()=>store.set("fb_m3",markets),[markets]);
   useEffect(()=>store.set("fb_w2",wallet),[wallet]);
   useEffect(()=>store.set("fb_p2",positions),[positions]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -614,7 +957,7 @@ function App(){
 
   // Merge live data overrides on top of seeded markets for display only —
   // pools/outcomes/grades stay sourced from local state.
-  const { live, status: dataStatus, lastUpdate } = useLiveData(markets);
+  const { live, airportSnapshots, status: dataStatus, lastUpdate } = useLiveData(markets);
   const displayMarkets = markets.map(m => live[m.id] ? { ...m, ...live[m.id] } : m);
   const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
                  : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
@@ -669,14 +1012,17 @@ function App(){
       <div className="grid">
         {displayMarkets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
       </div>
-    </> : detailMarket ? (
+    </> : view.page==="airports" ? (
+      <AirportsPage markets={displayMarkets} total={total} betProps={betProps} airportSnapshots={airportSnapshots}
+        openDetail={id=>setView({page:"detail",id})}/>
+    ) : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
 
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flights</button>
-      <button className={"navi"+(tab==="airports"?" on":"")} onClick={()=>setTab("airports")}><span className="ni">🏢</span>Airports</button>
-      <button className="fab" onClick={()=>setView({page:"home"})}>⚡</button>
+      <button className={"navi"+(tab==="airports"?" on":"")} onClick={()=>{setTab("airports");setView({page:"airports"})}}><span className="ni">🏢</span>Airports</button>
+      <button className="fab" onClick={()=>{setTab("flights");setView({page:"home"})}}>⚡</button>
       <button className={"navi"+(tab==="live"?" on":"")} onClick={()=>setTab("live")}><span className="ni">📡</span>Live</button>
       <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setOps(v=>v)}}><span className="ni">🏆</span>Ranking</button>
     </div>
