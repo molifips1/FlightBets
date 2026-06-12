@@ -268,7 +268,8 @@ const {useState,useEffect,useRef} = React;
  * ---------------------------------------------------------------- */
 const CONFIG = {
   API_BASE: "https://flightbet-proxy.apetersen280.workers.dev",
-  REFRESH_MS: 60 * 1000,        // how often to repoll the worker per visible card
+  REFRESH_FLIGHTS_MS:  5 * 60 * 1000,  // 5 min — matches worker cache; flight status moves
+  REFRESH_AIRPORTS_MS: 15 * 60 * 1000, // 15 min — matches worker cache; cancel share is slow
 };
 
 const RAKE=0.05;
@@ -875,9 +876,12 @@ function useLiveData(markets){
       setStatus(anyOk ? "live" : (anyErr ? "offline" : "demo"));
     }
     tick();
-    const h = setInterval(tick, CONFIG.REFRESH_MS);
+    // Poll on the slower cadence (airports). Worker edge cache makes individual
+    // flight calls cheap inside this window, and 15-min freshness is plenty for
+    // a play-money MVP. Tighten REFRESH_AIRPORTS_MS later if you want.
+    const h = setInterval(tick, CONFIG.REFRESH_AIRPORTS_MS);
     return () => { cancelled = true; clearInterval(h); };
-  }, [markets.length]); // re-tick when the market set changes
+  }, [markets.length]);
 
   return { live, airportSnapshots, status, lastUpdate };
 }
@@ -1041,7 +1045,17 @@ function App(){
 
   // Merge live data overrides on top of seeded markets for display only —
   // pools/outcomes/grades stay sourced from local state.
-  const { live, airportSnapshots, status: dataStatus, lastUpdate } = useLiveData(markets);
+  // Only fetch live data for what's actually visible. If the user is on the
+  // Flights tab, don't waste AeroAPI calls polling all 8 airports. If they're
+  // on Airports, skip flight calls. Detail view: just that one market.
+  const visibleMarkets = view.page === "airports"
+    ? markets.filter(m => m.liveAirport || m.liveAirports)
+    : view.page === "daily"
+    ? [] // daily questions are seeded, no live data needed
+    : view.page === "detail"
+    ? markets.filter(m => m.id === view.id)
+    : markets.filter(m => m.type === "flight"); // home / Flights tab
+  const { live, airportSnapshots, status: dataStatus, lastUpdate } = useLiveData(visibleMarkets);
   const displayMarkets = markets.map(m => live[m.id] ? { ...m, ...live[m.id] } : m);
   const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
                  : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
