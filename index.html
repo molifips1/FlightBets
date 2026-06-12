@@ -215,6 +215,18 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef} = React;
+
+/* ----------------------------------------------------------------
+ * CONFIG — point this at your deployed Cloudflare Worker to enable
+ * live data. Leave API_BASE empty for seeded demo mode (also the
+ * graceful fallback if the worker is down).
+ * See worker/README.md for the 5-minute deploy.
+ * ---------------------------------------------------------------- */
+const CONFIG = {
+  API_BASE: "",                 // e.g. "https://flightbet-proxy.YOUR-SUBDOMAIN.workers.dev"
+  REFRESH_MS: 60 * 1000,        // how often to repoll the worker per visible card
+};
+
 const RAKE=0.05;
 const fmt=n=>Math.round(n).toLocaleString("en-US");
 const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)"};
@@ -271,7 +283,7 @@ function Breakdown({m,total}){
 }
 
 const SEED=[
-  {id:"f1",type:"flight",code:"AA 100",subcode:"American",codename:"Sturmschwalbe",pool:1466,comments:212,
+  {id:"f1",type:"flight",code:"AA 100",subcode:"American",codename:"Sturmschwalbe",liveIdent:"AAL100",pool:1466,comments:212,
    from:{cc:"US",flag:"🇺🇸",name:"New York JFK",dep:"18:30"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
    stops:0,schedArr:"06:25",actualArr:"08:09",status:"bad",delay:"+104m",risk:44,
    dist:[9,7,4,3,3,4,6,9,13,16,18,17,13,8,4],marker:11,
@@ -285,7 +297,7 @@ const SEED=[
             {cn:"Nebelreiher",date:"Tue 10 Jun · 18:30",route:"JFK → LHR",out:"Delayed",tone:"warn"},
             {cn:"Sturmschwalbe",date:"Mon 09 Jun · 18:30",route:"JFK → LHR",out:"On time",tone:"good"}]},
 
-  {id:"f2",type:"flight",code:"UA 628",subcode:"United",codename:"Nebelkojote",pool:903,comments:64,
+  {id:"f2",type:"flight",code:"UA 628",subcode:"United",codename:"Nebelkojote",liveIdent:"UAL628",pool:903,comments:64,
    from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"07:05"},to:{cc:"US",flag:"🇺🇸",name:"Newark EWR"},
    stops:0,schedArr:"15:40",actualArr:"15:54",status:"mid",delay:"+14m",risk:31,
    dist:[5,11,18,16,10,6,5,5,6,7,6,4,3,2,2],marker:3,
@@ -298,7 +310,7 @@ const SEED=[
    history:[{cn:"Nebelkojote",date:"Wed 11 Jun · 07:05",route:"SFO → EWR",out:"Slight delay",tone:"mid"},
             {cn:"Tagfalke",date:"Tue 10 Jun · 07:05",route:"SFO → EWR",out:"On time",tone:"good"}]},
 
-  {id:"f3",type:"flight",code:"BA 286",subcode:"British A.",codename:"Teekiebitz",pool:691,comments:35,
+  {id:"f3",type:"flight",code:"BA 286",subcode:"British A.",codename:"Teekiebitz",liveIdent:"BAW286",pool:691,comments:35,
    from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"16:25"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
    stops:0,schedArr:"10:45",actualArr:"10:48",status:"good",delay:"+3m",risk:12,
    dist:[20,16,9,4,3,2,2,2,2,2,3,2,2,2,2],marker:1,
@@ -311,7 +323,7 @@ const SEED=[
    history:[{cn:"Teekiebitz",date:"Wed 11 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"},
             {cn:"Sternspecht",date:"Tue 10 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"}]},
 
-  {id:"a1",type:"aggregate",code:"LAX",subcode:"all departures · today",codename:"Chaosfink",pool:1320,comments:103,
+  {id:"a1",type:"aggregate",code:"LAX",subcode:"all departures · today",codename:"Chaosfink",liveAirport:"KLAX",pool:1320,comments:103,
    scope:"🇺🇸 Los Angeles LAX — share of departures cancelled today",
    status:"warn",delay:"2.4%",risk:38,
    dist:[14,12,9,7,6,7,9,11,9,6,4,3,2,2,2],marker:7,
@@ -505,6 +517,80 @@ function Detail({m,total,back,...bet}){
   </div>;
 }
 
+/* ----------------------------------------------------------------
+ * useLiveData — polls the proxy worker for each market that has a
+ * liveIdent (flight) or liveAirport (aggregate). Returns:
+ *   { live: { [marketId]: {...partial market overrides...} },
+ *     status: "live" | "demo" | "offline",
+ *     lastUpdate: epoch-ms }
+ * Falls back silently to demo mode if API_BASE is empty or the
+ * worker errors — the seeded values remain visible.
+ * ---------------------------------------------------------------- */
+function useLiveData(markets){
+  const [live, setLive] = useState({});
+  const [status, setStatus] = useState(CONFIG.API_BASE ? "connecting" : "demo");
+  const [lastUpdate, setLastUpdate] = useState(null);
+
+  useEffect(() => {
+    if (!CONFIG.API_BASE) { setStatus("demo"); return; }
+
+    let cancelled = false;
+    async function tick(){
+      const updates = {};
+      let anyOk = false, anyErr = false;
+      await Promise.all(markets.map(async m => {
+        try {
+          if (m.liveIdent){
+            const r = await fetch(`${CONFIG.API_BASE}/api/flight?ident=${encodeURIComponent(m.liveIdent)}`);
+            if (!r.ok) throw new Error(r.status);
+            const d = await r.json();
+            // Re-derive the display fields the card uses, leaving pools/outcomes alone.
+            const sched = d.scheduledArr ? new Date(d.scheduledArr) : null;
+            const actual = d.actualArr ? new Date(d.actualArr) : null;
+            const fmtT = t => t ? t.toISOString().slice(11,16) : null;
+            const delayMin = d.delayMin;
+            const status = d.cancelled ? "bad"
+                         : delayMin == null ? m.status
+                         : delayMin >= 60 ? "bad"
+                         : delayMin >= 30 ? "warn"
+                         : delayMin >= 10 ? "mid"
+                         : "good";
+            updates[m.id] = {
+              schedArr: fmtT(sched) || m.schedArr,
+              actualArr: fmtT(actual) || m.actualArr,
+              delay: d.cancelled ? "CANCELLED" : (delayMin == null ? m.delay : (delayMin >= 0 ? "+" : "") + delayMin + "m"),
+              status,
+              liveFresh: d.asOf,
+            };
+            anyOk = true;
+          } else if (m.liveAirport){
+            const r = await fetch(`${CONFIG.API_BASE}/api/airport?code=${encodeURIComponent(m.liveAirport)}`);
+            if (!r.ok) throw new Error(r.status);
+            const d = await r.json();
+            const pct = d.departures.cancelSharePct;
+            const status = pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
+            updates[m.id] = {
+              delay: pct.toFixed(1) + "%",
+              status,
+              liveFresh: d.asOf,
+            };
+            anyOk = true;
+          }
+        } catch (e) { anyErr = true; }
+      }));
+      if (cancelled) return;
+      setLive(updates);
+      setLastUpdate(Date.now());
+      setStatus(anyOk ? "live" : (anyErr ? "offline" : "demo"));
+    }
+    tick();
+    const h = setInterval(tick, CONFIG.REFRESH_MS);
+    return () => { cancelled = true; clearInterval(h); };
+  }, [markets.length]); // re-tick when the market set changes
+
+  return { live, status, lastUpdate };
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets,setMarkets]=useState(()=>store.get("fb_m2",SEED));
@@ -526,6 +612,15 @@ function App(){
 
   const total=m=>m.outcomes.reduce((s,o)=>s+o.pool,0);
 
+  // Merge live data overrides on top of seeded markets for display only —
+  // pools/outcomes/grades stay sourced from local state.
+  const { live, status: dataStatus, lastUpdate } = useLiveData(markets);
+  const displayMarkets = markets.map(m => live[m.id] ? { ...m, ...live[m.id] } : m);
+  const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
+                 : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
+                 : dataStatus === "offline" ? { t:"OFFLINE", bg:"var(--bad)",  fg:"#fff" }
+                 :                            { t:"…",       bg:"var(--card2)", fg:"var(--muted)" };
+
   function onBet(m,o){
     if(stake<=0||stake>wallet)return;
     setWallet(w=>w-stake);
@@ -543,13 +638,17 @@ function App(){
   function reset(){store.clear();setMarkets(SEED);setWallet(925);setPositions({});setView({page:"home"});setToast("New season — balance restored")}
 
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions};
-  const detailMarket=view.page==="detail"?markets.find(m=>m.id===view.id):null;
+  const detailMarket=view.page==="detail"?displayMarkets.find(m=>m.id===view.id):null;
 
   return <div className="app">
     <div className="top">
       <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>flight<span className="pin">.</span>bet</div>
       <div className="topr">
         <button className="iconbtn" onClick={()=>setTheme(t=>t==="light"?"dark":"light")}>{theme==="light"?"🌙":"☀️"}</button>
+        <span className="chip" title={lastUpdate?`Last update ${new Date(lastUpdate).toLocaleTimeString()}`:"No data yet"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
+          <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
+          {dataPill.t}
+        </span>
         <span className="chip">🎟 49</span>
         <span className="chip bal">✦ {fmt(wallet)}</span>
         <button className="avatar"/>
@@ -568,7 +667,7 @@ function App(){
       </div>
 
       <div className="grid">
-        {markets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+        {displayMarkets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
       </div>
     </> : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
