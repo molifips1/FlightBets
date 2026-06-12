@@ -30,7 +30,9 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink)}
-body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
+  background:linear-gradient(180deg,#E9F0F8 0%,var(--bg) 420px) fixed}
+[data-theme="dark"] body{background:linear-gradient(180deg,#0C1626 0%,var(--bg) 420px) fixed}
 .mono{font-family:'IBM Plex Mono',monospace}
 .disp{font-family:Archivo,system-ui,sans-serif}
 button{font-family:inherit}
@@ -42,7 +44,8 @@ button{font-family:inherit}
   padding:16px 2px;border-bottom:1px solid var(--line)}
 .wm{font-family:Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:7px;cursor:pointer}
 .wm .pin{color:var(--hot)}
-.wm .plane{font-size:17px;transform:translateY(-1px)}
+.wm .plane{font-size:17px;transform:translateY(-1px);display:inline-block;transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.wm:hover .plane{transform:translate(4px,-5px) rotate(-12deg)}
 .topr{display:flex;align-items:center;gap:10px}
 .iconbtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card);
   display:grid;place-items:center;cursor:pointer;color:var(--ink);font-size:16px}
@@ -53,17 +56,21 @@ button{font-family:inherit}
 .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--hot));border:none;cursor:pointer}
 
 /* ticker */
-.ticker{margin-top:12px;background:var(--ink);border-radius:13px;overflow:hidden;position:relative;height:42px;display:flex;align-items:center}
-[data-theme="dark"] .ticker{background:#060B13}
-.ticker-track{display:flex;gap:34px;white-space:nowrap;animation:scroll 38s linear infinite;padding-left:18px}
+.ticker{margin-top:12px;background:#0B1118;border:1px solid #1B2737;border-radius:10px;overflow:hidden;position:relative;height:42px;display:flex;align-items:center}
+[data-theme="dark"] .ticker{background:#060B13;border-color:#16233a}
+.ticker::before{content:"DEPARTURES";position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;
+  padding:0 12px;background:#0B1118;border-right:1px solid #1B2737;color:#5d6f85;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:2px}
+.ticker-track{display:flex;gap:34px;white-space:nowrap;animation:scroll 38s linear infinite;padding-left:118px}
 .ticker:hover .ticker-track{animation-play-state:paused}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.tk{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#9fb2c9;display:flex;align-items:center;gap:8px}
-.tk b{color:#fff;font-weight:500}.tk .win{color:#46d39a;font-weight:600}
+.tk{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#F2B441;display:flex;align-items:center;gap:8px;text-shadow:0 0 6px rgba(242,180,65,.25)}
+.tk b{color:#FFD98C;font-weight:500}.tk .win{color:#46d39a;font-weight:600;text-shadow:0 0 6px rgba(70,211,154,.3)}
 
 /* controls */
 .controls{display:flex;gap:10px;margin:16px 0 18px}
-.search{flex:1;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:0 14px}
+.search{flex:1;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:0 14px;transition:border-color .15s,box-shadow .15s}
+.search:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent)}
 .search input{flex:1;border:none;outline:none;background:none;font-size:15px;color:var(--ink);padding:13px 0;font-family:inherit}
 .search input::placeholder{color:var(--muted)}
 .sel,.filter{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:0 14px;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink)}
@@ -72,10 +79,10 @@ button{font-family:inherit}
 .grid{columns:3;column-gap:16px}
 @media(max-width:980px){.grid{columns:2}}
 @media(max-width:660px){.grid{columns:1}}
-.card{break-inside:avoid;background:var(--card);border:1px solid var(--line);border-radius:18px;
-  padding:17px;margin-bottom:16px;box-shadow:var(--shadow);transition:transform .14s ease,box-shadow .14s}
+.card{break-inside:avoid;position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:17px;margin-bottom:16px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
 .card.click{cursor:pointer}
-.card.click:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(14,42,71,.08),0 16px 40px rgba(14,42,71,.07)}
+.card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
 
 .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .codeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -120,12 +127,25 @@ button{font-family:inherit}
 .bk b{color:var(--ink);font-weight:600}
 
 /* footer */
-.cfoot{display:flex;align-items:center;gap:8px;margin-top:15px}
+/* footer — the boarding-pass stub. Dashed perforation + punched side
+   notches, so betting reads as "tearing off the stub". */
+.cfoot{display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:14px;
+  border-top:1.5px dashed var(--line);position:relative}
+.cfoot::before,.cfoot::after{content:"";position:absolute;top:-10px;width:20px;height:20px;border-radius:50%;
+  background:var(--bg);box-shadow:inset 0 0 0 1px var(--line)}
+.cfoot::before{left:-28px}
+.cfoot::after{right:-28px}
+.barcode{flex:0 0 56px;height:24px;opacity:.30;align-self:center;
+  background:
+    repeating-linear-gradient(90deg,currentColor 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,currentColor 0 2px,transparent 2px 7px)}
+[data-theme="dark"] .barcode{opacity:.4}
 .ico{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--card2);
   display:grid;place-items:center;cursor:pointer;font-size:15px;color:var(--ink)}
 .ico.boost{background:var(--ink);color:#fff;border-color:var(--ink)}
-.betbtn{margin-left:auto;border:none;cursor:pointer;font-weight:700;font-size:15px;background:var(--brand);color:var(--brandink);
-  border-radius:12px;padding:11px 26px;transition:filter .15s,transform .1s}
+.betbtn{margin-left:auto;border:none;cursor:pointer;font-weight:700;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;background:var(--brand);color:var(--brandink);
+  border-radius:10px;padding:12px 24px;transition:filter .15s,transform .1s}
 .betbtn:hover{filter:brightness(1.08)}.betbtn:active{transform:scale(.98)}
 .betbtn.ghost{background:var(--card2);color:var(--brand);border:1px solid var(--line)}
 .betbtn:disabled{background:var(--line);color:var(--muted);cursor:default}
@@ -218,9 +238,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sortpill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 [data-theme="dark"] .sortpill.on{background:var(--brand);border-color:var(--brand)}
 .aplist{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
-.aprow{display:grid;grid-template-columns:38px 1fr 110px 110px 24px;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .12s}
+.aprow{display:grid;grid-template-columns:38px 1fr 110px 110px 24px;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line2);cursor:pointer;transition:background .12s,padding-left .15s ease}
 .aprow:last-child{border-bottom:none}
-.aprow:hover{background:var(--card2)}
+.aprow:hover{background:var(--card2);padding-left:22px}
+.aprow:hover .apchev{color:var(--brand);transform:translateX(2px)}
+.apchev{color:var(--muted);font-size:22px;text-align:right;transition:color .15s,transform .15s}
 .apflag{font-size:22px}
 .apnames .apcode{font-family:Archivo;font-weight:800;font-size:18px;letter-spacing:-.3px}
 .apnames .apname{color:var(--muted);font-size:12.5px;margin-top:1px}
@@ -228,7 +250,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .apstat .aplbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
 .apstat .apval{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;margin-top:2px}
 .val-good{color:var(--good)}.val-mid{color:var(--mid)}.val-warn{color:var(--warn)}.val-bad{color:var(--bad)}.val-muted{color:var(--muted)}
-.apchev{color:var(--muted);font-size:22px;text-align:right}
 @media(max-width:660px){
   .aprow{grid-template-columns:32px 1fr 78px 78px 18px;padding:13px 12px}
   .apnames .apcode{font-size:16px}.apstat .apval{font-size:13px}
@@ -248,7 +269,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .dh-opt:active{transform:scale(.98)}
 .dh-l{font-weight:600;font-size:14px}
 .dh-p{font-family:Archivo;font-weight:800;font-size:20px}
-.dh-place{background:#fff;color:var(--ink);border:none;border-radius:11px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;position:relative;z-index:1;transition:transform .1s}
+.dh-place{background:#fff;color:var(--ink);border:none;border-radius:10px;padding:13px 24px;font-weight:700;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;cursor:pointer;position:relative;z-index:1;transition:transform .1s}
 .dh-place:hover{transform:translateY(-1px)}
 </style>
 </head>
@@ -665,6 +686,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <div className="cfoot" onClick={e=>e.stopPropagation()}>
         <button className="ico" title="Share">↗</button>
         <button className="ico boost" title="Boost">⚡</button>
+        <span className="barcode" aria-hidden="true"/>
         <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Close":"Bet"}</button>
       </div>
 
