@@ -233,6 +233,23 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .aprow{grid-template-columns:32px 1fr 78px 78px 18px;padding:13px 12px}
   .apnames .apcode{font-size:16px}.apstat .apval{font-size:13px}
 }
+
+/* daily hero */
+.daily-hero{background:linear-gradient(135deg,var(--ink),var(--brand));color:#fff;border-radius:20px;padding:24px;box-shadow:0 12px 40px rgba(14,42,71,.18);position:relative;overflow:hidden}
+[data-theme="dark"] .daily-hero{background:linear-gradient(135deg,#0F1825,var(--brand))}
+.daily-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 70%)}
+.dh-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#FFD18A;margin-bottom:10px;position:relative;z-index:1}
+.dh-q{font-family:Archivo;font-weight:800;font-size:26px;line-height:1.2;letter-spacing:-.4px;margin-bottom:12px;position:relative;z-index:1}
+.dh-meta{display:flex;gap:18px;align-items:center;font-size:13px;opacity:.85;margin-bottom:18px;position:relative;z-index:1;flex-wrap:wrap}
+.dh-bonus{color:#FFD18A;font-weight:600;opacity:1}
+.dh-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;position:relative;z-index:1}
+.dh-opt{flex:1 1 140px;text-align:left;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:11px;padding:13px 14px;cursor:pointer;color:#fff;font-family:inherit;display:flex;justify-content:space-between;align-items:baseline;transition:background .15s,transform .1s}
+.dh-opt:hover{background:rgba(255,255,255,.18)}
+.dh-opt:active{transform:scale(.98)}
+.dh-l{font-weight:600;font-size:14px}
+.dh-p{font-family:Archivo;font-weight:800;font-size:20px}
+.dh-place{background:#fff;color:var(--ink);border:none;border-radius:11px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;position:relative;z-index:1;transition:transform .1s}
+.dh-place:hover{transform:translateY(-1px)}
 </style>
 </head>
 <body>
@@ -554,6 +571,21 @@ const SEED=[
    yesterday:"Yesterday: 81%.",closes:"14h 26m",bonus:"1.8× early bonus",
    outcomes:[{id:"yes",label:"Yes · ≥ 85%",tone:"good",pool:430},{id:"no",label:"No · < 85%",tone:"bad",pool:1180}],
    settles:"FlightAware LAX on-time % at 23:59 PT"},
+
+  {id:"d2",type:"daily",code:"DAILY",question:"Will any US hub cancel > 5% of departures today?",
+   yesterday:"Yesterday: 2 hubs crossed it.",closes:"11h 02m",bonus:"1.5× early bonus",
+   outcomes:[{id:"yes",label:"Yes",tone:"bad",pool:920},{id:"no",label:"No",tone:"good",pool:670}],
+   settles:"FlightAware end-of-day cancellation totals across LAX/ORD/JFK/EWR/ATL/DEN/SFO/DFW"},
+
+  {id:"d3",type:"daily",code:"DAILY",question:"AA 100 vs BA 286 — bigger delay tonight?",
+   yesterday:"Both arrived within 8m of each other yesterday.",closes:"6h 41m",bonus:"2.0× early bonus",
+   outcomes:[{id:"aa",label:"AA 100",tone:"warn",pool:580},{id:"ba",label:"BA 286",tone:"warn",pool:540},{id:"tie",label:"Within 5m",tone:"mid",pool:230}],
+   settles:"|actual_on − scheduled_on| from FlightAware, snapshotted 24h after scheduled arrival"},
+
+  {id:"d4",type:"daily",code:"DAILY",question:"Will Heathrow stay under 1% cancellations today?",
+   yesterday:"Yesterday: 0.4% — held.",closes:"3h 17m",bonus:"⏰ closing soon",
+   outcomes:[{id:"yes",label:"Yes",tone:"good",pool:1140},{id:"no",label:"No",tone:"bad",pool:380}],
+   settles:"FlightAware end-of-day LHR cancellation total (00:00 BST)"},
 
   {id:"disc",type:"discussion"},
 ];
@@ -934,9 +966,61 @@ function AirportsPage({ markets, total, betProps, airportSnapshots, openDetail }
   </div>;
 }
 
+/* ----------------------------------------------------------------
+ * DailyPage — the dedicated Daily Questions tab. Today's open
+ * questions stacked in a focused single-column feed, plus a
+ * "closing soon" hero pulled from the question with the shortest
+ * close time.
+ * ---------------------------------------------------------------- */
+function DailyPage({ markets, total, betProps, openDetail }){
+  const daily = markets.filter(m => m.type === "daily");
+
+  // Parse the "closes" string into hours-remaining for sorting & hero.
+  // Format is like "14h 26m" or "3h 17m" — best-effort.
+  const hoursLeft = (s) => {
+    if (!s) return 999;
+    const h = /(\d+)\s*h/.exec(s); const mn = /(\d+)\s*m/.exec(s);
+    return (h?+h[1]:0) + (mn?+mn[1]/60:0);
+  };
+  const sorted = [...daily].sort((a,b) => hoursLeft(a.closes) - hoursLeft(b.closes));
+  const hero = sorted[0];
+  const rest = sorted.slice(1);
+
+  return <div>
+    <div className="airports-hero">
+      <div>
+        <div className="apsuper">{daily.length} questions · today</div>
+        <div className="aphead">Daily questions</div>
+        <div className="apsub">One question per day, closing on a fixed clock. Early bets earn a bonus multiplier — the closer to close, the lower the reward. Each question settles on a named public figure.</div>
+      </div>
+    </div>
+
+    {hero && <div className="daily-hero">
+      <div className="dh-tag">⏰ Closing next · in {hero.closes}</div>
+      <div className="dh-q">{hero.question}</div>
+      <div className="dh-meta"><span>{hero.yesterday}</span><span className="dh-bonus">⚡ {hero.bonus}</span></div>
+      <div className="dh-chips">
+        {hero.outcomes.map(o => {
+          const t = total(hero) || 1;
+          return <button key={o.id} className="dh-opt" onClick={()=>openDetail(hero.id)}>
+            <span className="dh-l">{o.label}</span>
+            <span className="dh-p" style={{color:TONE[o.tone]}}>{Math.round(o.pool/t*100)}%</span>
+          </button>;
+        })}
+      </div>
+      <button className="dh-place" onClick={()=>openDetail(hero.id)}>Open question →</button>
+    </div>}
+
+    <div className="sectlbl" style={{margin:"22px 2px 12px"}}>More open questions</div>
+    <div className="grid">
+      {rest.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={openDetail} {...betProps}/>)}
+    </div>
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
-  const [markets,setMarkets]=useState(()=>store.get("fb_m3",SEED));
+  const [markets,setMarkets]=useState(()=>store.get("fb_m4",SEED));
   const [wallet,setWallet]=useState(()=>store.get("fb_w2",925));
   const [positions,setPositions]=useState(()=>store.get("fb_p2",{}));
   const [view,setView]=useState({page:"home"});
@@ -948,7 +1032,7 @@ function App(){
   const [tab,setTab]=useState("flights");
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
-  useEffect(()=>store.set("fb_m3",markets),[markets]);
+  useEffect(()=>store.set("fb_m4",markets),[markets]);
   useEffect(()=>store.set("fb_w2",wallet),[wallet]);
   useEffect(()=>store.set("fb_p2",positions),[positions]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -1005,15 +1089,20 @@ function App(){
 
       <div className="controls">
         <button className="sel">🌐 ▾</button>
-        <div className="search">🔎<input placeholder="Search flight (AA 100, LAX, London…)"/></div>
+        <div className="search">🔎<input placeholder="Search flight (AA 100, BA 286, UA 628…)"/></div>
         <button className="filter">⚙ Filter</button>
       </div>
 
       <div className="grid">
-        {displayMarkets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+        {displayMarkets
+          .filter(m => m.type === "flight")
+          .map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
       </div>
     </> : view.page==="airports" ? (
       <AirportsPage markets={displayMarkets} total={total} betProps={betProps} airportSnapshots={airportSnapshots}
+        openDetail={id=>setView({page:"detail",id})}/>
+    ) : view.page==="daily" ? (
+      <DailyPage markets={displayMarkets} total={total} betProps={betProps}
         openDetail={id=>setView({page:"detail",id})}/>
     ) : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
@@ -1023,7 +1112,7 @@ function App(){
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flights</button>
       <button className={"navi"+(tab==="airports"?" on":"")} onClick={()=>{setTab("airports");setView({page:"airports"})}}><span className="ni">🏢</span>Airports</button>
       <button className="fab" onClick={()=>{setTab("flights");setView({page:"home"})}}>⚡</button>
-      <button className={"navi"+(tab==="live"?" on":"")} onClick={()=>setTab("live")}><span className="ni">📡</span>Live</button>
+      <button className={"navi"+(tab==="daily"?" on":"")} onClick={()=>{setTab("daily");setView({page:"daily"})}}><span className="ni">📅</span>Daily</button>
       <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setOps(v=>v)}}><span className="ni">🏆</span>Ranking</button>
     </div>
 
