@@ -20,6 +20,7 @@
   --brand:#2E6BFF; --brandink:#fff; --hot:#FF5A3C;
   --good:#1FA971; --mid:#F2A310; --warn:#F2701A; --bad:#E8412B;
   --shadow:0 1px 2px rgba(14,42,71,.05), 0 6px 24px rgba(14,42,71,.04);
+  --mapsky1:#EAF1FB; --mapsky2:#DCE7F4; --mapgrid:rgba(46,107,255,.10);
 }
 [data-theme="dark"]{
   --bg:#0A1019; --card:#121C2B; --card2:#0F1825; --ink:#E8EEF6; --muted:#90A2B6;
@@ -27,6 +28,7 @@
   --brand:#4F86FF; --hot:#FF6A4D;
   --good:#33C088; --mid:#F2A310; --warn:#FF8A3C; --bad:#FF5945;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
+  --mapsky1:#0E1B2E; --mapsky2:#0A1524; --mapgrid:rgba(79,134,255,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink)}
@@ -166,6 +168,11 @@ button{font-family:inherit}
 .composer input{flex:1;border:1px solid var(--line);background:var(--card2);border-radius:11px;padding:11px 13px;outline:none;color:var(--ink);font-family:inherit}
 
 /* bet panel */
+/* bet panel */
+.flightmap{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--mapsky2)}
+.fm-code{font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;fill:var(--muted);letter-spacing:.5px}
+.fm-status{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
+.fm-status .fm-live{color:var(--good);font-weight:600}
 .betpanel{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .opt{flex:1 1 46%;text-align:left;background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s}
@@ -346,6 +353,7 @@ function Breakdown({m,total}){
 const SEED=[
   {id:"f1",type:"flight",code:"AA 100",subcode:"American",codename:"Sturmschwalbe",liveIdent:"AAL100",pool:1466,comments:212,
    from:{cc:"US",flag:"🇺🇸",name:"New York JFK",dep:"18:30"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
+   fromLL:[40.64,-73.78],toLL:[51.47,-0.45],
    stops:0,schedArr:"06:25",actualArr:"08:09",status:"bad",delay:"+104m",risk:44,
    dist:[9,7,4,3,3,4,6,9,13,16,18,17,13,8,4],marker:11,
    axis:["0m","30m","60m","90m","120m"],
@@ -360,6 +368,7 @@ const SEED=[
 
   {id:"f2",type:"flight",code:"UA 628",subcode:"United",codename:"Nebelkojote",liveIdent:"UAL628",pool:903,comments:64,
    from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"07:05"},to:{cc:"US",flag:"🇺🇸",name:"Newark EWR"},
+   fromLL:[37.62,-122.38],toLL:[40.69,-74.17],
    stops:0,schedArr:"15:40",actualArr:"15:54",status:"mid",delay:"+14m",risk:31,
    dist:[5,11,18,16,10,6,5,5,6,7,6,4,3,2,2],marker:3,
    axis:["0m","20m","40m","60m","80m"],
@@ -373,6 +382,7 @@ const SEED=[
 
   {id:"f3",type:"flight",code:"BA 286",subcode:"British A.",codename:"Teekiebitz",liveIdent:"BAW286",pool:691,comments:35,
    from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"16:25"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
+   fromLL:[37.62,-122.38],toLL:[51.47,-0.45],
    stops:0,schedArr:"10:45",actualArr:"10:48",status:"good",delay:"+3m",risk:12,
    dist:[20,16,9,4,3,2,2,2,2,2,3,2,2,2,2],marker:1,
    axis:["0m","15m","30m","45m","60m"],
@@ -689,11 +699,121 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
   );
 }
 
+/* ----------------------------------------------------------------
+ * FlightMap — stylized SVG flight map for the bet panel. Draws a
+ * region of coastline-free world (a soft graticule), the great-circle-ish
+ * route arc between origin and destination, both airport dots, and —
+ * when the flight is airborne (live from OpenSky) — a rotating plane
+ * glyph at its real position. Falls back to an "on the ground" state
+ * with the plane parked at origin when there's no live position.
+ * ---------------------------------------------------------------- */
+function FlightMap({ m }){
+  const [pos, setPos] = useState(null);   // {lat,lon,heading,airborne} | null
+  const [state, setState] = useState("loading");
+
+  useEffect(() => {
+    if (!m.liveIdent || !CONFIG.API_BASE){ setState("static"); return; }
+    let dead = false;
+    async function go(){
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/position?callsign=${encodeURIComponent(m.liveIdent)}`);
+        if (!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        if (dead) return;
+        if (d.airborne && d.lat != null){ setPos(d); setState("airborne"); }
+        else { setPos(null); setState("ground"); }
+      }catch(e){ if(!dead) setState("static"); }
+    }
+    go();
+    const h = setInterval(go, 30000); // 30s; OpenSky is free
+    return () => { dead = true; clearInterval(h); };
+  }, [m.liveIdent]);
+
+  if (!m.fromLL || !m.toLL) return null;
+
+  // Equirectangular projection over a bounding box around the route,
+  // padded so the arc and plane sit comfortably inside the frame.
+  const W = 320, H = 150, pad = 28;
+  const lons = [m.fromLL[1], m.toLL[1], pos?.lon].filter(v => v != null);
+  const lats = [m.fromLL[0], m.toLL[0], pos?.lat].filter(v => v != null);
+  let minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  let minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  // enforce a minimum span so short routes aren't absurdly zoomed
+  const spanLon = Math.max(maxLon - minLon, 12), spanLat = Math.max(maxLat - minLat, 8);
+  const cLon = (minLon + maxLon) / 2, cLat = (minLat + maxLat) / 2;
+  minLon = cLon - spanLon/2; maxLon = cLon + spanLon/2;
+  minLat = cLat - spanLat/2; maxLat = cLat + spanLat/2;
+  const px = lon => pad + ( (lon - minLon) / (maxLon - minLon) ) * (W - 2*pad);
+  const py = lat => pad + ( (maxLat - lat) / (maxLat - minLat) ) * (H - 2*pad);
+
+  const o = [px(m.fromLL[1]), py(m.fromLL[0])];
+  const d = [px(m.toLL[1]),   py(m.toLL[0])];
+  // arc control point: midpoint lifted perpendicular for a flight-path curve
+  const mid = [(o[0]+d[0])/2, (o[1]+d[1])/2];
+  const dx = d[0]-o[0], dy = d[1]-o[1];
+  const len = Math.hypot(dx,dy) || 1;
+  const lift = Math.min(len*0.18, 34);
+  const ctrl = [mid[0] - (dy/len)*lift, mid[1] + (dx/len)*lift];
+  const arc = `M ${o[0]},${o[1]} Q ${ctrl[0]},${ctrl[1]} ${d[0]},${d[1]}`;
+  const tone = TONE[m.status] || "var(--brand)";
+
+  const plane = pos && state==="airborne" ? [px(pos.lon), py(pos.lat)] : null;
+  const uid = "fm"+(m.id||"x");
+
+  return (
+    <div className="flightmap">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMid slice" style={{display:"block"}}>
+        <defs>
+          <linearGradient id={uid+"sky"} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="var(--mapsky1)"/>
+            <stop offset="1" stopColor="var(--mapsky2)"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}sky)`}/>
+        {/* graticule */}
+        {[0.2,0.4,0.6,0.8].map((t,i)=><line key={"v"+i} x1={W*t} y1="0" x2={W*t} y2={H} stroke="var(--mapgrid)" strokeWidth="1"/>)}
+        {[0.25,0.5,0.75].map((t,i)=><line key={"h"+i} x1="0" y1={H*t} x2={W} y2={H*t} stroke="var(--mapgrid)" strokeWidth="1"/>)}
+        {/* route */}
+        <path d={arc} fill="none" stroke={tone} strokeWidth="2" strokeDasharray="1 6" strokeLinecap="round" opacity="0.85"/>
+        {/* airports */}
+        <g>
+          <circle cx={o[0]} cy={o[1]} r="4.5" fill="var(--card)" stroke={tone} strokeWidth="2.2"/>
+          <circle cx={d[0]} cy={d[1]} r="4.5" fill={tone} stroke="var(--card)" strokeWidth="1.5"/>
+          <text x={o[0]} y={o[1]-9} textAnchor="middle" className="fm-code">{m.from?.name?.split(" ").pop()||"DEP"}</text>
+          <text x={d[0]} y={d[1]-9} textAnchor="middle" className="fm-code">{m.to?.name?.split(" ").pop()||"ARR"}</text>
+        </g>
+        {/* plane */}
+        {plane && (
+          <g transform={`translate(${plane[0]},${plane[1]}) rotate(${(pos.heading||0)})`}>
+            <circle r="11" fill={tone} opacity="0.16"/>
+            <path d="M0,-8 L2.4,-1 L8,3 L8,5 L1.6,3.2 L1.4,7 L4,9 L4,10.5 L0,9.5 L-4,10.5 L-4,9 L-1.4,7 L-1.6,3.2 L-8,5 L-8,3 L-2.4,-1 Z"
+                  fill={tone} stroke="var(--card)" strokeWidth="0.6"/>
+          </g>
+        )}
+        {!plane && (
+          <g transform={`translate(${o[0]},${o[1]})`}>
+            <circle r="9" fill={tone} opacity="0.12"/>
+            <path d="M0,-6 L1.8,-.8 L6,2.2 L6,3.8 L1.2,2.4 L1,5.2 L3,6.8 L3,7.9 L0,7.1 L-3,7.9 L-3,6.8 L-1,5.2 L-1.2,2.4 L-6,3.8 L-6,2.2 L-1.8,-.8 Z"
+                  fill={tone} stroke="var(--card)" strokeWidth="0.5" transform="rotate(45)"/>
+          </g>
+        )}
+      </svg>
+      <div className="fm-status">
+        {state==="loading" && <span>◌ locating aircraft…</span>}
+        {state==="airborne" && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
+        {state==="ground" && <span>● On the ground — no live track right now</span>}
+        {state==="static" && <span>Route map · live track unavailable</span>}
+      </div>
+    </div>
+  );
+}
+
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
   const mult=o=>total/(o.pool||1);
   const proj=(o,s)=>{const np=o.pool+s,nt=total+s;return (s/np)*nt*(1-RAKE)};
   const s=Math.min(stake,wallet);
   return <div className="betpanel">
+    {m.type==="flight" && m.fromLL && <FlightMap m={m}/>}
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
         <div className="ol">{o.label}</div>
