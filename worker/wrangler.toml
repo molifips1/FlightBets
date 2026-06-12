@@ -1,0 +1,11 @@
+name = "flightbet-proxy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Set ALLOWED_ORIGINS via:  npx wrangler secret put ALLOWED_ORIGINS
+# Set AEROAPI_KEY    via:   npx wrangler secret put AEROAPI_KEY
+# (Both are secrets so they never appear in the repo.)
+#
+# Example values:
+#   ALLOWED_ORIGINS = "https://USERNAME.github.io,http://localhost:8000"
+#   AEROAPI_KEY     = "your-aeroapi-key"
