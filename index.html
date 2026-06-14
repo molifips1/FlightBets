@@ -456,7 +456,13 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
             <div className="dotline"><span className="rdot end"/></div>
             <span className="cc">{m.to.cc}</span><span className="flag">{m.to.flag}</span>
             <span className="sname">{m.to.name}</span>
-            <span className="rtime"><span className="old">{m.schedArr}</span><span className="new">{m.actualArr}</span></span>
+            <span className="rtime">{
+              m.actualArr && m.schedArr && m.actualArr!==m.schedArr
+                ? <><span className="old">{m.schedArr}</span><span className="new">{m.actualArr}</span></>
+              : m.actualArr || m.schedArr
+                ? <span>{m.actualArr || m.schedArr}</span>
+                : <span className="old">—</span>
+            }</span>
           </div>
         </div>
       ) : (
@@ -898,8 +904,8 @@ function boardToMarket(f){
     to:   dirDep ? {cc:"",flag:otherFlag,name:other?.name||otherCode} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER"},
     fromLL: dirDep ? BER_LL : ll,
     toLL:   dirDep ? ll : BER_LL,
-    schedArr: fmtT(dirDep ? f.scheduledArr : f.scheduledArr),
-    actualArr: fmtT(dirDep ? (f.actualArr||f.scheduledArr) : (f.actualArr||f.scheduledArr)),
+    schedArr: fmtT(f.scheduledArr),
+    actualArr: f.actualArr ? fmtT(f.actualArr) : "",
     depISO: f.scheduledDep || null,
     stops: 0,
     status,
