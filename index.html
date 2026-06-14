@@ -853,15 +853,21 @@ function boardToMarket(f){
   const country = countryFromICAO(other?.code_icao) || CITY_COUNTRY[otherCode] || null;
   const otherFlag = country==="DE"?"🇩🇪":country==="AT"?"🇦🇹":country==="CH"?"🇨🇭":flagFor(otherCode);
   const rank = country==="DE"?0:country==="AT"?1:country==="CH"?2:3;
-  // Phase of the flight, from the status text + actual times AeroDataBox gives us:
-  //   landed   — outcome fully known (already arrived)
-  //   enroute  — left BER, not yet arrived; arrival delay still unknown (bettable!)
-  //   upcoming — not departed yet (bettable)
+  // Phase of the flight. Decide upcoming vs already-gone by the scheduled time
+  // vs now (most reliable), refined by the status text. Do NOT use the presence
+  // of a predicted/revised time — AeroDataBox provides that for upcoming flights
+  // too, which previously made everything look "departed".
   const st = (f.status||"").toLowerCase();
-  const phase = f.cancelled ? "cancelled"
-    : st.includes("arrived") ? "landed"
-    : (st.includes("en route") || st.includes("enroute") || f.actualDep) ? "enroute"
-    : "upcoming";
+  const relSched = dirDep ? f.scheduledDep : f.scheduledArr;
+  const relTime = relSched ? new Date(relSched).getTime() : null;
+  const now = Date.now();
+  let phase;
+  if (f.cancelled || st.includes("cancel")) phase = "cancelled";
+  else if (st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")) phase = "landed";
+  else if (st.includes("departed") || st.includes("en route") || st.includes("enroute") || st.includes("airborne")) phase = "enroute";
+  // "Expected", "Scheduled", "Delayed", "Boarding", "Check-in" = not gone yet → use clock
+  else if (relTime != null) phase = relTime > now ? "upcoming" : "enroute";
+  else phase = "upcoming";
   const settled = phase==="landed" || phase==="cancelled"; // outcome known
   const status = f.cancelled ? "bad"
     : f.delayMin==null ? "good"
