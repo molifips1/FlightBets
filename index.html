@@ -243,6 +243,44 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
 .segmented{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:16px}
 .phase{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.4px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+
+/* ---- Detail: bracket list ---- */
+.brackets{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.bracket{display:grid;grid-template-columns:1fr 1.3fr auto;align-items:center;gap:14px;
+  background:var(--card2);border:1.5px solid var(--line);border-radius:14px;padding:13px 15px;cursor:pointer;
+  font-family:inherit;text-align:left;transition:border-color .15s,background .15s}
+.bracket:hover{border-color:var(--brand)}
+.bracket.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--card))}
+.bk-l{display:flex;align-items:center;gap:9px}
+.bk-name{font-weight:800;font-size:16px;color:var(--ink)}
+.bk-sel{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.5px;
+  background:var(--brand);color:#fff;padding:3px 7px;border-radius:999px}
+.bk-mid{min-width:0}
+.bk-pool{font-size:13px;color:var(--muted);margin-bottom:6px}
+.bk-bar{height:5px;border-radius:999px;background:var(--line);overflow:hidden}
+.bk-bar span{display:block;height:100%;background:var(--brand);border-radius:999px;min-width:2px}
+.bk-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);justify-self:end}
+
+/* ---- Detail: stake box ---- */
+.pickhint{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.5}
+.stakebox{margin-top:12px}
+.stakerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stakelbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
+.stakeval{font-weight:800;font-size:15px;color:var(--ink)}
+.quickadd{display:flex;gap:7px;margin:10px 0 4px}
+.quickadd button{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 0;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;transition:background .15s}
+.quickadd button:hover{background:var(--line)}
+.payrow{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
+  padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.payrow b{font-size:20px;color:var(--good)}
+.paynote{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+
+/* ---- Detail: market rules ---- */
+.rules{margin-top:4px}
+.rules p{font-size:13.5px;line-height:1.6;color:var(--muted);margin:0 0 11px}
+.rules b{color:var(--ink)}
+.rules-net{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3px;color:var(--muted);margin-top:2px!important}
 .ph-upcoming{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
 .ph-enroute{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
 .ph-landed{background:var(--card2);color:var(--muted)}
@@ -675,58 +713,118 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
 }
 
 function Detail({m,total,back,...bet}){
-  const open=bet.openBet===m.id;
+  const isFlight = m.type==="flight";
+  const [pick,setPick] = [bet.pick, bet.setPick];
+  const sel = m.outcomes.find(o=>o.id===pick);
+  const s = Math.min(bet.stake, bet.wallet);
+  // parimutuel payout estimate for the selected bracket at stake s
+  const proj = (o,st)=>{ if(!o) return 0; const np=o.pool+st, nt=total+st; return (st/np)*nt*(1-RAKE); };
+  const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
+
   return <div>
     <button className="back" onClick={back}>← Alle Märkte</button>
     <div className="dwrap">
+      {/* LEFT: flight info + brackets */}
       <div>
+        {/* Flight info header — same data as the card front */}
         <div className="panelbox">
-          <div className="dhero"><div className="dtitle">{m.code}{m.subcode?<span style={{fontSize:14,color:"var(--muted)",fontWeight:600,marginLeft:10}}>{m.subcode}</span>:null}</div>
-            <span className="fares">{m.type==="aggregate"?"daily metric":"1 flight today"}</span></div>
-          {m.grade && <div className="grade"><span className="em">{m.grade.em}</span>
-            <div><div className="gw" style={{color:TONE[m.grade.tone]}}>{m.grade.word}</div><div className="gb">{m.grade.blurb}</div></div></div>}
-          {m.stats && <div className="tiles">
-            <div className="tile"><div className="tl">Ø Verspätung</div><div className="tv" style={{color:"var(--warn)"}}>{m.stats.avg}</div></div>
-            <div className="tile"><div className="tl">Pünktlich</div><div className="tv" style={{color:"var(--good)"}}>{m.stats.onTime}</div></div>
-            <div className="tile"><div className="tl">Erfasst</div><div className="tv">{m.stats.tracked}</div></div>
-          </div>}
+          <div className="chead">
+            <div className="codeline">
+              <span className="code">{m.code}</span>
+              {m.subcode && <span className="subcode">{m.subcode}</span>}
+              {isFlight && m.phase && <span className={"phase ph-"+m.phase}>{
+                m.phase==="upcoming" ? "● bevorstehend" :
+                m.phase==="enroute"  ? "✈ unterwegs" :
+                m.phase==="landed"   ? "✓ gelandet" :
+                m.phase==="cancelled"? "✕ annulliert" : ""
+              }</span>}
+            </div>
+            <span className="pool">{fmt(total)} €</span>
+          </div>
+          {isFlight ? <div className="route" style={{marginTop:14}}>
+            <div className="stop">
+              <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
+              <span className="cc">{m.from.cc}</span><span className="flag">{m.from.flag}</span>
+              <span className="sname">{m.from.name}</span>
+              <span className="rtime">{m.from.dep}</span>
+            </div>
+            <div className="stop">
+              <div className="dotline"><span className="rdot end"/></div>
+              <span className="cc">{m.to.cc}</span><span className="flag">{m.to.flag}</span>
+              <span className="sname">{m.to.name}</span>
+              <span className="rtime">{
+                m.actualArr && m.schedArr && m.actualArr!==m.schedArr
+                  ? <><span className="old">{m.schedArr}</span><span className="new">{m.actualArr}</span></>
+                : m.actualArr || m.schedArr ? <span>{m.actualArr||m.schedArr}</span>
+                : <span className="old">—</span>
+              }</span>
+            </div>
+          </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
+          <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
+            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
+            <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
+          </div>
         </div>
 
-        {m.type==="flight" && m.fromLL && <div className="panelbox">
-          <div className="sectlbl">Live-Position</div>
-          <FlightMap m={m}/>
-        </div>}
-
+        {/* Bracket list — pick your bracket, pools visible */}
         <div className="panelbox">
-          <div className="sectlbl">Verspätungsverteilung · {m.stats?m.stats.tracked:""} erfasst</div>
-          <Curve dist={m.dist} tone={m.status} marker={m.marker} axis={m.axis}/>
-          <div className="riskt" style={{marginTop:12}}>Verspätungsrisiko: <b>{m.risk}%</b></div>
-          <RiskBar outcomes={m.outcomes} total={total}/><Breakdown m={m} total={total}/>
+          <div className="sectlbl">Tippe die Verspätung · {m.outcomes.length} Optionen</div>
+          <div className="brackets">
+            {m.outcomes.map(o=>{
+              const mult = total/(o.pool||1);
+              const share = o.pool/maxPool;
+              const on = pick===o.id;
+              return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>setPick(o.id)}>
+                <div className="bk-l">
+                  <span className="bk-name">{o.label}</span>
+                  {on && <span className="bk-sel">GEWÄHLT</span>}
+                </div>
+                <div className="bk-mid">
+                  <div className="bk-pool">Pool {fmt(o.pool)} €</div>
+                  <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
+                </div>
+                <div className="bk-odds">{o.pool>0?mult.toFixed(2)+"×":"—"}</div>
+              </button>;
+            })}
+          </div>
         </div>
 
+        {/* Market rules */}
         <div className="panelbox">
-          <div className="sectlbl">Top-Tipper · diese Saison</div>
-          <div className="leader"><span className="rank">1</span><span className="lav"/><div><div className="lname">LateAgainLarry</div><div className="lsub">71% Treffer · 38 Flüge</div></div></div>
-          <div className="leader"><span className="rank">2</span><span className="lav"/><div><div className="lname">gate_gremlin</div><div className="lsub">66% Treffer · 51 Flüge</div></div></div>
-          <div className="leader"><span className="rank">3</span><span className="lav"/><div><div className="lname">runway27</div><div className="lsub">61% Treffer · 44 Flüge</div></div></div>
-        </div>
-
-        <div className="panelbox">
-          <div className="sectlbl">Verlauf · {m.history?m.history.length:0} Flüge</div>
-          {(m.history||[]).map((h,i)=><div className="hist" key={i}>
-            <span className="hcode">🛫 {h.cn}</span><div><div className="hdate">{h.date}</div><div className="hroute">{h.route}</div></div>
-            <span className="hout" style={{color:TONE[h.tone]}}>{h.out} ▾</span></div>)}
+          <div className="sectlbl">Marktregeln</div>
+          <div className="rules">
+            <p>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die Verspätung dieses Fluges. Du setzt €-Spielgeld auf eine der vier Verspätungs-Optionen. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</p>
+            <p><b>Abrechnung:</b> über die offizielle erfasste Ankunfts-/Abflugzeit. {m.settles?("Quelle: "+m.settles+"."):""}</p>
+            <p><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze zurückerstattet.</p>
+            <p className="rules-net">Spielgeld · keine echten Einsätze · DACH-Region</p>
+          </div>
         </div>
       </div>
 
+      {/* RIGHT: stake panel + discussion */}
       <div>
         <div className="panelbox">
           <div className="sectlbl">Live · Jetzt wetten</div>
-          <div className="statusline" style={{marginTop:0}}>
-            <span className="statlbl" style={{color:TONE[m.status]}}>{m.type==="flight"?STATUS[m.status]:"Laufende Quote"}</span>
-            <span className="statdelay" style={{color:TONE[m.status]}}>{m.delay}</span></div>
-          {!open && <button className="betbtn" style={{width:"100%",marginTop:12}} onClick={()=>{bet.setOpenBet(m.id);bet.setPick(null)}}>Wette platzieren</button>}
-          {open && <BetPanel m={m} total={total} pick={bet.pick} setPick={bet.setPick} stake={bet.stake} setStake={bet.setStake} wallet={bet.wallet} onBet={bet.onBet} ops={bet.ops} onSettle={bet.onSettle}/>}
+          {!pick && <div className="pickhint">Wähle links eine Verspätungs-Option, um zu wetten.</div>}
+          {pick && <div className="stakebox">
+            <div className="stakerow"><span className="stakelbl">DEIN TIPP</span><span className="stakeval">{sel.label}</span></div>
+            <div className="stakerow"><span className="stakelbl">EINSATZ</span><span className="stakeval">{fmt(s)} €</span></div>
+            <input type="range" min={10} max={Math.max(10,bet.wallet)} step={10} value={s} onChange={e=>bet.setStake(+e.target.value)}/>
+            <div className="quickadd">
+              {[10,25,50].map(v=><button key={v} onClick={()=>bet.setStake(Math.min(bet.wallet,s+v))}>+{v}</button>)}
+              <button onClick={()=>bet.setStake(bet.wallet)}>Max</button>
+            </div>
+            <div className="payrow">
+              <span>Bei Gewinn (geschätzt)</span>
+              <b>{fmt(proj(sel,s))} €</b>
+            </div>
+            <div className="paynote">Parimutuel: Gewinner teilen den Pool (abzgl. {RAKE*100}% Gebühr) anteilig zum Einsatz. Schätzung aus dem aktuellen Pool — verschiebt sich mit neuen Wetten.</div>
+            <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{bet.stake>bet.wallet?"Nicht genug Guthaben":"Wette platzieren"}</button>
+          </div>}
+          {bet.ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
+            <div className="mono" style={{fontSize:10,color:"var(--muted)",marginBottom:7}}>⚙ ORAKEL SIMULIEREN</div>
+            {m.outcomes.map(o=><button key={o.id} className="ico" style={{width:"auto",padding:"6px 9px",fontSize:11,marginRight:6,marginBottom:6}} onClick={()=>bet.onSettle(m,o.id)}>abrechnen ▸ {o.label}</button>)}
+          </div>}
         </div>
         <div className="panelbox">
           <div className="sectlbl">Diskussion</div>
