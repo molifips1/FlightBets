@@ -267,6 +267,26 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .closed-em{font-size:30px;line-height:1;margin-bottom:8px}
 .closed-t{font-weight:800;font-size:17px;color:var(--ink);margin-bottom:6px}
 .closed-s{font-size:13.5px;color:var(--muted);line-height:1.55}
+
+/* ---- Auth modal ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(10,20,40,.45);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 24px 70px rgba(0,0,0,.25)}
+.modal-h{font-size:20px;font-weight:800;color:var(--ink);margin-bottom:14px}
+.authtabs{display:flex;gap:6px;background:var(--card2);border-radius:12px;padding:5px;margin-bottom:16px}
+.authtabs button{flex:1;border:none;background:transparent;padding:9px 0;border-radius:9px;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--muted);cursor:pointer}
+.authtabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.authinput{width:100%;box-sizing:border-box;background:var(--card2);border:1.5px solid var(--line);border-radius:12px;
+  padding:12px 14px;font-family:inherit;font-size:15px;color:var(--ink);margin-bottom:10px;outline:none}
+.authinput:focus{border-color:var(--brand)}
+.author{display:flex;align-items:center;gap:12px;margin:14px 0;color:var(--muted);font-size:12px}
+.author::before,.author::after{content:"";flex:1;height:1px;background:var(--line)}
+.googlebtn{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:11px 0;
+  font-family:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
+.googlebtn:hover{background:var(--card2)}
+.authmsg{font-size:13px;line-height:1.5;border-radius:11px;padding:11px 13px;margin-bottom:12px}
+.authmsg.ok{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--good)}
+.authmsg.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+.authclose{width:100%;background:none;border:none;color:var(--muted);font-family:inherit;font-size:13px;margin-top:14px;cursor:pointer}
 .stakebox{margin-top:12px}
 .stakerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .stakelbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
@@ -346,6 +366,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div id="root"></div>
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef} = React;
@@ -360,7 +381,16 @@ const CONFIG = {
   API_BASE: "https://flightbet-proxy.apetersen280.workers.dev",
   REFRESH_FLIGHTS_MS:  5 * 60 * 1000,  // 5 min — matches worker cache; flight status moves
   REFRESH_AIRPORTS_MS: 15 * 60 * 1000, // 15 min — matches worker cache; cancel share is slow
+  // Supabase Auth — fill these from your Supabase project (Settings → API).
+  // Both are PUBLIC values, safe to ship in the browser.
+  SUPABASE_URL: "https://qojlcrejbckqldhgvvuk.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvamxjcmVqYmNrcWxkaGd2dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NDQ3ODksImV4cCI6MjA5NzAyMDc4OX0.mwbiEMosl6QwXIRn4CTuzJA6HDyQ-kJ5Oz4ipDGiHPY",
 };
+
+// Supabase client (null if not configured yet — app still works for browsing).
+const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes("YOUR-PROJECT"))
+  ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+  : null;
 
 const RAKE=0.05;
 const fmt=n=>Math.round(n).toLocaleString("en-US");
@@ -1115,22 +1145,112 @@ function usePools(bump){
 }
 
 // Server-side wallet for this player.
-function useWallet(bump){
+// Current access token (JWT) for authenticated worker calls, or null.
+async function authToken(){
+  if(!sb) return null;
+  const { data } = await sb.auth.getSession();
+  return data?.session?.access_token || null;
+}
+// fetch() wrapper that attaches the Supabase bearer token when signed in.
+async function authedFetch(url, opts={}){
+  const t = await authToken();
+  const headers = {...(opts.headers||{})};
+  if(t) headers["Authorization"] = "Bearer "+t;
+  return fetch(url, {...opts, headers});
+}
+
+// Tracks the Supabase session. Returns the current user (or null) + helpers.
+function useAuth(){
+  const [user, setUser] = useState(null);
+  const [ready, setReady] = useState(!sb); // if no sb configured, we're "ready" (anonymous)
+  useEffect(()=>{
+    if(!sb) return;
+    let dead=false;
+    sb.auth.getSession().then(({data})=>{ if(!dead){ setUser(data?.session?.user||null); setReady(true); } });
+    const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(!dead) setUser(session?.user||null); });
+    return ()=>{ dead=true; sub?.subscription?.unsubscribe?.(); };
+  },[]);
+  return { user, ready,
+    signOut: ()=> sb && sb.auth.signOut(),
+    google: ()=> sb && sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.href } }),
+  };
+}
+
+function useWallet(bump, user){
   const [w, setW] = useState({ balance: 925, positions: [], betsTotal:0, betsWon:0 });
   useEffect(()=>{
-    if(!CONFIG.API_BASE) return;
+    if(!CONFIG.API_BASE || !user) return; // wallet is per-logged-in-user
     let dead=false;
     (async()=>{
       try{
-        const r = await fetch(`${CONFIG.API_BASE}/api/wallet?userId=${encodeURIComponent(USER_ID)}`);
+        const r = await authedFetch(`${CONFIG.API_BASE}/api/wallet`);
         if(!r.ok) return;
         const d = await r.json();
         if(!dead && !d.error) setW(d);
       }catch(e){}
     })();
     return ()=>{ dead=true; };
-  },[bump]);
+  },[bump, user]);
   return w;
+}
+
+function AuthModal({ onClose }){
+  const [mode,setMode]=useState("login"); // login | signup
+  const [email,setEmail]=useState("");
+  const [pass,setPass]=useState("");
+  const [name,setName]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [msg,setMsg]=useState(null);
+  const [err,setErr]=useState(null);
+
+  if(!sb) return <div className="modal-bg" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
+    <div className="modal-h">Anmeldung nicht konfiguriert</div>
+    <p className="rules-net" style={{marginTop:8}}>Trage SUPABASE_URL und SUPABASE_ANON_KEY in CONFIG ein, um Logins zu aktivieren.</p>
+    <button className="betbtn" style={{width:"100%",marginTop:14}} onClick={onClose}>Schließen</button>
+  </div></div>;
+
+  async function submit(){
+    setErr(null); setMsg(null); setBusy(true);
+    try{
+      if(mode==="signup"){
+        const { error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ name } } });
+        if(error) throw error;
+        setMsg("Fast geschafft! Wir haben dir eine Bestätigungs-Mail geschickt. Bitte den Link darin anklicken, dann kannst du dich anmelden.");
+      }else{
+        const { error } = await sb.auth.signInWithPassword({ email, password:pass });
+        if(error) throw error;
+        onClose();
+      }
+    }catch(e){
+      const m=(e&&e.message)||"Fehler";
+      setErr(/confirm/i.test(m)?"Bitte zuerst deine E-Mail bestätigen (Link in der Mail).":/invalid/i.test(m)?"E-Mail oder Passwort falsch.":m);
+    }finally{ setBusy(false); }
+  }
+
+  return <div className="modal-bg" onClick={onClose}>
+    <div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h">{mode==="login"?"Anmelden":"Konto erstellen"}</div>
+      <div className="authtabs">
+        <button className={mode==="login"?"on":""} onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>Anmelden</button>
+        <button className={mode==="signup"?"on":""} onClick={()=>{setMode("signup");setErr(null);setMsg(null)}}>Registrieren</button>
+      </div>
+
+      {msg ? <div className="authmsg ok">{msg}</div> : <>
+        {mode==="signup" && <input className="authinput" placeholder="Anzeigename" value={name} onChange={e=>setName(e.target.value)}/>}
+        <input className="authinput" type="email" placeholder="E-Mail" value={email} onChange={e=>setEmail(e.target.value)}/>
+        <input className="authinput" type="password" placeholder="Passwort" value={pass} onChange={e=>setPass(e.target.value)}/>
+        {err && <div className="authmsg bad">{err}</div>}
+        <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!email||!pass} onClick={submit}>
+          {busy?"…":mode==="login"?"Anmelden":"Konto erstellen"}
+        </button>
+        <div className="author"><span>oder</span></div>
+        <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>
+          <span style={{fontWeight:700}}>G</span> Mit Google anmelden
+        </button>
+      </>}
+      <button className="authclose" onClick={onClose}>Schließen</button>
+    </div>
+  </div>;
 }
 
 function App(){
@@ -1138,8 +1258,10 @@ function App(){
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
   const [bump,setBump]=useState(0); // increment to refetch pools+wallet after a bet
   const { pools: serverPools, settled: serverSettled } = usePools(bump);
-  const serverWallet = useWallet(bump);
+  const { user, ready: authReady, signOut } = useAuth();
+  const serverWallet = useWallet(bump, user);
   const wallet = serverWallet.balance;
+  const [authOpen,setAuthOpen]=useState(false);
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
   const [pick,setPick]=useState(null);
@@ -1179,16 +1301,17 @@ function App(){
                  :                            { t:"…",       bg:"var(--card2)", fg:"var(--muted)" };
 
   async function onBet(m,o){
+    if(!user){ setAuthOpen(true); setToast("Zum Wetten bitte anmelden"); return; }
     if(stake<=0||stake>wallet)return;
     if(!CONFIG.API_BASE){ setToast("Kein Server verbunden"); return; }
     try{
-      const r = await fetch(`${CONFIG.API_BASE}/api/bet`, {
+      const r = await authedFetch(`${CONFIG.API_BASE}/api/bet`, {
         method:"POST", headers:{"content-type":"application/json"},
-        body: JSON.stringify({ userId: USER_ID, flightId: m.id, ident: m.code, direction: m.direction, outcome: o.id, stake }),
+        body: JSON.stringify({ flightId: m.id, ident: m.code, direction: m.direction, outcome: o.id, stake }),
       });
       const d = await r.json();
       if(d.error){
-        setToast(d.error==="insufficient_funds"?"Nicht genug Guthaben":d.error==="market_settled"?"Markt bereits abgerechnet":"Wette fehlgeschlagen");
+        setToast(d.error==="insufficient_funds"?"Nicht genug Guthaben":d.error==="market_settled"?"Markt bereits abgerechnet":d.error==="unauthorized"?"Bitte neu anmelden":"Wette fehlgeschlagen");
         return;
       }
       setToast(`${fmt(stake)} € auf „${o.label}" gesetzt`);
@@ -1199,6 +1322,7 @@ function App(){
   function onSettle(){ setToast("Abrechnung läuft automatisch nach der Landung."); }
   function reset(){ setToast("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt."); }
 
+  const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || "Konto") : null;
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle};
   const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
 
@@ -1211,11 +1335,18 @@ function App(){
           <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
           {dataPill.t}
         </span>
-        <span className="chip">🎟 49</span>
-        <span className="chip bal">€ {fmt(wallet)}</span>
+        {user ? <>
+          <span className="chip bal">€ {fmt(wallet)}</span>
+          <span className="chip" title={user.email}>{displayName}</span>
+          <button className="chip" style={{cursor:"pointer"}} onClick={signOut}>Abmelden</button>
+        </> : (
+          <button className="chip" style={{cursor:"pointer",background:"var(--brand)",color:"#fff",borderColor:"var(--brand)",fontWeight:700}} onClick={()=>setAuthOpen(true)}>Anmelden</button>
+        )}
         <button className="avatar"/>
       </div>
     </div>
+
+    {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
 
     {view.page==="home" ? <>
       <div className="ticker"><div className="ticker-track">
