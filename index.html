@@ -820,13 +820,23 @@ function poolsFor(ident, delayMin, cancelled){
   const scale = 30 + (seed%70); // pool size varies per flight
   return base.map(b=>Math.max(20, Math.round(b*scale/10)));
 }
+function countryFromICAO(icao){
+  if(!icao) return null;
+  const p = icao.toUpperCase().slice(0,2);
+  if(p==="ED"||p==="ET") return "DE";
+  if(p==="LO") return "AT";
+  if(p==="LS") return "CH";
+  return null;
+}
 function boardToMarket(f){
   const dirDep = f.direction==="departure";
   const other = dirDep ? f.destination : f.origin;
   const otherCode = other?.code || "???";
   const ll = CITY_LL[otherCode] || null;
-  const otherFlag = flagFor(otherCode);
-  const rank = geoRank(otherCode); // 0 DE, 1 AT, 2 CH, 3 other
+  // Prefer ICAO-prefix country (covers every DACH airport), fall back to IATA map.
+  const country = countryFromICAO(other?.code_icao) || CITY_COUNTRY[otherCode] || null;
+  const otherFlag = country==="DE"?"🇩🇪":country==="AT"?"🇦🇹":country==="CH"?"🇨🇭":flagFor(otherCode);
+  const rank = country==="DE"?0:country==="AT"?1:country==="CH"?2:3;
   const status = f.cancelled ? "bad"
     : f.delayMin==null ? "good"
     : f.delayMin>=60 ? "bad" : f.delayMin>=30 ? "warn" : f.delayMin>=15 ? "mid" : "good";
@@ -890,7 +900,7 @@ function useBoard(){
       }catch(e){ if(!dead) setStatus("offline"); }
     }
     tick();
-    const h=setInterval(tick, 5*60*1000); // 5 min — matches worker board cache
+    const h=setInterval(tick, 30*60*1000); // 30 min — matches worker board cache
     return ()=>{ dead=true; clearInterval(h); };
   },[]);
   return { flights, status, lastUpdate };
