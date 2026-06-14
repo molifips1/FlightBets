@@ -470,8 +470,8 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       )}
 
       <div className="statusline">
-        <span className="statlbl" style={{color:TONE[m.status]}}>{isFlight?STATUS[m.status]:"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
-        <span className="statdelay" style={{color:TONE[m.status]}}>{m.delay}</span>
+        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
+        <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
       <Curve dist={m.dist} tone={m.status} marker={m.marker} axis={m.axis}/>
 
@@ -863,28 +863,35 @@ function boardToMarket(f){
   // vs now (most reliable), refined by the status text. Do NOT use the presence
   // of a predicted/revised time — AeroDataBox provides that for upcoming flights
   // too, which previously made everything look "departed".
-  // Category is purely time-based, exactly as specified:
-  //   now < scheduled departure  → "upcoming" (startet bald, AeroDataBox plan)
-  //   now ≥ scheduled departure  → "gestartet" (AeroAPI live data takes over)
-  // Within gestartet, status splits landed vs still-airborne.
+  // Category is time-based: before scheduled departure = upcoming (startet bald),
+  // after = gestartet. Within gestartet, status (and how long ago) splits
+  // landed vs en route. A flight whose scheduled time is long past but which
+  // only has the AeroDataBox plan (AeroAPI has aged it out) almost certainly
+  // landed already — don't leave it "unterwegs" forever or claim it's on time.
   const st = (f.status||"").toLowerCase();
   const relSched = dirDep ? f.scheduledDep : f.scheduledArr;
   const relTime = relSched ? new Date(relSched).getTime() : null;
   const now = Date.now();
+  const adbOnly = (f.dataSource||"adb")==="adb";
+  const longPast = relTime!=null && (now - relTime) > 90*60*1000; // >90 min after schedule
   let phase;
   if (f.cancelled || st.includes("cancel")) phase = "cancelled";
   else if (relTime == null) phase = "upcoming";
-  else if (relTime > now) phase = "upcoming"; // before scheduled departure
+  else if (relTime > now) phase = "upcoming";
   else if (st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")) phase = "landed";
-  else phase = "enroute"; // scheduled time passed → gestartet
+  else if (adbOnly && longPast) phase = "landed"; // aged-out: treat as done, delay unknown
+  else phase = "enroute";
   const settled = phase==="landed" || phase==="cancelled";
 
-  const effDelay = f.delayMin;
+  // If we only have the ADB plan for a flight that's already gone, we don't
+  // actually know the delay — show "—" rather than a misleading +0m.
+  const delayUnknown = adbOnly && relTime!=null && relTime <= now && (f.delayMin==null || f.delayMin===0) && !st.includes("delay");
+  const effDelay = delayUnknown ? null : f.delayMin;
   const status = f.cancelled ? "bad"
     : effDelay==null ? "good"
     : effDelay>=60 ? "bad" : effDelay>=30 ? "warn" : effDelay>=15 ? "mid" : "good";
   const delayLabel = f.cancelled ? "ANNULLIERT"
-    : effDelay==null ? "—" : (effDelay>=0?"+":"")+effDelay+"m";
+    : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"m";
   const pools = poolsFor(f.ident, f.delayMin, f.cancelled);
   const fmtT = iso => iso ? new Date(iso).toISOString().slice(11,16) : "—";
   return {
@@ -893,6 +900,7 @@ function boardToMarket(f){
     live: true,
     phase,
     settled,
+    delayUnknown,
     dataSource: f.dataSource || "adb",
     code: f.ident,
     subcode: (f.operator||"") + " · " + (dirDep?"ab BER":"an BER"),
