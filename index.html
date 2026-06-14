@@ -934,7 +934,7 @@ function useBoard(){
       }catch(e){ if(!dead) setStatus("offline"); }
     }
     tick();
-    const h=setInterval(tick, 30*60*1000); // 30 min — matches worker board cache
+    const h=setInterval(tick, 15*60*1000); // 15 min — matches worker board cache
     return ()=>{ dead=true; clearInterval(h); };
   },[]);
   return { flights, status, lastUpdate };
