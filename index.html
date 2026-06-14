@@ -241,6 +241,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .berhero-t{font-family:Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
 .berhero-s{font-size:13px;opacity:.9;margin-top:6px}
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
+.segmented{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:16px}
+.seg{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);
+  padding:10px 12px;border-radius:9px;transition:background .15s,color .15s}
+.seg:hover{color:var(--ink)}
+.seg.on{background:var(--brand);color:#fff}
 .aphead{font-family:Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
 .apsub{color:var(--muted);font-size:14px;margin-top:6px;max-width:520px;line-height:1.55}
 .sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
@@ -782,6 +787,23 @@ const CITY_LL = {
   ATH:[37.94,23.95], MXP:[45.63,8.72], BRU:[50.90,4.48], OSL:[60.19,11.10],
   ARN:[59.65,17.92], HEL:[60.32,24.96], GVA:[46.24,6.11], NCE:[43.66,7.21],
 };
+// Country of each airport code, used for geographic sorting.
+const CITY_COUNTRY = {
+  // Germany
+  FRA:"DE", MUC:"DE", CGN:"DE", DUS:"DE", HAM:"DE", STR:"DE", TXL:"DE", SXF:"DE",
+  NUE:"DE", HAJ:"DE", BRE:"DE", LEJ:"DE", DRS:"DE", FMO:"DE", DTM:"DE", FDH:"DE",
+  // Austria
+  VIE:"AT", SZG:"AT", INN:"AT", GRZ:"AT", LNZ:"AT", KLU:"AT",
+  // Switzerland
+  ZRH:"CH", GVA:"CH", BSL:"CH", BRN:"CH", LUG:"CH",
+};
+// Sort priority: 0 = Germany, 1 = Austria, 2 = Switzerland, 3 = everywhere else.
+const GEO_RANK = { DE:0, AT:1, CH:2 };
+function geoRank(code){ const c = CITY_COUNTRY[code]; return c!=null ? (GEO_RANK[c] ?? 3) : 3; }
+function flagFor(code){
+  const c = CITY_COUNTRY[code];
+  return c==="DE"?"🇩🇪":c==="AT"?"🇦🇹":c==="CH"?"🇨🇭":"🛬";
+}
 function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0); }
 function poolsFor(ident, delayMin, cancelled){
   // Deterministic per-flight pools, nudged by the live delay so odds feel real.
@@ -803,6 +825,8 @@ function boardToMarket(f){
   const other = dirDep ? f.destination : f.origin;
   const otherCode = other?.code || "???";
   const ll = CITY_LL[otherCode] || null;
+  const otherFlag = flagFor(otherCode);
+  const rank = geoRank(otherCode); // 0 DE, 1 AT, 2 CH, 3 other
   const status = f.cancelled ? "bad"
     : f.delayMin==null ? "good"
     : f.delayMin>=60 ? "bad" : f.delayMin>=30 ? "warn" : f.delayMin>=15 ? "mid" : "good";
@@ -818,8 +842,10 @@ function boardToMarket(f){
     subcode: (f.operator||"") + " · " + (dirDep?"ab BER":"an BER"),
     liveIdent: f.identICAO || f.ident,
     direction: f.direction,
-    from: dirDep ? {cc:"DE",flag:"🇩🇪",name:"Berlin BER",dep:fmtT(f.scheduledDep)} : {cc:"",flag:"🛫",name:other?.name||otherCode,dep:fmtT(f.scheduledDep)},
-    to:   dirDep ? {cc:"",flag:"🛬",name:other?.name||otherCode} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER"},
+    geoRank: rank,
+    otherCode,
+    from: dirDep ? {cc:"DE",flag:"🇩🇪",name:"Berlin BER",dep:fmtT(f.scheduledDep)} : {cc:"",flag:otherFlag,name:other?.name||otherCode,dep:fmtT(f.scheduledDep)},
+    to:   dirDep ? {cc:"",flag:otherFlag,name:other?.name||otherCode} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER"},
     fromLL: dirDep ? BER_LL : ll,
     toLL:   dirDep ? ll : BER_LL,
     schedArr: fmtT(dirDep ? f.scheduledArr : f.scheduledArr),
@@ -883,7 +909,7 @@ function App(){
   const [toast,setToast]=useState(null);
   const [tab,setTab]=useState("flights");
   const [query,setQuery]=useState("");
-  const [dirFilter,setDirFilter]=useState("all");
+  const [dirFilter,setDirFilter]=useState("departure");
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>store.set("ber_pos",positions),[positions]);
@@ -958,9 +984,11 @@ function App(){
 
       <div className="controls">
         <div className="search">🔎<input placeholder="Flug suchen (LH 1925, easyJet, FRA…)" value={query} onChange={e=>setQuery(e.target.value)}/></div>
-        <button className={"filter"+(dirFilter==="all"?"":" on")} onClick={()=>setDirFilter(dirFilter==="all"?"departure":dirFilter==="departure"?"arrival":"all")}>
-          {dirFilter==="all"?"Alle":dirFilter==="departure"?"🛫 Abflüge":"🛬 Ankünfte"}
-        </button>
+      </div>
+      <div className="segmented">
+        <button className={"seg"+(dirFilter==="departure"?" on":"")} onClick={()=>setDirFilter("departure")}>🛫 Abflüge</button>
+        <button className={"seg"+(dirFilter==="arrival"?" on":"")} onClick={()=>setDirFilter("arrival")}>🛬 Ankünfte</button>
+        <button className={"seg"+(dirFilter==="all"?" on":"")} onClick={()=>setDirFilter("all")}>Alle</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
@@ -971,6 +999,12 @@ function App(){
         {liveMarkets
           .filter(m => dirFilter==="all" || m.direction===dirFilter)
           .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
+          .sort((a,b)=>{
+            // Germany first, then Austria, then Switzerland, then the rest;
+            // within each group keep the soonest scheduled departure first.
+            if (a.geoRank !== b.geoRank) return a.geoRank - b.geoRank;
+            return new Date(a.depISO||0) - new Date(b.depISO||0);
+          })
           .map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
       </div>
     </> : view.page==="daily" ? (
