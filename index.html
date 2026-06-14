@@ -1007,7 +1007,12 @@ function boardToMarket(f){
   const delayLabel = f.cancelled ? "ANNULLIERT"
     : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"m";
   const pools = poolsFor(f.ident, f.delayMin, f.cancelled);
-  const fmtT = iso => iso ? new Date(iso).toISOString().slice(11,16) : "—";
+  const fmtT = iso => {
+    if (!iso) return "—";
+    try {
+      return new Date(iso).toLocaleTimeString("de-DE", { timeZone:"Europe/Berlin", hour:"2-digit", minute:"2-digit", hour12:false });
+    } catch(e) { return new Date(iso).toISOString().slice(11,16); }
+  };
   return {
     id: "bd_"+f.ident,
     type: "flight",
