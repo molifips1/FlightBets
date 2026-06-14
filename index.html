@@ -369,6 +369,15 @@ const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"S
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
 
+// Anonymous player id — one per browser, persisted. Keys the server-side wallet
+// and bets. No login; play money, so a browser identity is enough.
+function getUserId(){
+  let id = store.get("ber_uid", null);
+  if(!id){ id = "u_" + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36)); store.set("ber_uid", id); }
+  return id;
+}
+const USER_ID = getUserId();
+
 /* smooth catmull-rom path */
 function smooth(pts){
   if(pts.length<2)return"";
@@ -1080,11 +1089,57 @@ function useBoard(){
   return { flights, status, lastUpdate };
 }
 
+// Shared pools (sum of all players' stakes) + settled markets. Refreshed more
+// often than the board, since pools move with every bet. `bump` forces a refetch
+// right after the user places a bet.
+function usePools(bump){
+  const [pools, setPools] = useState({});
+  const [settled, setSettled] = useState({});
+  useEffect(()=>{
+    if(!CONFIG.API_BASE) return;
+    let dead=false;
+    async function tick(){
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/pools`);
+        if(!r.ok) return;
+        const d = await r.json();
+        if(dead) return;
+        setPools(d.pools||{}); setSettled(d.settled||{});
+      }catch(e){}
+    }
+    tick();
+    const h=setInterval(tick, 60*1000); // every minute
+    return ()=>{ dead=true; clearInterval(h); };
+  },[bump]);
+  return { pools, settled };
+}
+
+// Server-side wallet for this player.
+function useWallet(bump){
+  const [w, setW] = useState({ balance: 925, positions: [], betsTotal:0, betsWon:0 });
+  useEffect(()=>{
+    if(!CONFIG.API_BASE) return;
+    let dead=false;
+    (async()=>{
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/wallet?userId=${encodeURIComponent(USER_ID)}`);
+        if(!r.ok) return;
+        const d = await r.json();
+        if(!dead && !d.error) setW(d);
+      }catch(e){}
+    })();
+    return ()=>{ dead=true; };
+  },[bump]);
+  return w;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
-  const [wallet,setWallet]=useState(()=>store.get("ber_w",925));
-  const [positions,setPositions]=useState(()=>store.get("ber_pos",{}));
+  const [bump,setBump]=useState(0); // increment to refetch pools+wallet after a bet
+  const { pools: serverPools, settled: serverSettled } = usePools(bump);
+  const serverWallet = useWallet(bump);
+  const wallet = serverWallet.balance;
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
   const [pick,setPick]=useState(null);
@@ -1097,22 +1152,22 @@ function App(){
   const [phaseFilter,setPhaseFilter]=useState("all"); // all | soon | gone
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
-  useEffect(()=>store.set("ber_pos",positions),[positions]);
-  useEffect(()=>store.set("ber_w",wallet),[wallet]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
 
   const total=m=>m.outcomes.reduce((s,o)=>s+o.pool,0);
 
-  // Live BER board → bettable markets with auto-pools.
+  // Live BER board → bettable markets.
   const { flights: boardFlights, status: dataStatus, lastUpdate } = useBoard();
 
-  // User stakes live on top of the auto-generated pools. Because the board
-  // regenerates on refresh, we keep the user's added stake in `positions`
-  // and merge it back onto each flight's pools so odds reflect their bets.
+  // Apply the REAL shared pools from the server onto each market, and mark a
+  // market settled if the server has resolved it. Pools start at €0 and grow as
+  // players actually bet — no synthetic numbers.
   const mergeStakes = (mkt) => {
-    const pos = positions[mkt.id];
-    if (!pos) return mkt;
-    return {...mkt, outcomes: mkt.outcomes.map(o => pos[o.id] ? {...o, pool:o.pool+pos[o.id]} : o)};
+    const p = serverPools[mkt.id] || {};
+    const outcomes = mkt.outcomes.map(o => ({...o, pool: p[o.id] || 0}));
+    const set = serverSettled[mkt.id];
+    return {...mkt, outcomes, settled: mkt.settled || !!set,
+            settledOutcome: set ? set.outcome : null};
   };
   const liveMarkets = boardFlights.map(mergeStakes);
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
@@ -1123,22 +1178,28 @@ function App(){
                  : dataStatus === "offline" ? { t:"OFFLINE", bg:"var(--bad)",  fg:"#fff" }
                  :                            { t:"…",       bg:"var(--card2)", fg:"var(--muted)" };
 
-  function onBet(m,o){
+  async function onBet(m,o){
     if(stake<=0||stake>wallet)return;
-    setWallet(w=>w-stake);
-    setPositions(p=>{const c={...(p[m.id]||{})};c[o.id]=(c[o.id]||0)+stake;return{...p,[m.id]:c}});
-    setToast(`${fmt(stake)} € auf „${o.label}“ gesetzt`);
+    if(!CONFIG.API_BASE){ setToast("Kein Server verbunden"); return; }
+    try{
+      const r = await fetch(`${CONFIG.API_BASE}/api/bet`, {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({ userId: USER_ID, flightId: m.id, ident: m.code, direction: m.direction, outcome: o.id, stake }),
+      });
+      const d = await r.json();
+      if(d.error){
+        setToast(d.error==="insufficient_funds"?"Nicht genug Guthaben":d.error==="market_settled"?"Markt bereits abgerechnet":"Wette fehlgeschlagen");
+        return;
+      }
+      setToast(`${fmt(stake)} € auf „${o.label}" gesetzt`);
+      setBump(b=>b+1); // refetch pools + wallet
+    }catch(e){ setToast("Wette fehlgeschlagen — Server nicht erreichbar"); }
   }
-  function onSettle(m,winId){
-    const t=total(m),net=t*(1-RAKE),win=m.outcomes.find(o=>o.id===winId);
-    const ms=(positions[m.id]||{})[winId]||0;
-    const payout=ms>0?(ms/(win.pool||1))*net:0;
-    if(payout>0)setWallet(w=>w+payout);
-    setToast(ms>0?`„${win.label}“ abgerechnet — ${payout>=ms?"gewonnen":"erstattet"} ${fmt(payout)} €`:`„${win.label}“ abgerechnet — keine Wette`);
-  }
-  function reset(){store.clear();setWallet(925);setPositions({});setView({page:"home"});setToast("Neue Saison — Guthaben zurückgesetzt")}
+  // Settlement is automatic on the server. The OPS button is gone.
+  function onSettle(){ setToast("Abrechnung läuft automatisch nach der Landung."); }
+  function reset(){ setToast("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt."); }
 
-  const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions};
+  const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle};
   const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
 
   return <div className="app">
@@ -1224,12 +1285,6 @@ function App(){
       <button className="fab" onClick={()=>{setTab("flights");setView({page:"home"})}}>⚡</button>
       <button className={"navi"+(tab==="live"?" on":"")} onClick={()=>{setTab("live");setView({page:"home"})}}><span className="ni">📡</span>Live</button>
       <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank")}}><span className="ni">🏆</span>Rangliste</button>
-    </div>
-
-    {/* dev controls */}
-    <div style={{position:"fixed",left:14,bottom:90,zIndex:46,display:"flex",gap:8}}>
-      <button className="chip" style={{cursor:"pointer"}} onClick={()=>setOps(v=>!v)}>OPS {ops?"AN":"AUS"}</button>
-      <button className="chip" style={{cursor:"pointer"}} onClick={reset}>↺ Reset</button>
     </div>
 
     {toast && <div className="toast">{toast}</div>}
