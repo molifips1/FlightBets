@@ -233,6 +233,14 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 /* airports page */
 .airports-hero{padding:18px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
 .apsuper{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.berhero{margin:14px 0 4px;padding:18px 20px;border-radius:16px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(120deg,#C8102E,#7A0A1C)}
+[data-theme="dark"] .berhero{background:linear-gradient(120deg,#A50D26,#4E0712)}
+.berhero::after{content:"✈";position:absolute;right:14px;top:6px;font-size:74px;opacity:.10;transform:rotate(-18deg)}
+.berhero-k{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:2px;opacity:.85}
+.berhero-t{font-family:Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
+.berhero-s{font-size:13px;opacity:.9;margin-top:6px}
+.emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
 .aphead{font-family:Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
 .apsub{color:var(--muted);font-size:14px;margin-top:6px;max-width:520px;line-height:1.55}
 .sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
@@ -299,7 +307,7 @@ const CONFIG = {
 const RAKE=0.05;
 const fmt=n=>Math.round(n).toLocaleString("en-US");
 const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)"};
-const STATUS={good:"On time",mid:"Slight delay",warn:"Delayed",bad:"Severely delayed"};
+const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
 
@@ -352,286 +360,41 @@ function Breakdown({m,total}){
 }
 
 const SEED=[
-  {id:"f1",type:"flight",code:"AA 100",subcode:"American",codename:"Sturmschwalbe",liveIdent:"AAL100",pool:1466,comments:212,
-   from:{cc:"US",flag:"🇺🇸",name:"New York JFK",dep:"18:30"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
-   fromLL:[40.64,-73.78],toLL:[51.47,-0.45],depISO:null,
-   stops:0,schedArr:"06:25",actualArr:"08:09",status:"bad",delay:"+104m",risk:44,
-   dist:[9,7,4,3,3,4,6,9,13,16,18,17,13,8,4],marker:11,
-   axis:["0m","30m","60m","90m","120m"],
-   outcomes:[{id:"a",label:"On time",tone:"good",pool:730},{id:"b",label:"+15m",tone:"mid",pool:279},
-             {id:"c",label:"+30m",tone:"warn",pool:220},{id:"d",label:"+60m",tone:"bad",pool:237}],
-   settles:"US DOT / BTS on-arrival record · settles at gate-in",
-   grade:{em:"🦏",word:"RELIABILITY · RHINO",blurb:"Reliably, gloriously late",tone:"bad"},
-   stats:{avg:"+58m",onTime:"41%",tracked:"212"},
-   history:[{cn:"Sturmschwalbe",date:"Wed 11 Jun · 18:30",route:"JFK → LHR",out:"Severely delayed",tone:"bad"},
-            {cn:"Nebelreiher",date:"Tue 10 Jun · 18:30",route:"JFK → LHR",out:"Delayed",tone:"warn"},
-            {cn:"Sturmschwalbe",date:"Mon 09 Jun · 18:30",route:"JFK → LHR",out:"On time",tone:"good"}]},
+  {id:"d1",type:"daily",code:"TÄGLICH",question:"Schafft der BER heute 80% Pünktlichkeit?",
+   yesterday:"Gestern: 74%.",closes:"14h 26m",bonus:"1.8× Frühbonus",
+   outcomes:[{id:"yes",label:"Ja · ≥ 80%",tone:"good",pool:430},{id:"no",label:"Nein · < 80%",tone:"bad",pool:1180}],
+   settles:"FlightAware Pünktlichkeitsquote BER um 23:59 MEZ"},
 
-  {id:"f2",type:"flight",code:"UA 628",subcode:"United",codename:"Nebelkojote",liveIdent:"UAL628",pool:903,comments:64,
-   from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"07:05"},to:{cc:"US",flag:"🇺🇸",name:"Newark EWR"},
-   fromLL:[37.62,-122.38],toLL:[40.69,-74.17],
-   stops:0,schedArr:"15:40",actualArr:"15:54",status:"mid",delay:"+14m",risk:31,
-   dist:[5,11,18,16,10,6,5,5,6,7,6,4,3,2,2],marker:3,
-   axis:["0m","20m","40m","60m","80m"],
-   outcomes:[{id:"a",label:"On time",tone:"good",pool:430},{id:"b",label:"+15m",tone:"mid",pool:240},
-             {id:"c",label:"+30m",tone:"warn",pool:130},{id:"d",label:"+60m",tone:"bad",pool:103}],
-   settles:"FlightAware actual gate arrival",
-   grade:{em:"🦊",word:"RELIABILITY · FOX",blurb:"Usually slips through",tone:"mid"},
-   stats:{avg:"+16m",onTime:"63%",tracked:"148"},
-   history:[{cn:"Nebelkojote",date:"Wed 11 Jun · 07:05",route:"SFO → EWR",out:"Slight delay",tone:"mid"},
-            {cn:"Tagfalke",date:"Tue 10 Jun · 07:05",route:"SFO → EWR",out:"On time",tone:"good"}]},
+  {id:"d2",type:"daily",code:"TÄGLICH",question:"Mehr als 5 Annullierungen am BER heute?",
+   yesterday:"Gestern: 3 Annullierungen.",closes:"11h 02m",bonus:"1.5× Frühbonus",
+   outcomes:[{id:"yes",label:"Ja",tone:"bad",pool:920},{id:"no",label:"Nein",tone:"good",pool:670}],
+   settles:"FlightAware Annullierungen BER am Tagesende (00:00 MEZ)"},
 
-  {id:"f3",type:"flight",code:"BA 286",subcode:"British A.",codename:"Teekiebitz",liveIdent:"BAW286",pool:691,comments:35,
-   from:{cc:"US",flag:"🇺🇸",name:"San Francisco SFO",dep:"16:25"},to:{cc:"GB",flag:"🇬🇧",name:"London LHR"},
-   fromLL:[37.62,-122.38],toLL:[51.47,-0.45],
-   stops:0,schedArr:"10:45",actualArr:"10:48",status:"good",delay:"+3m",risk:12,
-   dist:[20,16,9,4,3,2,2,2,2,2,3,2,2,2,2],marker:1,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"On time",tone:"good",pool:560},{id:"b",label:"+15m",tone:"mid",pool:74},
-             {id:"c",label:"+30m",tone:"warn",pool:33},{id:"d",label:"+60m",tone:"bad",pool:24}],
-   settles:"FlightAware actual gate arrival",
-   grade:{em:"🐆",word:"RELIABILITY · CHEETAH",blurb:"Practically never late",tone:"good"},
-   stats:{avg:"+8m",onTime:"87%",tracked:"79"},
-   history:[{cn:"Teekiebitz",date:"Wed 11 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"},
-            {cn:"Sternspecht",date:"Tue 10 Jun · 16:25",route:"SFO → LHR",out:"On time",tone:"good"}]},
+  {id:"d3",type:"daily",code:"TÄGLICH",question:"Knackt der BER heute die 70-Verspätungen-Marke?",
+   yesterday:"Gestern: 61 verspätete Flüge.",closes:"6h 41m",bonus:"2.0× Frühbonus",
+   outcomes:[{id:"yes",label:"Ja · ≥ 70",tone:"bad",pool:540},{id:"no",label:"Nein · < 70",tone:"good",pool:760}],
+   settles:"Verspätete An- und Abflüge BER, FlightAware, Tagesende"},
 
-  {id:"a1",type:"aggregate",code:"LAX",subcode:"cancellations · today",codename:"Chaosfink",liveAirport:"KLAX",liveMetric:"cancel",pool:1320,comments:103,
-   scope:"🇺🇸 Los Angeles LAX — share of departures cancelled today",
-   status:"warn",delay:"2.4%",risk:38,
-   dist:[14,12,9,7,6,7,9,11,9,6,4,3,2,2,2],marker:7,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:310},{id:"b",label:"1–3%",tone:"mid",pool:540},
-             {id:"c",label:"3–5%",tone:"warn",pool:290},{id:"d",label:"Over 5%",tone:"bad",pool:180}],
-   settles:"FlightAware end-of-day LAX cancellation total (00:00 PT)",
-   grade:{em:"🌪️",word:"VOLATILITY · STORMY",blurb:"Swings hard on weather",tone:"warn"},
-   stats:{avg:"2.1%",onTime:"—",tracked:"30d"},
-   history:[{cn:"Chaosfink",date:"Wed 11 Jun",route:"LAX cancellations",out:"1.8%",tone:"mid"},
-            {cn:"Nebelkrähe",date:"Tue 10 Jun",route:"LAX cancellations",out:"0.7%",tone:"good"}]},
-
-  {id:"a1d",type:"aggregate",code:"LAX",subcode:"avg dep delay · today",codename:"Schleppfuchs",liveAirport:"KLAX",liveMetric:"delay",pool:840,comments:41,
-   scope:"🇺🇸 Los Angeles LAX — average departure delay today",
-   status:"mid",delay:"+12m",risk:42,
-   dist:[8,11,14,15,12,10,8,6,5,4,3,2,1,1,1],marker:4,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:180},{id:"b",label:"5–15m",tone:"mid",pool:310},
-             {id:"c",label:"15–30m",tone:"warn",pool:220},{id:"d",label:"Over 30m",tone:"bad",pool:130}],
-   settles:"Average actual_off − scheduled_off across LAX departures (end of day)",
-   grade:{em:"🦔",word:"VOLATILITY · STEADY",blurb:"Crawls reliably late",tone:"mid"},
-   stats:{avg:"+11m",onTime:"—",tracked:"30d"},
-   history:[{cn:"Schleppfuchs",date:"Wed 11 Jun",route:"LAX avg delay",out:"+8m",tone:"mid"}]},
-
-  {id:"a2",type:"aggregate",code:"ORD",subcode:"cancellations · today",codename:"Sturmkrähe",liveAirport:"KORD",liveMetric:"cancel",pool:1180,comments:78,
-   scope:"🇺🇸 Chicago O'Hare ORD — share of departures cancelled today",
-   status:"warn",delay:"3.1%",risk:48,
-   dist:[10,9,8,8,9,11,12,11,8,6,4,3,2,2,1],marker:8,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:200},{id:"b",label:"1–3%",tone:"mid",pool:340},
-             {id:"c",label:"3–5%",tone:"warn",pool:380},{id:"d",label:"Over 5%",tone:"bad",pool:260}],
-   settles:"FlightAware end-of-day ORD cancellation total (00:00 CT)",
-   grade:{em:"❄️",word:"VOLATILITY · STORMY",blurb:"Weather punishes this hub",tone:"warn"},
-   stats:{avg:"3.4%",onTime:"—",tracked:"30d"},
-   history:[{cn:"Sturmkrähe",date:"Wed 11 Jun",route:"ORD cancellations",out:"2.6%",tone:"mid"}]},
-
-  {id:"a2d",type:"aggregate",code:"ORD",subcode:"avg dep delay · today",codename:"Bremsfink",liveAirport:"KORD",liveMetric:"delay",pool:720,comments:29,
-   scope:"🇺🇸 Chicago O'Hare ORD — average departure delay today",
-   status:"warn",delay:"+22m",risk:55,
-   dist:[6,8,10,12,13,12,11,9,7,5,3,2,1,1,0],marker:7,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:110},{id:"b",label:"5–15m",tone:"mid",pool:220},
-             {id:"c",label:"15–30m",tone:"warn",pool:240},{id:"d",label:"Over 30m",tone:"bad",pool:150}],
-   settles:"Average actual_off − scheduled_off across ORD departures (end of day)",
-   grade:{em:"🦏",word:"VOLATILITY · LUMBERING",blurb:"Routine grind",tone:"warn"},
-   stats:{avg:"+19m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a3",type:"aggregate",code:"JFK",subcode:"cancellations · today",codename:"Hafenadler",liveAirport:"KJFK",liveMetric:"cancel",pool:980,comments:54,
-   scope:"🇺🇸 New York JFK — share of departures cancelled today",
-   status:"mid",delay:"1.6%",risk:32,
-   dist:[14,13,11,10,9,9,8,7,5,4,3,2,2,2,1],marker:5,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:240},{id:"b",label:"1–3%",tone:"mid",pool:380},
-             {id:"c",label:"3–5%",tone:"warn",pool:230},{id:"d",label:"Over 5%",tone:"bad",pool:130}],
-   settles:"FlightAware end-of-day JFK cancellation total (00:00 ET)",
-   grade:{em:"🌧️",word:"VOLATILITY · MODERATE",blurb:"Holds up most days",tone:"mid"},
-   stats:{avg:"1.9%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a3d",type:"aggregate",code:"JFK",subcode:"avg dep delay · today",codename:"Tauchsturmvogel",liveAirport:"KJFK",liveMetric:"delay",pool:560,comments:18,
-   scope:"🇺🇸 New York JFK — average departure delay today",
-   status:"mid",delay:"+14m",risk:40,
-   dist:[10,12,13,13,12,10,8,6,5,4,3,2,1,1,0],marker:5,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:140},{id:"b",label:"5–15m",tone:"mid",pool:230},
-             {id:"c",label:"15–30m",tone:"warn",pool:130},{id:"d",label:"Over 30m",tone:"bad",pool:60}],
-   settles:"Average actual_off − scheduled_off across JFK departures (end of day)",
-   grade:{em:"🦅",word:"VOLATILITY · MODERATE",blurb:"Slips when ATC stretches",tone:"mid"},
-   stats:{avg:"+13m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a4",type:"aggregate",code:"LHR",subcode:"cancellations · today",codename:"Nebelbussard",liveAirport:"EGLL",liveMetric:"cancel",pool:1080,comments:92,
-   scope:"🇬🇧 London Heathrow LHR — share of departures cancelled today",
-   status:"good",delay:"0.7%",risk:18,
-   dist:[22,18,13,9,7,6,5,4,4,4,3,2,1,1,1],marker:2,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:520},{id:"b",label:"1–3%",tone:"mid",pool:310},
-             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:110}],
-   settles:"FlightAware end-of-day LHR cancellation total (00:00 BST)",
-   grade:{em:"🛡️",word:"VOLATILITY · STEADY",blurb:"Famously disciplined",tone:"good"},
-   stats:{avg:"0.9%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a4d",type:"aggregate",code:"LHR",subcode:"avg dep delay · today",codename:"Teekrabbe",liveAirport:"EGLL",liveMetric:"delay",pool:610,comments:24,
-   scope:"🇬🇧 London Heathrow LHR — average departure delay today",
-   status:"mid",delay:"+9m",risk:26,
-   dist:[14,16,15,12,10,8,6,5,4,3,2,2,1,1,1],marker:3,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:200},{id:"b",label:"5–15m",tone:"mid",pool:240},
-             {id:"c",label:"15–30m",tone:"warn",pool:110},{id:"d",label:"Over 30m",tone:"bad",pool:60}],
-   settles:"Average actual_off − scheduled_off across LHR departures (end of day)",
-   grade:{em:"🦦",word:"VOLATILITY · STEADY",blurb:"Polite delays",tone:"mid"},
-   stats:{avg:"+8m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a5",type:"aggregate",code:"FRA",subcode:"cancellations · today",codename:"Bahnhofsfalke",liveAirport:"EDDF",liveMetric:"cancel",pool:740,comments:36,
-   scope:"🇩🇪 Frankfurt FRA — share of departures cancelled today",
-   status:"mid",delay:"1.2%",risk:28,
-   dist:[16,15,12,10,9,8,7,6,5,4,3,2,1,1,1],marker:4,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:230},{id:"b",label:"1–3%",tone:"mid",pool:280},
-             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:90}],
-   settles:"FlightAware end-of-day FRA cancellation total (00:00 CEST)",
-   grade:{em:"⚙️",word:"VOLATILITY · ENGINEERED",blurb:"Predictably mid",tone:"mid"},
-   stats:{avg:"1.3%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a5d",type:"aggregate",code:"FRA",subcode:"avg dep delay · today",codename:"Pünktlichkeitsdrossel",liveAirport:"EDDF",liveMetric:"delay",pool:480,comments:21,
-   scope:"🇩🇪 Frankfurt FRA — average departure delay today",
-   status:"warn",delay:"+18m",risk:46,
-   dist:[8,10,11,12,13,12,11,9,7,4,2,1,0,0,0],marker:6,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:90},{id:"b",label:"5–15m",tone:"mid",pool:170},
-             {id:"c",label:"15–30m",tone:"warn",pool:140},{id:"d",label:"Over 30m",tone:"bad",pool:80}],
-   settles:"Average actual_off − scheduled_off across FRA departures (end of day)",
-   grade:{em:"🐢",word:"VOLATILITY · CREEPING",blurb:"Late by clockwork",tone:"warn"},
-   stats:{avg:"+16m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a6",type:"aggregate",code:"AMS",subcode:"cancellations · today",codename:"Tulpenkormoran",liveAirport:"EHAM",liveMetric:"cancel",pool:680,comments:31,
-   scope:"🇳🇱 Amsterdam Schiphol AMS — share of departures cancelled today",
-   status:"mid",delay:"1.4%",risk:30,
-   dist:[15,14,12,10,9,8,7,6,5,4,3,2,2,2,1],marker:4,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:200},{id:"b",label:"1–3%",tone:"mid",pool:260},
-             {id:"c",label:"3–5%",tone:"warn",pool:140},{id:"d",label:"Over 5%",tone:"bad",pool:80}],
-   settles:"FlightAware end-of-day AMS cancellation total (00:00 CEST)",
-   grade:{em:"🌷",word:"VOLATILITY · MODERATE",blurb:"Reliable until it isn't",tone:"mid"},
-   stats:{avg:"1.6%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a6d",type:"aggregate",code:"AMS",subcode:"avg dep delay · today",codename:"Grachtenmöwe",liveAirport:"EHAM",liveMetric:"delay",pool:430,comments:14,
-   scope:"🇳🇱 Amsterdam Schiphol AMS — average departure delay today",
-   status:"mid",delay:"+11m",risk:33,
-   dist:[12,14,13,12,10,8,7,5,4,3,2,1,1,1,1],marker:3,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:130},{id:"b",label:"5–15m",tone:"mid",pool:170},
-             {id:"c",label:"15–30m",tone:"warn",pool:90},{id:"d",label:"Over 30m",tone:"bad",pool:40}],
-   settles:"Average actual_off − scheduled_off across AMS departures (end of day)",
-   grade:{em:"🚲",word:"VOLATILITY · MODERATE",blurb:"Mostly punctual",tone:"mid"},
-   stats:{avg:"+10m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a7",type:"aggregate",code:"CDG",subcode:"cancellations · today",codename:"Streikspatz",liveAirport:"LFPG",liveMetric:"cancel",pool:820,comments:67,
-   scope:"🇫🇷 Paris CDG — share of departures cancelled today",
-   status:"warn",delay:"2.8%",risk:44,
-   dist:[11,11,11,10,10,9,9,8,6,5,4,3,2,1,1],marker:6,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:160},{id:"b",label:"1–3%",tone:"mid",pool:300},
-             {id:"c",label:"3–5%",tone:"warn",pool:240},{id:"d",label:"Over 5%",tone:"bad",pool:120}],
-   settles:"FlightAware end-of-day CDG cancellation total (00:00 CEST)",
-   grade:{em:"🪧",word:"VOLATILITY · UNPREDICTABLE",blurb:"Strikes happen",tone:"warn"},
-   stats:{avg:"2.4%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a7d",type:"aggregate",code:"CDG",subcode:"avg dep delay · today",codename:"Boulevardamsel",liveAirport:"LFPG",liveMetric:"delay",pool:520,comments:25,
-   scope:"🇫🇷 Paris CDG — average departure delay today",
-   status:"warn",delay:"+19m",risk:48,
-   dist:[7,9,11,12,13,12,11,9,7,5,2,1,0,1,0],marker:6,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:80},{id:"b",label:"5–15m",tone:"mid",pool:170},
-             {id:"c",label:"15–30m",tone:"warn",pool:170},{id:"d",label:"Over 30m",tone:"bad",pool:100}],
-   settles:"Average actual_off − scheduled_off across CDG departures (end of day)",
-   grade:{em:"🥐",word:"VOLATILITY · ELEVATED",blurb:"Habitually late",tone:"warn"},
-   stats:{avg:"+17m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a8",type:"aggregate",code:"NRT",subcode:"cancellations · today",codename:"Sakurakrähe",liveAirport:"RJAA",liveMetric:"cancel",pool:540,comments:19,
-   scope:"🇯🇵 Tokyo Narita NRT — share of departures cancelled today",
-   status:"good",delay:"0.4%",risk:12,
-   dist:[26,20,12,7,5,4,4,3,3,3,3,3,2,2,1],marker:1,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[{id:"a",label:"Under 1%",tone:"good",pool:340},{id:"b",label:"1–3%",tone:"mid",pool:140},
-             {id:"c",label:"3–5%",tone:"warn",pool:40},{id:"d",label:"Over 5%",tone:"bad",pool:20}],
-   settles:"FlightAware end-of-day NRT cancellation total (00:00 JST)",
-   grade:{em:"🌸",word:"VOLATILITY · CALM",blurb:"Almost surreal punctuality",tone:"good"},
-   stats:{avg:"0.5%",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"a8d",type:"aggregate",code:"NRT",subcode:"avg dep delay · today",codename:"Bambusreiher",liveAirport:"RJAA",liveMetric:"delay",pool:380,comments:11,
-   scope:"🇯🇵 Tokyo Narita NRT — average departure delay today",
-   status:"good",delay:"+3m",risk:9,
-   dist:[28,18,11,7,5,4,4,4,4,4,3,3,2,2,1],marker:1,
-   axis:["0m","15m","30m","45m","60m"],
-   outcomes:[{id:"a",label:"Under 5m",tone:"good",pool:240},{id:"b",label:"5–15m",tone:"mid",pool:90},
-             {id:"c",label:"15–30m",tone:"warn",pool:30},{id:"d",label:"Over 30m",tone:"bad",pool:20}],
-   settles:"Average actual_off − scheduled_off across NRT departures (end of day)",
-   grade:{em:"⏱️",word:"VOLATILITY · CALM",blurb:"Watches set by it",tone:"good"},
-   stats:{avg:"+3m",onTime:"—",tracked:"30d"},history:[]},
-
-  {id:"hub-vs",type:"aggregate",code:"WORST HUB",subcode:"head-to-head · today",codename:"Schadenfreudfink",
-   liveAirports:["KLAX","KORD","KJFK","EGLL","EDDF","EHAM","LFPG","RJAA"],liveMetric:"worst-hub",pool:2140,comments:184,
-   scope:"🌐 Which global hub has the worst cancellation rate today?",
-   status:"warn",delay:"ORD leads · 3.1%",risk:50,
-   dist:[3,4,6,8,11,14,15,12,9,6,4,3,2,2,1],marker:6,
-   axis:["0%","2%","4%","6%","8%"],
-   outcomes:[
-     {id:"lax",label:"LAX",liveAirport:"KLAX",tone:"warn",pool:280},
-     {id:"ord",label:"ORD",liveAirport:"KORD",tone:"bad",pool:430},
-     {id:"jfk",label:"JFK",liveAirport:"KJFK",tone:"mid",pool:240},
-     {id:"lhr",label:"LHR",liveAirport:"EGLL",tone:"good",pool:160},
-     {id:"fra",label:"FRA",liveAirport:"EDDF",tone:"mid",pool:200},
-     {id:"ams",label:"AMS",liveAirport:"EHAM",tone:"mid",pool:210},
-     {id:"cdg",label:"CDG",liveAirport:"LFPG",tone:"warn",pool:380},
-     {id:"nrt",label:"NRT",liveAirport:"RJAA",tone:"good",pool:240},
-   ],
-   settles:"Airport with the highest end-of-day cancellation share across the 8 listed hubs",
-   grade:{em:"🏆",word:"FORMAT · HEAD-TO-HEAD",blurb:"The pile-up Olympics",tone:"warn"},
-   stats:{avg:"—",onTime:"—",tracked:"daily"},history:[]},
-
-  {id:"d1",type:"daily",code:"DAILY",question:"Does LAX clear 85% on-time today?",
-   yesterday:"Yesterday: 81%.",closes:"14h 26m",bonus:"1.8× early bonus",
-   outcomes:[{id:"yes",label:"Yes · ≥ 85%",tone:"good",pool:430},{id:"no",label:"No · < 85%",tone:"bad",pool:1180}],
-   settles:"FlightAware LAX on-time % at 23:59 PT"},
-
-  {id:"d2",type:"daily",code:"DAILY",question:"Will any US hub cancel > 5% of departures today?",
-   yesterday:"Yesterday: 2 hubs crossed it.",closes:"11h 02m",bonus:"1.5× early bonus",
-   outcomes:[{id:"yes",label:"Yes",tone:"bad",pool:920},{id:"no",label:"No",tone:"good",pool:670}],
-   settles:"FlightAware end-of-day cancellation totals across LAX/ORD/JFK/EWR/ATL/DEN/SFO/DFW"},
-
-  {id:"d3",type:"daily",code:"DAILY",question:"AA 100 vs BA 286 — bigger delay tonight?",
-   yesterday:"Both arrived within 8m of each other yesterday.",closes:"6h 41m",bonus:"2.0× early bonus",
-   outcomes:[{id:"aa",label:"AA 100",tone:"warn",pool:580},{id:"ba",label:"BA 286",tone:"warn",pool:540},{id:"tie",label:"Within 5m",tone:"mid",pool:230}],
-   settles:"|actual_on − scheduled_on| from FlightAware, snapshotted 24h after scheduled arrival"},
-
-  {id:"d4",type:"daily",code:"DAILY",question:"Will Heathrow stay under 1% cancellations today?",
-   yesterday:"Yesterday: 0.4% — held.",closes:"3h 17m",bonus:"⏰ closing soon",
-   outcomes:[{id:"yes",label:"Yes",tone:"good",pool:1140},{id:"no",label:"No",tone:"bad",pool:380}],
-   settles:"FlightAware end-of-day LHR cancellation total (00:00 BST)"},
-
-  {id:"disc",type:"discussion"},
+  {id:"d4",type:"daily",code:"TÄGLICH",question:"Durchschnittliche Abflugverspätung heute über 20 Min?",
+   yesterday:"Gestern: +16 Min im Schnitt.",closes:"3h 17m",bonus:"⏰ schließt bald",
+   outcomes:[{id:"yes",label:"Ja · > 20m",tone:"bad",pool:610},{id:"no",label:"Nein · ≤ 20m",tone:"good",pool:540}],
+   settles:"Ø actual_off − scheduled_off über alle BER-Abflüge (Tagesende)"},
 ];
 
 const TICKER=[
-  ["@youngbasedgod","AA 100","+100"],["@naturalia","wins","+245"],["@delayhunter","UA 628","+80"],
-  ["@gatekeeper","LAX","+100"],["@mileking","BA 286","+60"],["@youngbasedgod","DAILY","+100"],
-  ["@avgeek","AA 100","+140"],["@runway27","UA 628","+100"]];
+  ["@berliner_jung","LH 1925","+100"],["@tegel4ever","EW 9018","+245"],["@spätzünder","EJU 2261","+80"],
+  ["@brandenburg","FR 8542","+100"],["@gatecrasher","LH 1957","+60"],["@verspätet","TÄGLICH","+100"],
+  ["@willybrandt","EW 2087","+140"],["@schönefeld","LH 1925","+100"]];
 
 function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
   if(m.type==="discussion"){
-    const msgs=[["skybound","2d","How's the morning bank looking?"],["skybound","2d","Morning all ☕"],
-      ["tarmac_tom","2d","Interesting trend on the transatlantics."],["tarmac_tom","2d","Fingers crossed!"],
-      ["gate_gremlin","3d","Classic."],["gate_gremlin","3d","Called it."]];
+    const msgs=[["berliner_jung","2d","Wie sieht's heute mit den Verspätungen aus?"],["berliner_jung","2d","Morgen zusammen ☕"],
+      ["tegel4ever","2d","Interessante Entwicklung am BER."],["tegel4ever","2d","Daumen drücken!"],
+      ["verspätet","3d","Klassiker."],["verspätet","3d","Hab's gewusst."]];
     return <div className="card disc">
-      <div className="dh"><span>Live discussion</span><span>{msgs.length*25} comments</span></div>
+      <div className="dh"><span>Live-Diskussion</span><span>{msgs.length*25} Kommentare</span></div>
       {msgs.map((x,i)=><div className="msg" key={i}><span className="who">{x[0]}</span><span className="ago">{x[1]}</span><div className="tx">{x[2]}</div></div>)}
-      <div className="composer"><input placeholder="Say something…"/><button className="ico">➤</button></div>
+      <div className="composer"><input placeholder="Sag deine Meinung…"/><button className="ico">➤</button></div>
     </div>;
   }
   if(m.type==="daily"){
@@ -640,7 +403,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <div className="chead"><span className="tag">OPEN</span></div>
       <div className="q">{m.question}</div>
       <div className="metaline"><span>{m.yesterday}</span></div>
-      <div className="metaline"><span>⏳ Closes in <b style={{color:"var(--ink)"}}>{m.closes}</b></span><span className="bonus">⚡ {m.bonus}</span></div>
+      <div className="metaline"><span>⏳ Schließt in <b style={{color:"var(--ink)"}}>{m.closes}</b></span><span className="bonus">⚡ {m.bonus}</span></div>
       {m.outcomes.map(o=><div className="ans" key={o.id} onClick={()=>{setOpenBet(m.id);setPick(o.id)}}>
         <span className="al">{o.tone==="good"?"🔥":"❄️"} {o.label}</span><span className="ap">{Math.round(o.pool/t*100)}%</span></div>)}
       {openBet===m.id && <BetPanel m={m} total={t} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/>}
@@ -656,7 +419,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
           {m.subcode && <span className="subcode">{m.subcode}</span>}
           {m.codename && <span className="cn">🛫 {m.codename}</span>}
         </div>
-        <span className="pool">{fmt(total)} ✦</span>
+        <span className="pool">{fmt(total)} €</span>
       </div>
 
       {isFlight ? (
@@ -680,19 +443,19 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       )}
 
       <div className="statusline">
-        <span className="statlbl" style={{color:TONE[m.status]}}>{isFlight?STATUS[m.status]:"Running rate"}</span>
+        <span className="statlbl" style={{color:TONE[m.status]}}>{isFlight?STATUS[m.status]:"Laufende Quote"}</span>
         <span className="statdelay" style={{color:TONE[m.status]}}>{m.delay}</span>
       </div>
       <Curve dist={m.dist} tone={m.status} marker={m.marker} axis={m.axis}/>
 
-      <div className="riskt">{isFlight?"Delay risk":"Above-target chance"}: <b>{m.risk}%</b></div>
+      <div className="riskt">{isFlight?"Verspätungsrisiko":"Über-Ziel-Chance"}: <b>{m.risk}%</b></div>
       <RiskBar outcomes={m.outcomes} total={total}/>
       <Breakdown m={m} total={total}/>
 
       <div className="cfoot" onClick={e=>e.stopPropagation()}>
         <button className="ico" title="Share">↗</button>
         <button className="ico boost" title="Boost">⚡</button>
-        <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Close":"Bet"}</button>
+        <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Schließen":"Wetten"}</button>
       </div>
 
       {open && <div onClick={e=>e.stopPropagation()}><BetPanel m={m} total={total} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/></div>}
@@ -817,7 +580,7 @@ function FlightMap({ m }){
         )}
       </svg>
       <div className="fm-status">
-        {state==="loading" && <span>◌ locating aircraft…</span>}
+        {state==="loading" && <span>◌ Flugzeug wird geortet…</span>}
         {state==="airborne" && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
         {state==="ground" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
         {state==="static" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
@@ -843,13 +606,13 @@ function Countdown({ dep, fallback }){
   }
   const [now, setNow] = useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
-  if (!target.current) return <span>● On the ground — no live track</span>;
+  if (!target.current) return <span>● Am Boden — kein Live-Tracking</span>;
   let diff = Math.floor((target.current - now)/1000);
-  if (diff <= 0) return <span className="fm-live">● Departed / departing now</span>;
+  if (diff <= 0) return <span className="fm-live">● Gestartet / startet jetzt</span>;
   const hh = Math.floor(diff/3600); diff%=3600;
   const mm = Math.floor(diff/60); const ss = diff%60;
   const pad = n => String(n).padStart(2,"0");
-  return <span>🛫 Departs in <b style={{color:"var(--ink)"}}>{hh>0?hh+"h ":""}{pad(mm)}m {pad(ss)}s</b></span>;
+  return <span>🛫 Start in <b style={{color:"var(--ink)"}}>{hh>0?hh+"h ":""}{pad(mm)}m {pad(ss)}s</b></span>;
 }
 
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
@@ -861,25 +624,25 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
         <div className="ol">{o.label}</div>
-        <div className="ox"><span className="om">{mult(o).toFixed(2)}×</span><span className="op">{fmt(o.pool)} ✦</span></div>
+        <div className="ox"><span className="om">{mult(o).toFixed(2)}×</span><span className="op">{fmt(o.pool)} €</span></div>
       </button>)}
     </div>
     {pick && <div className="stake">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span className="mono" style={{fontSize:11,color:"var(--muted)"}}>STAKE</span>
-        <span className="mono" style={{fontWeight:600}}>{fmt(s)} ✦</span>
+        <span className="mono" style={{fontSize:11,color:"var(--muted)"}}>EINSATZ</span>
+        <span className="mono" style={{fontWeight:600}}>{fmt(s)} €</span>
       </div>
       <input type="range" min={10} max={Math.max(10,wallet)} step={10} value={s} onChange={e=>setStake(+e.target.value)}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,flexWrap:"wrap"}}>
-        <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>PROJECTED RETURN</div>
-          <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} ✦ <span style={{color:"var(--muted)",fontSize:12}}>after {RAKE*100}% rake</span></div></div>
-        <button className="betbtn" disabled={stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{stake>wallet?"Not enough":"Place bet"}</button>
+        <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>VORAUSSICHTLICHER GEWINN</div>
+          <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>nach {RAKE*100}% Gebühr</span></div></div>
+        <button className="betbtn" disabled={stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{stake>wallet?"Nicht genug":"Wette platzieren"}</button>
       </div>
     </div>}
-    <div className="note">Settles on: {m.settles}.</div>
+    <div className="note">Abrechnung über: {m.settles}.</div>
     {ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
-      <div className="mono" style={{fontSize:10,color:"var(--muted)",marginBottom:7}}>⚙ SIMULATE THE ORACLE</div>
-      {m.outcomes.map(o=><button key={o.id} className="ico" style={{width:"auto",padding:"6px 9px",fontSize:11,marginRight:6,marginBottom:6}} onClick={()=>onSettle(m,o.id)}>settle ▸ {o.label}</button>)}
+      <div className="mono" style={{fontSize:10,color:"var(--muted)",marginBottom:7}}>⚙ ORAKEL SIMULIEREN</div>
+      {m.outcomes.map(o=><button key={o.id} className="ico" style={{width:"auto",padding:"6px 9px",fontSize:11,marginRight:6,marginBottom:6}} onClick={()=>onSettle(m,o.id)}>abrechnen ▸ {o.label}</button>)}
     </div>}
   </div>;
 }
@@ -887,7 +650,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
 function Detail({m,total,back,...bet}){
   const open=bet.openBet===m.id;
   return <div>
-    <button className="back" onClick={back}>← All markets</button>
+    <button className="back" onClick={back}>← Alle Märkte</button>
     <div className="dwrap">
       <div>
         <div className="panelbox">
@@ -896,33 +659,33 @@ function Detail({m,total,back,...bet}){
           {m.grade && <div className="grade"><span className="em">{m.grade.em}</span>
             <div><div className="gw" style={{color:TONE[m.grade.tone]}}>{m.grade.word}</div><div className="gb">{m.grade.blurb}</div></div></div>}
           {m.stats && <div className="tiles">
-            <div className="tile"><div className="tl">Ø delay</div><div className="tv" style={{color:"var(--warn)"}}>{m.stats.avg}</div></div>
-            <div className="tile"><div className="tl">On time</div><div className="tv" style={{color:"var(--good)"}}>{m.stats.onTime}</div></div>
-            <div className="tile"><div className="tl">Tracked</div><div className="tv">{m.stats.tracked}</div></div>
+            <div className="tile"><div className="tl">Ø Verspätung</div><div className="tv" style={{color:"var(--warn)"}}>{m.stats.avg}</div></div>
+            <div className="tile"><div className="tl">Pünktlich</div><div className="tv" style={{color:"var(--good)"}}>{m.stats.onTime}</div></div>
+            <div className="tile"><div className="tl">Erfasst</div><div className="tv">{m.stats.tracked}</div></div>
           </div>}
         </div>
 
         {m.type==="flight" && m.fromLL && <div className="panelbox">
-          <div className="sectlbl">Live position</div>
+          <div className="sectlbl">Live-Position</div>
           <FlightMap m={m}/>
         </div>}
 
         <div className="panelbox">
-          <div className="sectlbl">Delay distribution · {m.stats?m.stats.tracked:""} tracked</div>
+          <div className="sectlbl">Verspätungsverteilung · {m.stats?m.stats.tracked:""} erfasst</div>
           <Curve dist={m.dist} tone={m.status} marker={m.marker} axis={m.axis}/>
-          <div className="riskt" style={{marginTop:12}}>Delay risk: <b>{m.risk}%</b></div>
+          <div className="riskt" style={{marginTop:12}}>Verspätungsrisiko: <b>{m.risk}%</b></div>
           <RiskBar outcomes={m.outcomes} total={total}/><Breakdown m={m} total={total}/>
         </div>
 
         <div className="panelbox">
-          <div className="sectlbl">Top forecasters · this season</div>
-          <div className="leader"><span className="rank">1</span><span className="lav"/><div><div className="lname">LateAgainLarry</div><div className="lsub">71% hit · 38 flights</div></div></div>
-          <div className="leader"><span className="rank">2</span><span className="lav"/><div><div className="lname">gate_gremlin</div><div className="lsub">66% hit · 51 flights</div></div></div>
-          <div className="leader"><span className="rank">3</span><span className="lav"/><div><div className="lname">runway27</div><div className="lsub">61% hit · 44 flights</div></div></div>
+          <div className="sectlbl">Top-Tipper · diese Saison</div>
+          <div className="leader"><span className="rank">1</span><span className="lav"/><div><div className="lname">LateAgainLarry</div><div className="lsub">71% Treffer · 38 Flüge</div></div></div>
+          <div className="leader"><span className="rank">2</span><span className="lav"/><div><div className="lname">gate_gremlin</div><div className="lsub">66% Treffer · 51 Flüge</div></div></div>
+          <div className="leader"><span className="rank">3</span><span className="lav"/><div><div className="lname">runway27</div><div className="lsub">61% Treffer · 44 Flüge</div></div></div>
         </div>
 
         <div className="panelbox">
-          <div className="sectlbl">History · {m.history?m.history.length:0} runs</div>
+          <div className="sectlbl">Verlauf · {m.history?m.history.length:0} Flüge</div>
           {(m.history||[]).map((h,i)=><div className="hist" key={i}>
             <span className="hcode">🛫 {h.cn}</span><div><div className="hdate">{h.date}</div><div className="hroute">{h.route}</div></div>
             <span className="hout" style={{color:TONE[h.tone]}}>{h.out} ▾</span></div>)}
@@ -931,226 +694,20 @@ function Detail({m,total,back,...bet}){
 
       <div>
         <div className="panelbox">
-          <div className="sectlbl">Live · bet now</div>
+          <div className="sectlbl">Live · Jetzt wetten</div>
           <div className="statusline" style={{marginTop:0}}>
-            <span className="statlbl" style={{color:TONE[m.status]}}>{m.type==="flight"?STATUS[m.status]:"Running rate"}</span>
+            <span className="statlbl" style={{color:TONE[m.status]}}>{m.type==="flight"?STATUS[m.status]:"Laufende Quote"}</span>
             <span className="statdelay" style={{color:TONE[m.status]}}>{m.delay}</span></div>
-          {!open && <button className="betbtn" style={{width:"100%",marginTop:12}} onClick={()=>{bet.setOpenBet(m.id);bet.setPick(null)}}>Place a bet</button>}
+          {!open && <button className="betbtn" style={{width:"100%",marginTop:12}} onClick={()=>{bet.setOpenBet(m.id);bet.setPick(null)}}>Wette platzieren</button>}
           {open && <BetPanel m={m} total={total} pick={bet.pick} setPick={bet.setPick} stake={bet.stake} setStake={bet.setStake} wallet={bet.wallet} onBet={bet.onBet} ops={bet.ops} onSettle={bet.onSettle}/>}
         </div>
         <div className="panelbox">
-          <div className="sectlbl">Discussion</div>
-          <div className="composer" style={{marginTop:0}}><input placeholder="Share your read on this flight…"/></div>
-          <button className="betbtn ghost" style={{width:"100%",marginTop:10}}>Post</button>
-          <div className="empty"><div className="e1">💬</div><div className="e2">No comments yet</div><div className="e3">Be the first to call it.</div></div>
+          <div className="sectlbl">Diskussion</div>
+          <div className="composer" style={{marginTop:0}}><input placeholder="Teile deine Einschätzung zu diesem Flug…"/></div>
+          <button className="betbtn ghost" style={{width:"100%",marginTop:10}}>Posten</button>
+          <div className="empty"><div className="e1">💬</div><div className="e2">Noch keine Kommentare</div><div className="e3">Sei der/die Erste!</div></div>
         </div>
       </div>
-    </div>
-  </div>;
-}
-
-/* ----------------------------------------------------------------
- * useLiveData — polls the proxy worker for each market that has a
- * liveIdent (flight) or liveAirport (aggregate). Returns:
- *   { live: { [marketId]: {...partial market overrides...} },
- *     status: "live" | "demo" | "offline",
- *     lastUpdate: epoch-ms }
- * Falls back silently to demo mode if API_BASE is empty or the
- * worker errors — the seeded values remain visible.
- * ---------------------------------------------------------------- */
-function useLiveData(markets){
-  const [live, setLive] = useState({});
-  const [airportSnapshots, setAirportSnapshots] = useState({}); // {KLAX: {cancelSharePct, avgDelayMin, asOf}}
-  const [status, setStatus] = useState(CONFIG.API_BASE ? "connecting" : "demo");
-  const [lastUpdate, setLastUpdate] = useState(null);
-
-  useEffect(() => {
-    if (!CONFIG.API_BASE) { setStatus("demo"); return; }
-
-    let cancelled = false;
-    async function tick(){
-      // 1) Unique airports used across all markets (including 'worst-hub' lists)
-      const airportSet = new Set();
-      markets.forEach(m => {
-        if (m.liveAirport) airportSet.add(m.liveAirport);
-        if (Array.isArray(m.liveAirports)) m.liveAirports.forEach(a => airportSet.add(a));
-      });
-
-      const snaps = {};
-      let anyOk = false, anyErr = false;
-
-      // Batch all airport fetches in parallel
-      await Promise.all([...airportSet].map(async code => {
-        try {
-          const r = await fetch(`${CONFIG.API_BASE}/api/airport?code=${encodeURIComponent(code)}`);
-          if (!r.ok) throw new Error(r.status);
-          const d = await r.json();
-          snaps[code] = {
-            cancelSharePct: d.departures.cancelSharePct,
-            avgDelayMin:    d.departures.avgDelayMin,
-            sampleSize:     d.departures.sampleSize,
-            asOf:           d.asOf,
-          };
-          anyOk = true;
-        } catch (e) { anyErr = true; }
-      }));
-
-      // 2) Per-market derived display overrides
-      const updates = {};
-      await Promise.all(markets.map(async m => {
-        try {
-          if (m.liveIdent){
-            const r = await fetch(`${CONFIG.API_BASE}/api/flight?ident=${encodeURIComponent(m.liveIdent)}`);
-            if (!r.ok) throw new Error(r.status);
-            const d = await r.json();
-            const sched = d.scheduledArr ? new Date(d.scheduledArr) : null;
-            const actual = d.actualArr ? new Date(d.actualArr) : null;
-            const fmtT = t => t ? t.toISOString().slice(11,16) : null;
-            const delayMin = d.delayMin;
-            const st = d.cancelled ? "bad"
-                     : delayMin == null ? m.status
-                     : delayMin >= 60 ? "bad"
-                     : delayMin >= 30 ? "warn"
-                     : delayMin >= 10 ? "mid"
-                     : "good";
-            updates[m.id] = {
-              schedArr: fmtT(sched) || m.schedArr,
-              actualArr: fmtT(actual) || m.actualArr,
-              delay: d.cancelled ? "CANCELLED" : (delayMin == null ? m.delay : (delayMin >= 0 ? "+" : "") + delayMin + "m"),
-              status: st,
-              liveFresh: d.asOf,
-            };
-            anyOk = true;
-          } else if (m.liveAirport){
-            const snap = snaps[m.liveAirport];
-            if (!snap) return;
-            if (m.liveMetric === "delay"){
-              const v = snap.avgDelayMin;
-              if (v == null) return;
-              const st = v >= 30 ? "bad" : v >= 15 ? "warn" : v >= 5 ? "mid" : "good";
-              updates[m.id] = { delay: (v>=0?"+":"") + v + "m", status: st, liveFresh: snap.asOf };
-            } else { // default: cancel share
-              const pct = snap.cancelSharePct;
-              const st = pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
-              updates[m.id] = { delay: pct.toFixed(1) + "%", status: st, liveFresh: snap.asOf };
-            }
-          } else if (m.liveAirports && m.liveMetric === "worst-hub"){
-            // Map each outcome's airport code to its live cancellation share,
-            // then re-rank: outcome tone good=lowest, bad=highest. Display
-            // shows the current leader.
-            const ranked = m.outcomes
-              .map(o => ({ o, v: snaps[o.liveAirport]?.cancelSharePct ?? null }))
-              .filter(x => x.v != null)
-              .sort((a,b) => b.v - a.v);
-            if (ranked.length){
-              const leader = ranked[0];
-              updates[m.id] = {
-                delay: leader.o.label.split(" ")[0] + " · " + leader.v.toFixed(1) + "%",
-                status: leader.v >= 3 ? "bad" : leader.v >= 1 ? "warn" : "good",
-                liveFresh: new Date().toISOString(),
-              };
-            }
-          }
-        } catch (e) { anyErr = true; }
-      }));
-
-      if (cancelled) return;
-      setAirportSnapshots(snaps);
-      setLive(updates);
-      setLastUpdate(Date.now());
-      setStatus(anyOk ? "live" : (anyErr ? "offline" : "demo"));
-    }
-    tick();
-    // Poll on the slower cadence (airports). Worker edge cache makes individual
-    // flight calls cheap inside this window, and 15-min freshness is plenty for
-    // a play-money MVP. Tighten REFRESH_AIRPORTS_MS later if you want.
-    const h = setInterval(tick, CONFIG.REFRESH_AIRPORTS_MS);
-    return () => { cancelled = true; clearInterval(h); };
-  }, [markets.length]);
-
-  return { live, airportSnapshots, status, lastUpdate };
-}
-
-/* ----------------------------------------------------------------
- * AirportsPage — the dedicated Airports tab. Top: sortable directory
- * of the 8 hubs we cover, with live cancellation share / avg delay.
- * Bottom: the aggregate market cards filtered to airports.
- * ---------------------------------------------------------------- */
-const AIRPORTS = [
-  { code:"LAX", icao:"KLAX", flag:"🇺🇸", name:"Los Angeles",     city:"Los Angeles",     tz:"PT" },
-  { code:"ORD", icao:"KORD", flag:"🇺🇸", name:"Chicago O'Hare",   city:"Chicago",         tz:"CT" },
-  { code:"JFK", icao:"KJFK", flag:"🇺🇸", name:"New York JFK",     city:"New York",        tz:"ET" },
-  { code:"LHR", icao:"EGLL", flag:"🇬🇧", name:"London Heathrow",  city:"London",          tz:"BST" },
-  { code:"FRA", icao:"EDDF", flag:"🇩🇪", name:"Frankfurt",        city:"Frankfurt",       tz:"CEST" },
-  { code:"AMS", icao:"EHAM", flag:"🇳🇱", name:"Amsterdam",        city:"Amsterdam",       tz:"CEST" },
-  { code:"CDG", icao:"LFPG", flag:"🇫🇷", name:"Paris CDG",        city:"Paris",           tz:"CEST" },
-  { code:"NRT", icao:"RJAA", flag:"🇯🇵", name:"Tokyo Narita",     city:"Tokyo",           tz:"JST" },
-];
-
-function AirportsPage({ markets, total, betProps, airportSnapshots, openDetail }){
-  const [sort, setSort] = useState("worst"); // "worst" | "best" | "delay" | "az"
-
-  const rows = AIRPORTS.map(a => {
-    const snap = airportSnapshots?.[a.icao] || {};
-    return { ...a, cancel: snap.cancelSharePct ?? null, delay: snap.avgDelayMin ?? null };
-  });
-
-  const sorted = [...rows].sort((x, y) => {
-    if (sort === "az")    return x.code.localeCompare(y.code);
-    if (sort === "delay") return (y.delay ?? -Infinity) - (x.delay ?? -Infinity);
-    if (sort === "best")  return (x.cancel ?? Infinity)  - (y.cancel ?? Infinity);
-    /* worst */            return (y.cancel ?? -Infinity) - (x.cancel ?? -Infinity);
-  });
-
-  const airportMarkets = markets.filter(m => m.liveAirport || m.liveAirports);
-
-  const toneFor = (pct) => pct == null ? "muted" : pct >= 5 ? "bad" : pct >= 3 ? "warn" : pct >= 1 ? "mid" : "good";
-  const toneForDelay = (mn) => mn == null ? "muted" : mn >= 30 ? "bad" : mn >= 15 ? "warn" : mn >= 5 ? "mid" : "good";
-
-  return <div>
-    <div className="airports-hero">
-      <div>
-        <div className="apsuper">8 hubs · global</div>
-        <div className="aphead">Airports</div>
-        <div className="apsub">Cancellation share and average departure delay, live from FlightAware. Tap a row to jump to that hub's markets.</div>
-      </div>
-    </div>
-
-    <div className="sortbar">
-      {[["worst","Worst today"],["best","Best today"],["delay","Most delayed"],["az","A–Z"]].map(([k,l]) =>
-        <button key={k} className={"sortpill"+(sort===k?" on":"")} onClick={()=>setSort(k)}>{l}</button>)}
-    </div>
-
-    <div className="aplist">
-      {sorted.map(a => {
-        const cTone = toneFor(a.cancel);
-        const dTone = toneForDelay(a.delay);
-        return <div key={a.code} className="aprow" onClick={()=>{
-          // Open the cancellation market for this airport if it exists
-          const m = markets.find(x => x.liveAirport === a.icao && x.liveMetric !== "delay");
-          if (m) openDetail(m.id);
-        }}>
-          <span className="apflag">{a.flag}</span>
-          <div className="apnames">
-            <div className="apcode">{a.code}</div>
-            <div className="apname">{a.name}</div>
-          </div>
-          <div className="apstat">
-            <div className="aplbl">Cancel</div>
-            <div className={"apval val-"+cTone}>{a.cancel == null ? "—" : a.cancel.toFixed(1)+"%"}</div>
-          </div>
-          <div className="apstat">
-            <div className="aplbl">Avg delay</div>
-            <div className={"apval val-"+dTone}>{a.delay == null ? "—" : (a.delay>=0?"+":"")+Math.round(a.delay)+"m"}</div>
-          </div>
-          <div className="apchev">›</div>
-        </div>;
-      })}
-    </div>
-
-    <div className="sectlbl" style={{margin:"24px 2px 12px"}}>Airport markets · open</div>
-    <div className="grid">
-      {airportMarkets.map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={openDetail} {...betProps}/>)}
     </div>
   </div>;
 }
@@ -1178,14 +735,14 @@ function DailyPage({ markets, total, betProps, openDetail }){
   return <div>
     <div className="airports-hero">
       <div>
-        <div className="apsuper">{daily.length} questions · today</div>
-        <div className="aphead">Daily questions</div>
-        <div className="apsub">One question per day, closing on a fixed clock. Early bets earn a bonus multiplier — the closer to close, the lower the reward. Each question settles on a named public figure.</div>
+        <div className="apsuper">{daily.length} Fragen · heute</div>
+        <div className="aphead">Tägliche Fragen</div>
+        <div className="apsub">Jeden Tag neue Fragen rund um den BER, mit fester Schlusszeit. Frühe Wetten bekommen einen Bonus-Multiplikator — je näher am Schluss, desto geringer die Quote. Jede Frage wird über eine offizielle Kennzahl abgerechnet.</div>
       </div>
     </div>
 
     {hero && <div className="daily-hero">
-      <div className="dh-tag">⏰ Closing next · in {hero.closes}</div>
+      <div className="dh-tag">⏰ Schließt als nächstes · in {hero.closes}</div>
       <div className="dh-q">{hero.question}</div>
       <div className="dh-meta"><span>{hero.yesterday}</span><span className="dh-bonus">⚡ {hero.bonus}</span></div>
       <div className="dh-chips">
@@ -1197,21 +754,127 @@ function DailyPage({ markets, total, betProps, openDetail }){
           </button>;
         })}
       </div>
-      <button className="dh-place" onClick={()=>openDetail(hero.id)}>Open question →</button>
+      <button className="dh-place" onClick={()=>openDetail(hero.id)}>Frage öffnen →</button>
     </div>}
 
-    <div className="sectlbl" style={{margin:"22px 2px 12px"}}>More open questions</div>
+    <div className="sectlbl" style={{margin:"22px 2px 12px"}}>Weitere offene Fragen</div>
     <div className="grid">
       {rest.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={openDetail} {...betProps}/>)}
     </div>
   </div>;
 }
 
+/* ----------------------------------------------------------------
+ * useBoard — pulls the full live BER departures+arrivals board from
+ * the worker and turns each flight into a bettable market with
+ * deterministic auto-generated pools (so odds are stable per flight
+ * across refreshes, seeded from the flight ident). No hand-seeding.
+ * ---------------------------------------------------------------- */
+const BER_LL = [52.366, 13.503];
+// Rough coords for common BER city links so the map has something to draw.
+const CITY_LL = {
+  FRA:[50.04,8.56], MUC:[48.35,11.79], CGN:[50.87,7.14], DUS:[51.29,6.77],
+  HAM:[53.63,10.0], STR:[48.69,9.22], CGN2:[50.87,7.14], VIE:[48.11,16.57],
+  ZRH:[47.46,8.55], LHR:[51.47,-0.45], LGW:[51.15,-0.19], STN:[51.88,0.24],
+  MAN:[53.35,-2.27], DUB:[53.42,-6.27], BCN:[41.30,2.08], MAD:[40.49,-3.57],
+  AMS:[52.31,4.76], CDG:[49.01,2.55], IST:[41.28,28.75], FCO:[41.80,12.25],
+  PMI:[39.55,2.74], LIS:[38.77,-9.13], CPH:[55.62,12.65], WAW:[52.17,20.97],
+  ATH:[37.94,23.95], MXP:[45.63,8.72], BRU:[50.90,4.48], OSL:[60.19,11.10],
+  ARN:[59.65,17.92], HEL:[60.32,24.96], GVA:[46.24,6.11], NCE:[43.66,7.21],
+};
+function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0); }
+function poolsFor(ident, delayMin, cancelled){
+  // Deterministic per-flight pools, nudged by the live delay so odds feel real.
+  const seed = hashStr(ident);
+  const r = (n)=> (Math.abs((seed>>(n*3)) % 100));
+  let base = [40+r(1)%30, 18+r(2)%14, 10+r(3)%10, 6+r(4)%10]; // Pünktlich,+15,+30,+60
+  if (cancelled) base = [6,10,14,40];
+  else if (delayMin!=null){
+    if (delayMin>=60) base=[8,14,20,40];
+    else if (delayMin>=30) base=[12,20,30,18];
+    else if (delayMin>=15) base=[20,34,18,10];
+    else base=[55,20,9,6];
+  }
+  const scale = 30 + (seed%70); // pool size varies per flight
+  return base.map(b=>Math.max(20, Math.round(b*scale/10)));
+}
+function boardToMarket(f){
+  const dirDep = f.direction==="departure";
+  const other = dirDep ? f.destination : f.origin;
+  const otherCode = other?.code || "???";
+  const ll = CITY_LL[otherCode] || null;
+  const status = f.cancelled ? "bad"
+    : f.delayMin==null ? "good"
+    : f.delayMin>=60 ? "bad" : f.delayMin>=30 ? "warn" : f.delayMin>=15 ? "mid" : "good";
+  const delayLabel = f.cancelled ? "ANNULLIERT"
+    : f.delayMin==null ? "—" : (f.delayMin>=0?"+":"")+f.delayMin+"m";
+  const pools = poolsFor(f.ident, f.delayMin, f.cancelled);
+  const fmtT = iso => iso ? new Date(iso).toISOString().slice(11,16) : "—";
+  return {
+    id: "bd_"+f.ident,
+    type: "flight",
+    live: true,
+    code: f.ident,
+    subcode: (f.operator||"") + " · " + (dirDep?"ab BER":"an BER"),
+    liveIdent: f.identICAO || f.ident,
+    direction: f.direction,
+    from: dirDep ? {cc:"DE",flag:"🇩🇪",name:"Berlin BER",dep:fmtT(f.scheduledDep)} : {cc:"",flag:"🛫",name:other?.name||otherCode,dep:fmtT(f.scheduledDep)},
+    to:   dirDep ? {cc:"",flag:"🛬",name:other?.name||otherCode} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER"},
+    fromLL: dirDep ? BER_LL : ll,
+    toLL:   dirDep ? ll : BER_LL,
+    schedArr: fmtT(dirDep ? f.scheduledArr : f.scheduledArr),
+    actualArr: fmtT(dirDep ? (f.actualArr||f.scheduledArr) : (f.actualArr||f.scheduledArr)),
+    depISO: f.scheduledDep || null,
+    stops: 0,
+    status,
+    delay: delayLabel,
+    risk: Math.round(pools.slice(1).reduce((a,b)=>a+b,0) / pools.reduce((a,b)=>a+b,0) * 100),
+    dist: status==="bad"?[8,7,5,4,4,6,9,13,16,15,11,7,4,3,2]
+         : status==="warn"?[10,9,9,10,12,13,11,9,6,4,3,2,2,1,1]
+         : status==="mid"?[6,11,16,15,11,8,6,5,5,5,4,3,2,2,1]
+         : [22,17,11,6,4,3,2,2,2,2,3,2,2,2,1],
+    marker: status==="bad"?9:status==="warn"?5:status==="mid"?3:1,
+    axis:["0m","30m","60m","90m","120m"],
+    outcomes:[
+      {id:"a",label:"Pünktlich",tone:"good",pool:pools[0]},
+      {id:"b",label:"+15m",tone:"mid",pool:pools[1]},
+      {id:"c",label:"+30m",tone:"warn",pool:pools[2]},
+      {id:"d",label:"+60m",tone:"bad",pool:pools[3]},
+    ],
+    settles:"FlightAware · tatsächliche Ankunft am Gate",
+  };
+}
+
+function useBoard(){
+  const [flights, setFlights] = useState([]);
+  const [status, setStatus] = useState(CONFIG.API_BASE ? "connecting" : "demo");
+  const [lastUpdate, setLastUpdate] = useState(null);
+  useEffect(()=>{
+    if (!CONFIG.API_BASE){ setStatus("demo"); return; }
+    let dead=false;
+    async function tick(){
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/board?code=EDDB`);
+        if(!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        if(dead) return;
+        setFlights((d.flights||[]).map(boardToMarket));
+        setLastUpdate(Date.now());
+        setStatus("live");
+      }catch(e){ if(!dead) setStatus("offline"); }
+    }
+    tick();
+    const h=setInterval(tick, 5*60*1000); // 5 min — matches worker board cache
+    return ()=>{ dead=true; clearInterval(h); };
+  },[]);
+  return { flights, status, lastUpdate };
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
-  const [markets,setMarkets]=useState(()=>store.get("fb_m4",SEED));
-  const [wallet,setWallet]=useState(()=>store.get("fb_w2",925));
-  const [positions,setPositions]=useState(()=>store.get("fb_p2",{}));
+  const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
+  const [wallet,setWallet]=useState(()=>store.get("ber_w",925));
+  const [positions,setPositions]=useState(()=>store.get("ber_pos",{}));
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
   const [pick,setPick]=useState(null);
@@ -1219,29 +882,31 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [tab,setTab]=useState("flights");
+  const [query,setQuery]=useState("");
+  const [dirFilter,setDirFilter]=useState("all");
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
-  useEffect(()=>store.set("fb_m4",markets),[markets]);
-  useEffect(()=>store.set("fb_w2",wallet),[wallet]);
-  useEffect(()=>store.set("fb_p2",positions),[positions]);
+  useEffect(()=>store.set("ber_pos",positions),[positions]);
+  useEffect(()=>store.set("ber_w",wallet),[wallet]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
 
   const total=m=>m.outcomes.reduce((s,o)=>s+o.pool,0);
 
-  // Merge live data overrides on top of seeded markets for display only —
-  // pools/outcomes/grades stay sourced from local state.
-  // Only fetch live data for what's actually visible. If the user is on the
-  // Flights tab, don't waste AeroAPI calls polling all 8 airports. If they're
-  // on Airports, skip flight calls. Detail view: just that one market.
-  const visibleMarkets = view.page === "airports"
-    ? markets.filter(m => m.liveAirport || m.liveAirports)
-    : view.page === "daily"
-    ? [] // daily questions are seeded, no live data needed
-    : view.page === "detail"
-    ? markets.filter(m => m.id === view.id)
-    : markets.filter(m => m.type === "flight"); // home / Flights tab
-  const { live, airportSnapshots, status: dataStatus, lastUpdate } = useLiveData(visibleMarkets);
-  const displayMarkets = markets.map(m => live[m.id] ? { ...m, ...live[m.id] } : m);
+  // Live BER board → bettable markets with auto-pools.
+  const { flights: boardFlights, status: dataStatus, lastUpdate } = useBoard();
+
+  // User stakes live on top of the auto-generated pools. Because the board
+  // regenerates on refresh, we keep the user's added stake in `positions`
+  // and merge it back onto each flight's pools so odds reflect their bets.
+  const mergeStakes = (mkt) => {
+    const pos = positions[mkt.id];
+    if (!pos) return mkt;
+    return {...mkt, outcomes: mkt.outcomes.map(o => pos[o.id] ? {...o, pool:o.pool+pos[o.id]} : o)};
+  };
+  const liveMarkets = boardFlights.map(mergeStakes);
+  const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
+  const allFindable = [...liveMarkets, ...dailyMarkets];
+
   const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
                  : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
                  : dataStatus === "offline" ? { t:"OFFLINE", bg:"var(--bad)",  fg:"#fff" }
@@ -1250,74 +915,82 @@ function App(){
   function onBet(m,o){
     if(stake<=0||stake>wallet)return;
     setWallet(w=>w-stake);
-    setMarkets(ms=>ms.map(mm=>mm.id!==m.id?mm:{...mm,outcomes:mm.outcomes.map(oo=>oo.id===o.id?{...oo,pool:oo.pool+stake}:oo)}));
     setPositions(p=>{const c={...(p[m.id]||{})};c[o.id]=(c[o.id]||0)+stake;return{...p,[m.id]:c}});
-    setToast(`Staked ${fmt(stake)} ✦ on “${o.label}”`);
+    setToast(`${fmt(stake)} € auf „${o.label}“ gesetzt`);
   }
   function onSettle(m,winId){
     const t=total(m),net=t*(1-RAKE),win=m.outcomes.find(o=>o.id===winId);
     const ms=(positions[m.id]||{})[winId]||0;
     const payout=ms>0?(ms/(win.pool||1))*net:0;
     if(payout>0)setWallet(w=>w+payout);
-    setToast(ms>0?`“${win.label}” settled — ${payout>=ms?"won":"returned"} ${fmt(payout)} ✦`:`“${win.label}” settled — no position`);
+    setToast(ms>0?`„${win.label}“ abgerechnet — ${payout>=ms?"gewonnen":"erstattet"} ${fmt(payout)} €`:`„${win.label}“ abgerechnet — keine Wette`);
   }
-  function reset(){store.clear();setMarkets(SEED);setWallet(925);setPositions({});setView({page:"home"});setToast("New season — balance restored")}
+  function reset(){store.clear();setWallet(925);setPositions({});setView({page:"home"});setToast("Neue Saison — Guthaben zurückgesetzt")}
 
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions};
-  const detailMarket=view.page==="detail"?displayMarkets.find(m=>m.id===view.id):null;
+  const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
 
   return <div className="app">
     <div className="top">
-      <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>flight<span className="pin">.</span>bet</div>
+      <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>ber<span className="pin">.</span>bet</div>
       <div className="topr">
         <button className="iconbtn" onClick={()=>setTheme(t=>t==="light"?"dark":"light")}>{theme==="light"?"🌙":"☀️"}</button>
-        <span className="chip" title={lastUpdate?`Last update ${new Date(lastUpdate).toLocaleTimeString()}`:"No data yet"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
+        <span className="chip" title={lastUpdate?`Aktualisiert ${new Date(lastUpdate).toLocaleTimeString()}`:"Noch keine Daten"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
           <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
           {dataPill.t}
         </span>
         <span className="chip">🎟 49</span>
-        <span className="chip bal">✦ {fmt(wallet)}</span>
+        <span className="chip bal">€ {fmt(wallet)}</span>
         <button className="avatar"/>
       </div>
     </div>
 
     {view.page==="home" ? <>
       <div className="ticker"><div className="ticker-track">
-        {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}✦</span><b>{t[0]}</b> on {t[1]}</span>)}
+        {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}€</span><b>{t[0]}</b> auf {t[1]}</span>)}
       </div></div>
 
-      <div className="controls">
-        <button className="sel">🌐 ▾</button>
-        <div className="search">🔎<input placeholder="Search flight (AA 100, BA 286, UA 628…)"/></div>
-        <button className="filter">⚙ Filter</button>
+      <div className="berhero">
+        <div className="berhero-k">FLUGHAFEN BER · BERLIN BRANDENBURG</div>
+        <div className="berhero-t">Der ganze Flughafen. Jeder Flug. Live.</div>
+        <div className="berhero-s">{dataStatus==="live" ? `${boardFlights.length} Flüge live von der Anzeigetafel` : dataStatus==="offline" ? "Live-Tafel nicht erreichbar" : "Worker nicht verbunden — Demo-Modus"}</div>
       </div>
 
-      <div className="grid">
-        {displayMarkets
-          .filter(m => m.type === "flight")
-          .map(m=><MarketCard key={m.id} m={m} total={m.outcomes?total(m):0} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+      <div className="controls">
+        <div className="search">🔎<input placeholder="Flug suchen (LH 1925, easyJet, FRA…)" value={query} onChange={e=>setQuery(e.target.value)}/></div>
+        <button className={"filter"+(dirFilter==="all"?"":" on")} onClick={()=>setDirFilter(dirFilter==="all"?"departure":dirFilter==="departure"?"arrival":"all")}>
+          {dirFilter==="all"?"Alle":dirFilter==="departure"?"🛫 Abflüge":"🛬 Ankünfte"}
+        </button>
       </div>
-    </> : view.page==="airports" ? (
-      <AirportsPage markets={displayMarkets} total={total} betProps={betProps} airportSnapshots={airportSnapshots}
-        openDetail={id=>setView({page:"detail",id})}/>
-    ) : view.page==="daily" ? (
-      <DailyPage markets={displayMarkets} total={total} betProps={betProps}
+
+      {dataStatus!=="live" && <div className="emptyboard">
+        {dataStatus==="offline" ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft." : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
+      </div>}
+
+      <div className="grid">
+        {liveMarkets
+          .filter(m => dirFilter==="all" || m.direction===dirFilter)
+          .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
+          .map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+      </div>
+    </> : view.page==="daily" ? (
+      <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
         openDetail={id=>setView({page:"detail",id})}/>
     ) : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
 
     <div className="nav">
-      <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flights</button>
-      <button className={"navi"+(tab==="airports"?" on":"")} onClick={()=>{setTab("airports");setView({page:"airports"})}}><span className="ni">🏢</span>Airports</button>
+      <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flüge</button>
+      <button className={"navi"+(tab==="daily"?" on":"")} onClick={()=>{setTab("daily");setView({page:"daily"})}}><span className="ni">📅</span>Täglich</button>
       <button className="fab" onClick={()=>{setTab("flights");setView({page:"home"})}}>⚡</button>
-      <button className={"navi"+(tab==="daily"?" on":"")} onClick={()=>{setTab("daily");setView({page:"daily"})}}><span className="ni">📅</span>Daily</button>
-      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setOps(v=>v)}}><span className="ni">🏆</span>Ranking</button>
+      <button className={"navi"+(tab==="live"?" on":"")} onClick={()=>{setTab("live");setView({page:"home"})}}><span className="ni">📡</span>Live</button>
+      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank")}}><span className="ni">🏆</span>Rangliste</button>
     </div>
 
     {/* dev controls */}
     <div style={{position:"fixed",left:14,bottom:90,zIndex:46,display:"flex",gap:8}}>
-      <button className="chip" style={{cursor:"pointer"}} onClick={()=>setOps(v=>!v)}>OPS {ops?"ON":"OFF"}</button>
+      <button className="chip" style={{cursor:"pointer"}} onClick={()=>setOps(v=>!v)}>OPS {ops?"AN":"AUS"}</button>
       <button className="chip" style={{cursor:"pointer"}} onClick={reset}>↺ Reset</button>
     </div>
 
