@@ -1034,6 +1034,7 @@ function boardToMarket(f){
     schedArr: fmtT(f.scheduledArr),
     actualArr: f.actualArr ? fmtT(f.actualArr) : "",
     depISO: f.scheduledDep || null,
+    arrISO: f.scheduledArr || null,
     stops: 0,
     status,
     delay: delayLabel,
@@ -1203,10 +1204,10 @@ function App(){
           })
           .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
           .sort((a,b)=>{
-            // Germany first, then Austria, then Switzerland, then the rest;
-            // within each group keep the soonest scheduled departure first.
-            if (a.geoRank !== b.geoRank) return a.geoRank - b.geoRank;
-            return new Date(a.depISO||0) - new Date(b.depISO||0);
+            // Sort purely by scheduled time (departures by dep, arrivals by arr).
+            const ta = new Date((a.direction==="arrival" ? a.arrISO : a.depISO) || a.depISO || 0).getTime();
+            const tb = new Date((b.direction==="arrival" ? b.arrISO : b.depISO) || b.depISO || 0).getTime();
+            return ta - tb;
           })
           .map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
       </div>
