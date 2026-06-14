@@ -263,6 +263,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* ---- Detail: stake box ---- */
 .pickhint{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.5}
+.closedbox{text-align:center;padding:18px 8px 8px}
+.closed-em{font-size:30px;line-height:1;margin-bottom:8px}
+.closed-t{font-weight:800;font-size:17px;color:var(--ink);margin-bottom:6px}
+.closed-s{font-size:13.5px;color:var(--muted);line-height:1.55}
 .stakebox{margin-top:12px}
 .stakerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .stakelbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
@@ -715,6 +719,12 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
 function Detail({m,total,back,...bet}){
   const isFlight = m.type==="flight";
   const [pick,setPick] = [bet.pick, bet.setPick];
+  // Default: preselect the first bracket (Pünktlich) so the bet box is open,
+  // unless the flight is already settled (landed/cancelled — betting closed).
+  React.useEffect(()=>{
+    if(!m.settled && m.outcomes && m.outcomes.length){ setPick(m.outcomes[0].id); }
+    else if(m.settled){ setPick(null); }
+  }, [m.id, m.settled]);
   const sel = m.outcomes.find(o=>o.id===pick);
   const s = Math.min(bet.stake, bet.wallet);
   // parimutuel payout estimate for the selected bracket at stake s
@@ -804,7 +814,12 @@ function Detail({m,total,back,...bet}){
       {/* RIGHT: stake panel + discussion */}
       <div>
         <div className="panelbox">
-          <div className="sectlbl">Live · Jetzt wetten</div>
+          <div className="sectlbl">{m.settled ? "Abgerechnet · Wetten geschlossen" : "Live · Jetzt wetten"}</div>
+          {m.settled ? <div className="closedbox">
+            <div className="closed-em">{m.phase==="cancelled"?"✕":"✓"}</div>
+            <div className="closed-t">{m.phase==="cancelled"?"Flug annulliert":"Flug gelandet"}</div>
+            <div className="closed-s">{m.delayUnknown ? "Ergebnis liegt nicht verlässlich vor." : <>Ergebnis: <b style={{color:TONE[m.status]}}>{m.delay}</b>. Auf abgeschlossene Flüge kann nicht mehr gewettet werden.</>}</div>
+          </div> : <>
           {!pick && <div className="pickhint">Wähle links eine Verspätungs-Option, um zu wetten.</div>}
           {pick && <div className="stakebox">
             <div className="stakerow"><span className="stakelbl">DEIN TIPP</span><span className="stakeval">{sel.label}</span></div>
@@ -821,6 +836,7 @@ function Detail({m,total,back,...bet}){
             <div className="paynote">Parimutuel: Gewinner teilen den Pool (abzgl. {RAKE*100}% Gebühr) anteilig zum Einsatz. Schätzung aus dem aktuellen Pool — verschiebt sich mit neuen Wetten.</div>
             <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{bet.stake>bet.wallet?"Nicht genug Guthaben":"Wette platzieren"}</button>
           </div>}
+          </>}
           {bet.ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
             <div className="mono" style={{fontSize:10,color:"var(--muted)",marginBottom:7}}>⚙ ORAKEL SIMULIEREN</div>
             {m.outcomes.map(o=><button key={o.id} className="ico" style={{width:"auto",padding:"6px 9px",fontSize:11,marginRight:6,marginBottom:6}} onClick={()=>bet.onSettle(m,o.id)}>abrechnen ▸ {o.label}</button>)}
@@ -1159,7 +1175,10 @@ function App(){
           {dirFilter==="arrival"?"● bald erwartet":"● startet bald"}
         </button>
         <button className={"subpill"+(phaseFilter==="gone"?" on":"")} onClick={()=>setPhaseFilter("gone")}>
-          {dirFilter==="arrival"?"✓ gelandet":"✈ gestartet"}
+          {dirFilter==="arrival"?"✈ im Anflug":"✈ unterwegs"}
+        </button>
+        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>
+          ✓ gelandet
         </button>
       </div>}
 
@@ -1173,8 +1192,9 @@ function App(){
           .filter(m => {
             if (phaseFilter==="all") return true;
             if (phaseFilter==="soon") return m.phase==="upcoming";
-            // "gone" = already left / arrived (enroute, landed, or cancelled)
-            return m.phase==="enroute" || m.phase==="landed" || m.phase==="cancelled";
+            if (phaseFilter==="landed") return m.phase==="landed" || m.phase==="cancelled";
+            // "gone" = in the air, outcome not yet known
+            return m.phase==="enroute";
           })
           .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
           .sort((a,b)=>{
