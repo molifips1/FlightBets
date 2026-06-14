@@ -251,6 +251,12 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   padding:10px 12px;border-radius:9px;transition:background .15s,color .15s}
 .seg:hover{color:var(--ink)}
 .seg.on{background:var(--brand);color:#fff}
+.subfilter{display:flex;gap:8px;margin:-6px 0 16px;flex-wrap:wrap}
+.subpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;
+  color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
+.subpill:hover{color:var(--ink)}
+.subpill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+[data-theme="dark"] .subpill.on{background:var(--brand);border-color:var(--brand)}
 .aphead{font-family:Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
 .apsub{color:var(--muted);font-size:14px;margin-top:6px;max-width:520px;line-height:1.55}
 .sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
@@ -942,6 +948,7 @@ function App(){
   const [tab,setTab]=useState("flights");
   const [query,setQuery]=useState("");
   const [dirFilter,setDirFilter]=useState("departure");
+  const [phaseFilter,setPhaseFilter]=useState("all"); // all | soon | gone
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>store.set("ber_pos",positions),[positions]);
@@ -1022,6 +1029,15 @@ function App(){
         <button className={"seg"+(dirFilter==="arrival"?" on":"")} onClick={()=>setDirFilter("arrival")}>🛬 Ankünfte</button>
         <button className={"seg"+(dirFilter==="all"?" on":"")} onClick={()=>setDirFilter("all")}>Alle</button>
       </div>
+      {dirFilter!=="all" && <div className="subfilter">
+        <button className={"subpill"+(phaseFilter==="all"?" on":"")} onClick={()=>setPhaseFilter("all")}>Alle</button>
+        <button className={"subpill"+(phaseFilter==="soon"?" on":"")} onClick={()=>setPhaseFilter("soon")}>
+          {dirFilter==="arrival"?"● bald erwartet":"● startet bald"}
+        </button>
+        <button className={"subpill"+(phaseFilter==="gone"?" on":"")} onClick={()=>setPhaseFilter("gone")}>
+          {dirFilter==="arrival"?"✓ gelandet":"✈ gestartet"}
+        </button>
+      </div>}
 
       {dataStatus!=="live" && <div className="emptyboard">
         {dataStatus==="offline" ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft." : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
@@ -1030,6 +1046,12 @@ function App(){
       <div className="grid">
         {liveMarkets
           .filter(m => dirFilter==="all" || m.direction===dirFilter)
+          .filter(m => {
+            if (phaseFilter==="all") return true;
+            if (phaseFilter==="soon") return m.phase==="upcoming";
+            // "gone" = already left / arrived (enroute, landed, or cancelled)
+            return m.phase==="enroute" || m.phase==="landed" || m.phase==="cancelled";
+          })
           .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
           .sort((a,b)=>{
             // Germany first, then Austria, then Switzerland, then the rest;
