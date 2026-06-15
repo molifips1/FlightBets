@@ -388,6 +388,17 @@ const CONFIG = {
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvamxjcmVqYmNrcWxkaGd2dnVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NDQ3ODksImV4cCI6MjA5NzAyMDc4OX0.mwbiEMosl6QwXIRn4CTuzJA6HDyQ-kJ5Oz4ipDGiHPY",
 };
 
+// Clean app URL with NO hash/query — used as the OAuth/redirect target so
+// Supabase appends a single "#access_token=…" instead of doubling to "##".
+const REDIRECT_URL = window.location.origin + window.location.pathname;
+
+// Safety net: if a redirect ever lands with a doubled "##access_token", collapse
+// it to a single "#" BEFORE the Supabase client reads the hash, so login still works.
+if (window.location.hash.startsWith("##")) {
+  const fixed = window.location.hash.replace(/^#+/, "#");
+  history.replaceState(null, "", window.location.pathname + window.location.search + fixed);
+}
+
 // Supabase client (null if not configured yet — app still works for browsing).
 const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes("YOUR-PROJECT"))
   ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
@@ -1175,7 +1186,7 @@ function useAuth(){
   },[]);
   return { user, ready,
     signOut: ()=> sb && sb.auth.signOut(),
-    google: ()=> sb && sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.href } }),
+    google: ()=> sb && sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: REDIRECT_URL } }),
   };
 }
 
@@ -1220,7 +1231,7 @@ function AuthModal({ onClose }){
         if(error) throw error;
         setMsg("Fast geschafft! Wir haben dir eine Bestätigungs-Mail geschickt. Bitte den Link darin anklicken, dann kannst du dich anmelden.");
       }else if(mode==="reset"){
-        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
         if(error) throw error;
         setMsg("Wir haben dir einen Link zum Zurücksetzen des Passworts geschickt. Schau in dein Postfach.");
       }else{
@@ -1254,7 +1265,7 @@ function AuthModal({ onClose }){
         {mode==="reset" && <button className="authlink" onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>← Zurück zum Anmelden</button>}
         {mode!=="reset" && <>
           <div className="author"><span>oder</span></div>
-          <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>
+          <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:REDIRECT_URL}})}>
             <span style={{fontWeight:700}}>G</span> Mit Google anmelden
           </button>
         </>}
