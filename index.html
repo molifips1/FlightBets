@@ -169,6 +169,22 @@ button{font-family:inherit}
 .res-more{text-align:center;font-size:12px;color:var(--muted);padding:6px}
 .oddsnote{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .oddsnote b{color:var(--ink);font-weight:600}
+.prof-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.prof-av{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800}
+.prof-name{font-size:20px;font-weight:800;color:var(--ink)}
+.prof-sub{font-size:14px;color:var(--muted);margin-top:3px;font-weight:700;display:flex;align-items:center}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center}
+.stat-v{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.stat-l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+.prof-empty{color:var(--muted);font-size:13.5px;padding:8px 2px}
+.open-list{display:flex;flex-direction:column;gap:6px}
+.open-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);cursor:pointer;font-size:14px;text-align:left;width:100%}
+.open-row:hover{border-color:var(--brand)}
+.open-code{font-weight:700;color:var(--ink);width:72px}
+.open-tip{flex:1;color:var(--muted)}
+.open-stake{font-weight:700;color:var(--ink)}
+@media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -1579,6 +1595,56 @@ function ResultsCelebration({ data, onDone }){
   </div>;
 }
 
+// Personal stats page — all from the wallet data already loaded. `markets` lets
+// us resolve open-position flight codes; `onOpen` jumps to a market.
+function Profile({ wallet, user, streak, markets, onOpen }){
+  if(!user) return <div className="lb-empty">
+    <div className="lb-emoji">👤</div>
+    <div className="lb-et">Nicht angemeldet</div>
+    <div className="lb-es">Melde dich an, um dein Profil und deine Statistiken zu sehen.</div>
+  </div>;
+  const betsTotal = wallet.betsTotal||0, betsWon = wallet.betsWon||0;
+  const hitRate = betsTotal ? Math.round(betsWon/betsTotal*100) : 0;
+  const staked = wallet.staked||0, won = wallet.wonAmount||0;
+  const netBets = won - staked; // win/loss from settled betting
+  const OUT = {a:"Pünktlich",b:"+15m",c:"+30m",d:"+60m"};
+  const open = (wallet.positions||[]).filter(p=>!p.settled);
+  const openStake = open.reduce((s,p)=>s+(p.stake||0),0);
+  const name = user.user_metadata?.name || user.email?.split("@")[0] || "Spieler";
+  const codeFor = fid => { const m = markets.find(x=>x.id===fid); return m?m.code:fid; };
+
+  return <div>
+    <div className="prof-head">
+      <div className="prof-av">{name[0]?.toUpperCase()}</div>
+      <div>
+        <div className="prof-name">{name}</div>
+        <div className="prof-sub">{streak>0 && <span className="chip streak" style={{marginRight:6}}>🔥 {streak}</span>}<RollingNumber value={wallet.balance} format={v=>"€ "+fmt(Math.round(v))}/></div>
+      </div>
+    </div>
+
+    <div className="stat-grid">
+      <div className="stat"><div className="stat-v">{hitRate}%</div><div className="stat-l">Trefferquote</div></div>
+      <div className="stat"><div className="stat-v">{betsWon}/{betsTotal}</div><div className="stat-l">Wetten gewonnen</div></div>
+      <div className="stat"><div className="stat-v">{fmt(staked)} €</div><div className="stat-l">Gesamt eingesetzt</div></div>
+      <div className="stat"><div className="stat-v">{fmt(won)} €</div><div className="stat-l">Zurückgewonnen</div></div>
+      <div className="stat"><div className="stat-v" style={{color:netBets>=0?"var(--good)":"var(--bad)"}}>{netBets>=0?"+":""}{fmt(netBets)} €</div><div className="stat-l">Bilanz aus Wetten</div></div>
+      <div className="stat"><div className="stat-v">{open.length}</div><div className="stat-l">Offene Wetten</div></div>
+    </div>
+
+    <div className="panelbox">
+      <div className="sectlbl">Offene Wetten {open.length>0 && `· ${fmt(openStake)} € im Spiel`}</div>
+      {open.length===0
+        ? <div className="prof-empty">Keine offenen Wetten. Setz auf einen Flug, um loszulegen.</div>
+        : <div className="open-list">{open.map((p,i)=>
+            <button className="open-row" key={i} onClick={()=>onOpen(p.flight_id)}>
+              <span className="open-code">{codeFor(p.flight_id)}</span>
+              <span className="open-tip">{OUT[p.outcome]||p.outcome}</span>
+              <span className="open-stake">{fmt(p.stake)} €</span>
+            </button>)}</div>}
+    </div>
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
@@ -1698,18 +1764,27 @@ function App(){
         {user ? <>
           {streak>0 && <span className="chip streak" title={`${streak} Tage in Folge`}>🔥 {streak}</span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
-          <span className="chip" title={user.email}>{displayName}</span>
+          <span className="chip" title={user.email} style={{cursor:"pointer"}} onClick={()=>setTab("profile")}>{displayName}</span>
           <button className="chip" style={{cursor:"pointer"}} onClick={signOut}>Abmelden</button>
         </> : (
           <button className="chip" style={{cursor:"pointer",background:"var(--brand)",color:"#fff",borderColor:"var(--brand)",fontWeight:700}} onClick={()=>setAuthOpen(true)}>Anmelden</button>
         )}
-        <button className="avatar"/>
+        <button className="avatar" onClick={()=>user?setTab("profile"):setAuthOpen(true)}/>
       </div>
     </div>
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
 
-    {tab==="rank" ? (
+    {tab==="profile" ? (
+      <>
+        <div className="rankhead">
+          <h2>👤 Dein Profil</h2>
+          <p>Deine Wett-Statistik und offene Wetten.</p>
+        </div>
+        <Profile wallet={serverWallet} user={user} streak={streak} markets={allFindable}
+          onOpen={id=>{setTab("flights");setView({page:"detail",id});}}/>
+      </>
+    ) : tab==="rank" ? (
       <>
         <div className="rankhead">
           <h2>🏆 Rangliste</h2>
