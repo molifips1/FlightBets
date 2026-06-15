@@ -153,8 +153,8 @@ button{font-family:inherit}
 @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
 @keyframes checkpop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 .confetti{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;opacity:.9;
-  animation-name:fall;animation-timing-function:ease-in;animation-fill-mode:forwards}
-@keyframes fall{0%{top:-12px;opacity:1}100%{top:110vh;opacity:.5}}
+  animation-name:fall;animation-timing-function:cubic-bezier(.35,.1,.5,1);animation-fill-mode:forwards}
+@keyframes fall{0%{top:-12px;opacity:1}85%{opacity:.9}100%{top:110vh;opacity:.3}}
 .chip.bal{transition:transform .2s ease}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
@@ -1454,16 +1454,16 @@ function RollingNumber({ value, className }){
 function BetCelebration({ data, onDone }){
   useEffect(()=>{
     if(!data) return;
-    const t=setTimeout(onDone, data.big?2200:1400);
+    const t=setTimeout(onDone, data.big?4200:3400);
     return ()=>clearTimeout(t);
   },[data]);
   if(!data) return null;
   const colors=["#22c55e","#3b82f6","#f59e0b","#ef4444","#a855f7"];
-  const n=data.big?40:22;
+  const n=data.big?80:48;
   const bits=Array.from({length:n},(_, i)=>({
-    left:Math.random()*100, delay:Math.random()*0.25,
+    left:Math.random()*100, delay:Math.random()*0.8,
     rot:Math.random()*360, col:colors[i%colors.length],
-    dur:0.9+Math.random()*0.7,
+    dur:2.2+Math.random()*1.6,
   }));
   return <div className="celebrate" onClick={onDone}>
     <div className="celebrate-card">
