@@ -934,7 +934,7 @@ function Detail({m,total,back,...bet}){
               const share = o.pool/maxPool;
               const pct = total>0 ? Math.round(o.pool/total*100) : 0;
               const on = pick===o.id;
-              return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>setPick(o.id)}>
+              return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>{setPick(o.id);Sound.select();}}>
                 <div className="bk-l">
                   <span className="bk-name">{o.label}</span>
                   {on && <span className="bk-sel">GEWÄHLT</span>}
@@ -1446,6 +1446,39 @@ function Leaderboard({ players, me }){
 // Smoothly animates a number from its previous value to the new one (the
 // "rolling counter" the article calls a key micro-interaction). Used for the
 // balance so it ticks up/down instead of snapping.
+// Lightweight sound engine (Web Audio — synthesized, no files). Short, quiet,
+// mutable. Context is created lazily on the first user gesture (browser policy).
+const Sound = (()=>{
+  let ctx=null, muted=false;
+  try{ muted = localStorage.getItem("berbet_muted")==="1"; }catch(_){}
+  function ac(){
+    if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(_){} }
+    if(ctx && ctx.state==="suspended"){ ctx.resume().catch(()=>{}); }
+    return ctx;
+  }
+  function tone(freq,t0,dur,type,peak){
+    const c=ac(); if(!c) return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||"sine"; o.frequency.value=freq;
+    const start=c.currentTime+t0;
+    g.gain.setValueAtTime(0,start);
+    g.gain.linearRampToValueAtTime(peak||0.1,start+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(start); o.stop(start+dur+0.02);
+  }
+  function buzz(pattern){ try{ navigator.vibrate && navigator.vibrate(pattern); }catch(_){} }
+  return {
+    get muted(){ return muted; },
+    setMuted(v){ muted=v; try{ localStorage.setItem("berbet_muted", v?"1":"0"); }catch(_){} },
+    select(){ buzz(8); if(muted) return; tone(880,0,0.05,"sine",0.04); },
+    bet(){ buzz(30); if(muted) return; tone(620,0,0.07,"triangle",0.09); tone(990,0.06,0.12,"triangle",0.09); },
+    win(){ buzz([20,40,30]); if(muted) return; [523,659,784,1047].forEach((f,i)=>tone(f,i*0.09,0.18,"triangle",0.1)); },
+    lose(){ buzz(15); if(muted) return; tone(300,0,0.2,"sine",0.07); },
+    streak(){ buzz([10,30,10]); if(muted) return; tone(500,0,0.1,"triangle",0.07); tone(760,0.08,0.1,"triangle",0.07); tone(1120,0.16,0.16,"triangle",0.08); },
+  };
+})();
+
 function RollingNumber({ value, className }){
   const [shown,setShown]=useState(value);
   const fromRef=useRef(value), rafRef=useRef(null);
@@ -1499,6 +1532,10 @@ function BetCelebration({ data, onDone }){
 // "While you were away" summary card — settled results since last visit.
 // Wins celebrated, losses neutral & learning-oriented (never mocking).
 function ResultsCelebration({ data, onDone }){
+  useEffect(()=>{
+    if(!data) return;
+    if(data.net>=0) Sound.win(); else Sound.lose();
+  },[data]);
   if(!data) return null;
   const net = data.net;
   const good = net >= 0;
@@ -1543,6 +1580,7 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [celebrate,setCelebrate]=useState(null);
+  const [muted,setMuted]=useState(Sound.muted);
   const [streakWelcome,setStreakWelcome]=useState(null);
   const [results,setResults]=useState(null);
   const streak = serverWallet.streak || 0;
@@ -1558,7 +1596,7 @@ function App(){
         if(d && !d.error){
           if(!d.already && d.bonus>0){
             setStreakWelcome({ streak:d.streak, bonus:d.bonus });
-            try{ navigator.vibrate && navigator.vibrate(20); }catch(_){}
+            Sound.streak();
           }
           setBump(b=>b+1); // refresh wallet (new balance + streak)
         }
@@ -1616,7 +1654,7 @@ function App(){
       }
       // Success — celebrate. First-ever bet (no prior settled/placed) gets extra flair.
       const firstBet = (serverWallet.balance>=925 && (serverWallet.staked||0)===0);
-      try{ navigator.vibrate && navigator.vibrate(firstBet?[20,40,20]:30); }catch(_){}
+      Sound.bet();
       setCelebrate({ stake, label:o.label, big:firstBet });
       setBump(b=>b+1); // refetch pools + wallet
     }catch(e){ setToast("Wette fehlgeschlagen — Server nicht erreichbar"); }
@@ -1638,6 +1676,8 @@ function App(){
           <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
           {dataPill.t}
         </span>
+        <button className="chip mute" style={{cursor:"pointer"}} title={muted?"Ton aus":"Ton an"}
+          onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}>{muted?"🔇":"🔊"}</button>
         {user ? <>
           {streak>0 && <span className="chip streak" title={`${streak} Tage in Folge`}>🔥 {streak}</span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
