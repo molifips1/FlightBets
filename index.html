@@ -123,6 +123,24 @@ button{font-family:inherit}
 .riskt.nopool{margin:14px 0 4px;font-style:italic;opacity:.85}
 .cdrow{margin:10px 0 2px}
 .fdate{font-size:11.5px;color:var(--muted);font-weight:500;margin:2px 0 8px;text-transform:capitalize}
+.rankhead{margin:18px 0 14px}
+.rankhead h2{font-size:24px;font-weight:800;color:var(--ink);margin:0 0 4px}
+.rankhead p{font-size:13px;color:var(--muted);margin:0;line-height:1.5}
+.lb{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.lb-h{display:flex;align-items:center;padding:11px 16px;font-size:11px;font-weight:700;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);background:var(--card2)}
+.lb-row{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.lb-row:last-child{border-bottom:none}
+.lb-row.mine{background:color-mix(in srgb,var(--brand) 9%,transparent)}
+.lb-rank{width:42px;font-weight:700;color:var(--ink);font-size:15px}
+.lb-name{flex:1;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-stat{width:120px;text-align:right;color:var(--ink);font-weight:600}
+.lb-stat .lb-sub{color:var(--muted);font-weight:400;font-size:12px}
+.lb-bal{width:100px;text-align:right;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.lb-empty{text-align:center;padding:56px 24px;color:var(--muted)}
+.lb-emoji{font-size:40px;margin-bottom:12px}
+.lb-et{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.lb-es{font-size:13.5px;line-height:1.55;max-width:340px;margin:0 auto}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -589,7 +607,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       )}
 
       <div className="statusline">
-        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
+        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
 
@@ -872,7 +890,7 @@ function Detail({m,total,back,...bet}){
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
-            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
+            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
         </div>
@@ -1231,6 +1249,24 @@ function usePools(bump){
   return { pools, settled };
 }
 
+// Leaderboard — fetched when the Rangliste tab is open (and refreshed on bump).
+function useLeaderboard(active, bump){
+  const [players,setPlayers]=useState(null); // null = loading
+  useEffect(()=>{
+    if(!active || !CONFIG.API_BASE) return;
+    let dead=false;
+    (async()=>{
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/leaderboard`);
+        const d = await r.json();
+        if(!dead) setPlayers(d.players||[]);
+      }catch(e){ if(!dead) setPlayers([]); }
+    })();
+    return ()=>{ dead=true; };
+  },[active,bump]);
+  return players;
+}
+
 // Server-side wallet for this player.
 // Current access token (JWT) for authenticated worker calls, or null.
 async function authToken(){
@@ -1348,14 +1384,43 @@ function AuthModal({ onClose }){
   </div>;
 }
 
+function Leaderboard({ players, me }){
+  if(players===null) return <div className="lb-empty">Lade Rangliste…</div>;
+  if(!players.length) return <div className="lb-empty">
+    <div className="lb-emoji">🏆</div>
+    <div className="lb-et">Noch keine Rangliste</div>
+    <div className="lb-es">Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.</div>
+  </div>;
+  const medal = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
+  return <div className="lb">
+    <div className="lb-h">
+      <span className="lb-rank">#</span>
+      <span className="lb-name">Spieler</span>
+      <span className="lb-stat">Treffer</span>
+      <span className="lb-bal">Guthaben</span>
+    </div>
+    {players.map((p,i)=>{
+      const mine = me && p.userId===me;
+      return <div className={"lb-row"+(mine?" mine":"")} key={p.userId}>
+        <span className="lb-rank">{medal(i)}</span>
+        <span className="lb-name">{p.name||"Anonym"}{mine?" (du)":""}</span>
+        <span className="lb-stat">{p.hitRate}% <span className="lb-sub">· {p.betsWon}/{p.betsTotal}</span></span>
+        <span className="lb-bal">{fmt(p.balance)} €</span>
+      </div>;
+    })}
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
   const [bump,setBump]=useState(0); // increment to refetch pools+wallet after a bet
+  const [tab,setTab]=useState("flights");
   const { pools: serverPools, settled: serverSettled } = usePools(bump);
   const { user, ready: authReady, signOut } = useAuth();
   const serverWallet = useWallet(bump, user);
   const wallet = serverWallet.balance;
+  const leaderboard = useLeaderboard(tab==="rank", bump);
   const [authOpen,setAuthOpen]=useState(false);
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
@@ -1363,7 +1428,6 @@ function App(){
   const [stake,setStake]=useState(100);
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
-  const [tab,setTab]=useState("flights");
   const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | abgeflogen | gelandet
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
@@ -1441,7 +1505,15 @@ function App(){
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
 
-    {view.page==="home" ? <>
+    {tab==="rank" ? (
+      <>
+        <div className="rankhead">
+          <h2>🏆 Rangliste</h2>
+          <p>Beste Tipper nach Guthaben — wer aus den Start-925 € am meisten gemacht hat.</p>
+        </div>
+        <Leaderboard players={leaderboard} me={user?.id}/>
+      </>
+    ) : view.page==="home" ? <>
       <div className="ticker"><div className="ticker-track">
         {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}€</span><b>{t[0]}</b> auf {t[1]}</span>)}
       </div></div>
