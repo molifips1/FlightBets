@@ -449,12 +449,14 @@ function Curve({dist,tone,marker,axis}){
   );
 }
 function RiskBar({outcomes,total}){
+  const t = total>0 ? total : 0;
   return <div className="rbar">{outcomes.map(o=>
-    <span key={o.id} style={{width:(o.pool/total*100)+"%",background:TONE[o.tone]}}/>)}</div>;
+    <span key={o.id} style={{width:(t>0?(o.pool/t*100):(100/outcomes.length))+"%",background:TONE[o.tone]}}/>)}</div>;
 }
 function Breakdown({m,total}){
+  const t = total>0 ? total : 0;
   return <div className="brk">{m.outcomes.map(o=>
-    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{Math.round(o.pool/total*100)}%</b></span>)}</div>;
+    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{t>0?Math.round(o.pool/t*100)+"%":"—"}</b></span>)}</div>;
 }
 
 const SEED=[
@@ -503,7 +505,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <div className="metaline"><span>{m.yesterday}</span></div>
       <div className="metaline"><span>⏳ Schließt in <b style={{color:"var(--ink)"}}>{m.closes}</b></span><span className="bonus">⚡ {m.bonus}</span></div>
       {m.outcomes.map(o=><div className="ans" key={o.id} onClick={()=>{setOpenBet(m.id);setPick(o.id)}}>
-        <span className="al">{o.tone==="good"?"🔥":"❄️"} {o.label}</span><span className="ap">{Math.round(o.pool/t*100)}%</span></div>)}
+        <span className="al">{o.tone==="good"?"🔥":"❄️"} {o.label}</span><span className="ap">{t>0?Math.round(o.pool/t*100)+"%":"—"}</span></div>)}
       {openBet===m.id && <BetPanel m={m} total={t} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/>}
     </div>;
   }
