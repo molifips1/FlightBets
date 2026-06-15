@@ -642,13 +642,6 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
             <span className="sname">{m.to.name}</span>
-            <span className="rtime">{
-              m.actualArr && m.schedArr && m.actualArr!==m.schedArr
-                ? <><span className="old">{m.schedArr}</span><span className="new">{m.actualArr}</span></>
-              : m.actualArr || m.schedArr
-                ? <span>{m.actualArr || m.schedArr}</span>
-                : <span className="old">—</span>
-            }</span>
           </div>
         </div>
       ) : (
@@ -930,12 +923,6 @@ function Detail({m,total,back,...bet}){
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
               <span className="sname">{m.to.name}</span>
-              <span className="rtime">{
-                m.actualArr && m.schedArr && m.actualArr!==m.schedArr
-                  ? <><span className="old">{m.schedArr}</span><span className="new">{m.actualArr}</span></>
-                : m.actualArr || m.schedArr ? <span>{m.actualArr||m.schedArr}</span>
-                : <span className="old">—</span>
-              }</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
