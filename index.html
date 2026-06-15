@@ -78,11 +78,11 @@ button{font-family:inherit}
 .sel,.filter{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:0 14px;cursor:pointer;font-size:14px;font-weight:600;color:var(--ink)}
 
 /* grid */
-.grid{columns:3;column-gap:16px}
-@media(max-width:980px){.grid{columns:2}}
-@media(max-width:660px){.grid{columns:1}}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:660px){.grid{grid-template-columns:1fr}}
 .card{break-inside:avoid;position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  padding:17px;margin-bottom:16px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
+  padding:17px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
 .card.click{cursor:pointer}
 .card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
 
@@ -545,7 +545,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
           {m.phase && <span className={"phase ph-"+m.phase}>{
             m.phase==="upcoming" ? "● bevorstehend" :
             m.phase==="enroute"  ? "✈ unterwegs" :
-            m.phase==="landed"   ? "✓ gelandet" :
+            m.phase==="landed"   ? "✓ abgeflogen" :
             m.phase==="cancelled"? "✕ annulliert" : ""
           }</span>}
         </div>
@@ -815,7 +815,7 @@ function Detail({m,total,back,...bet}){
               {isFlight && m.phase && <span className={"phase ph-"+m.phase}>{
                 m.phase==="upcoming" ? "● bevorstehend" :
                 m.phase==="enroute"  ? "✈ unterwegs" :
-                m.phase==="landed"   ? "✓ gelandet" :
+                m.phase==="landed"   ? "✓ abgeflogen" :
                 m.phase==="cancelled"? "✕ annulliert" : ""
               }</span>}
             </div>
@@ -887,7 +887,7 @@ function Detail({m,total,back,...bet}){
           <div className="sectlbl">{m.settled ? "Abgerechnet · Wetten geschlossen" : "Live · Jetzt wetten"}</div>
           {m.settled ? <div className="closedbox">
             <div className="closed-em">{m.phase==="cancelled"?"✕":"✓"}</div>
-            <div className="closed-t">{m.phase==="cancelled"?"Flug annulliert":"Flug gelandet"}</div>
+            <div className="closed-t">{m.phase==="cancelled"?"Flug annulliert":"Flug abgeflogen"}</div>
             <div className="closed-s">{m.delayUnknown ? "Ergebnis liegt nicht verlässlich vor." : <>Ergebnis: <b style={{color:TONE[m.status]}}>{m.delay}</b>. Auf abgeschlossene Flüge kann nicht mehr gewettet werden.</>}</div>
           </div> : <>
           {!pick && <div className="pickhint">Wähle links eine Verspätungs-Option, um zu wetten.</div>}
@@ -1063,6 +1063,9 @@ function boardToMarket(f){
   else if (relTime == null) phase = "upcoming";
   else if (relTime > now) phase = "upcoming";
   else if (st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")) phase = "landed";
+  // A DEPARTURE's delay outcome is fixed at takeoff — once it has actually
+  // departed (actual time known, or status says so), betting is closed.
+  else if (dirDep && (f.actualDep || st.includes("departed") || st.includes("airborne") || st.includes("en route") || st.includes("in air"))) phase = "landed";
   else if (adbOnly && longPast) phase = "landed"; // aged-out: treat as done, delay unknown
   else phase = "enroute";
   const settled = phase==="landed" || phase==="cancelled";
@@ -1398,7 +1401,7 @@ function App(){
 
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="active"?" on":"")} onClick={()=>setPhaseFilter("active")}>✈ Aktiv</button>
-        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ Gelandet</button>
+        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ Abgeflogen</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
