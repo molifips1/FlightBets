@@ -185,6 +185,20 @@ button{font-family:inherit}
 .open-tip{flex:1;color:var(--muted)}
 .open-stake{font-weight:700;color:var(--ink)}
 @media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.legal{max-width:680px;padding-bottom:20px}
+.legal-note{background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);
+  border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.55;color:var(--ink);margin-bottom:20px}
+.legal-sec{margin-bottom:26px}
+.legal-sec h3{font-size:18px;font-weight:800;color:var(--ink);margin:0 0 10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.legal-sec h4{font-size:14px;font-weight:700;color:var(--ink);margin:16px 0 5px}
+.legal-sec p{font-size:13.5px;line-height:1.65;color:var(--ink);margin:0 0 10px}
+.legal-sec ul{font-size:13.5px;line-height:1.7;color:var(--ink);margin:0 0 10px;padding-left:20px}
+.legal-hint{font-size:12px !important;color:var(--muted) !important;font-style:italic;background:var(--card2);padding:9px 12px;border-radius:9px}
+.pagefoot{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;
+  margin:28px 0 90px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.pf-money{font-weight:600}
+.pf-link{background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12.5px;font-family:inherit}
+.pf-link:hover{color:var(--ink)}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -1632,6 +1646,75 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   </div>;
 }
 
+// Legal page — TEMPLATE with placeholders. The bracketed [...] parts MUST be
+// replaced with real, legally-reviewed text before a public launch. This is a
+// scaffold, not legal advice.
+function Legal(){
+  return <div className="legal">
+    <div className="rankhead"><h2>Rechtliches</h2>
+      <p>Vorlage — die <b>[…]</b>-Felder müssen vor dem Launch mit echten, rechtlich geprüften Angaben gefüllt werden.</p>
+    </div>
+
+    <div className="legal-note">
+      ⚠️ Diese Seite ist eine technische Vorlage, keine Rechtsberatung. Lass Impressum und Datenschutzerklärung vor einer Veröffentlichung von einem Anwalt oder einem seriösen Generator (z. B. eRecht24) prüfen.
+    </div>
+
+    <section className="legal-sec">
+      <h3>Spielgeld-Hinweis</h3>
+      <p>ber.bet ist ein kostenloses Unterhaltungsangebot. Alle Einsätze erfolgen ausschließlich mit <b>fiktivem Spielgeld ohne jeden Geldwert</b>. Es können keine echten Einsätze getätigt, keine echten Gewinne ausgezahlt und kein Spielgeld gekauft werden. ber.bet ist <b>kein Glücksspiel</b> im Sinne des Glücksspielstaatsvertrags und steht in keiner Verbindung zum Flughafen BER, zu Fluggesellschaften oder Datenanbietern.</p>
+    </section>
+
+    <section className="legal-sec">
+      <h3>Impressum</h3>
+      <p>Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz):</p>
+      <p>
+        [DEIN VOR- UND NACHNAME]<br/>
+        [STRASSE UND HAUSNUMMER]<br/>
+        [PLZ UND ORT]<br/>
+        [LAND]
+      </p>
+      <p><b>Kontakt:</b><br/>E-Mail: [DEINE KONTAKT-E-MAIL]</p>
+      <p><b>Verantwortlich für den Inhalt</b> (gem. § 18 Abs. 2 MStV): [DEIN NAME, ADRESSE WIE OBEN]</p>
+      <p className="legal-hint">Hinweis: In Deutschland ist eine ladungsfähige Anschrift Pflicht. Wenn du keine Privatadresse öffentlich nennen willst, prüfe Alternativen (z. B. Impressumsservice). Da du dich ggf. außerhalb Deutschlands befindest, kläre, welches Recht für dich gilt.</p>
+    </section>
+
+    <section className="legal-sec">
+      <h3>Datenschutzerklärung</h3>
+
+      <h4>1. Verantwortlicher</h4>
+      <p>[DEIN NAME UND ADRESSE], erreichbar unter [DEINE E-MAIL].</p>
+
+      <h4>2. Welche Daten wir verarbeiten</h4>
+      <p>Bei der Registrierung und Nutzung verarbeiten wir: deine <b>E-Mail-Adresse</b> und einen frei gewählten <b>Anzeigenamen</b> (zur Anmeldung und Identifikation), sowie deine <b>Spielaktivität</b> (platzierte Wetten, Spielgeld-Guthaben, Login-Streak). Bei Anmeldung über Google erhalten wir die von Google freigegebenen Basis-Profildaten (E-Mail, Name).</p>
+
+      <h4>3. Eingesetzte Dienste (Auftragsverarbeiter / Drittanbieter)</h4>
+      <p>Zur Bereitstellung des Dienstes nutzen wir:</p>
+      <ul>
+        <li><b>Supabase</b> (Authentifizierung &amp; Nutzerkonten)</li>
+        <li><b>Cloudflare</b> (Server-Infrastruktur, Datenbank, Auslieferung)</li>
+        <li><b>Google</b> (optionaler „Mit Google anmelden"-Login)</li>
+        <li><b>GitHub Pages</b> (Auslieferung der Website)</li>
+        <li>Flugdaten von <b>AeroDataBox</b> und <b>FlightAware (AeroAPI)</b> (keine personenbezogenen Daten betroffen)</li>
+      </ul>
+      <p className="legal-hint">Ergänze für jeden Dienst die Rechtsgrundlage und ggf. Hinweise zur Datenübermittlung (z. B. in die USA). Ein Generator hilft, das korrekt zu formulieren.</p>
+
+      <h4>4. Zweck und Rechtsgrundlage</h4>
+      <p>Die Verarbeitung erfolgt zur Bereitstellung des Spiels und deines Kontos (Art. 6 Abs. 1 lit. b DSGVO – Vertragserfüllung). [Ergänze weitere Zwecke/Grundlagen, falls zutreffend.]</p>
+
+      <h4>5. Speicherdauer</h4>
+      <p>Wir speichern deine Daten, solange dein Konto besteht. Bei Löschung deines Kontos werden deine personenbezogenen Daten entfernt. [Konkretisiere Fristen.]</p>
+
+      <h4>6. Deine Rechte</h4>
+      <p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Zur Löschung deines Kontos wende dich an [DEINE E-MAIL] [oder nutze die Lösch-Funktion im Profil, sobald aktiv].</p>
+
+      <h4>7. Kontakt für Datenschutz</h4>
+      <p>[DEINE E-MAIL]</p>
+
+      <p className="legal-hint">Stand: [DATUM]. Diese Erklärung ist eine Vorlage und unvollständig — vor dem Launch prüfen lassen.</p>
+    </section>
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
@@ -1762,7 +1845,9 @@ function App(){
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
 
-    {tab==="profile" ? (
+    {tab==="legal" ? (
+      <Legal/>
+    ) : tab==="profile" ? (
       <>
         <div className="rankhead">
           <h2>👤 Dein Profil</h2>
@@ -1839,6 +1924,11 @@ function App(){
     ) : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
+
+    <div className="pagefoot">
+      <span className="pf-money">🎲 Spielgeld · keine echten Einsätze</span>
+      <button className="pf-link" onClick={()=>setTab("legal")}>Impressum &amp; Datenschutz</button>
+    </div>
 
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flüge</button>
