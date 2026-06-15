@@ -167,6 +167,8 @@ button{font-family:inherit}
 .res-pay{font-weight:700;color:var(--good)}
 .res-row:not(.won) .res-pay{color:var(--muted)}
 .res-more{text-align:center;font-size:12px;color:var(--muted);padding:6px}
+.oddsnote{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.oddsnote b{color:var(--ink);font-weight:600}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -532,8 +534,10 @@ function RiskBar({outcomes,total}){
 }
 function Breakdown({m,total}){
   const t = total>0 ? total : 0;
+  // Show the live odds (×) per bracket — what you'd win per € — since the bar
+  // above already encodes the % share. Odds answer "what's my payout".
   return <div className="brk">{m.outcomes.map(o=>
-    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{t>0?Math.round(o.pool/t*100)+"%":"—"}</b></span>)}</div>;
+    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{o.pool>0?(t/o.pool).toFixed(1)+"×":"—"}</b></span>)}</div>;
 }
 
 const SEED=[
@@ -928,6 +932,7 @@ function Detail({m,total,back,...bet}){
             {m.outcomes.map(o=>{
               const mult = total/(o.pool||1);
               const share = o.pool/maxPool;
+              const pct = total>0 ? Math.round(o.pool/total*100) : 0;
               const on = pick===o.id;
               return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>setPick(o.id)}>
                 <div className="bk-l">
@@ -935,13 +940,14 @@ function Detail({m,total,back,...bet}){
                   {on && <span className="bk-sel">GEWÄHLT</span>}
                 </div>
                 <div className="bk-mid">
-                  <div className="bk-pool">Pool {fmt(o.pool)} €</div>
+                  <div className="bk-pool">Pool {fmt(o.pool)} € · {total>0?pct+"%":"—"}</div>
                   <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
                 </div>
                 <div className="bk-odds">{o.pool>0?mult.toFixed(2)+"×":"—"}</div>
               </button>;
             })}
           </div>
+          <div className="oddsnote">× = mögliche Quote beim aktuellen Pool. Sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (90 Min vor Abflug).</div>
         </div>
 
         {/* Market rules */}
