@@ -157,6 +157,15 @@ button{font-family:inherit}
 @keyframes fall{0%{top:-12px;opacity:1}85%{opacity:.9}100%{top:110vh;opacity:.3}}
 .chip.bal{transition:transform .2s ease}
 .chip.streak{background:color-mix(in srgb,#f59e0b 16%,transparent);color:#f59e0b;border-color:transparent;font-weight:700}
+.chip.lvl{background:color-mix(in srgb,#7c3aed 15%,transparent);color:#7c3aed;border-color:transparent;font-weight:700}
+.res-xp{color:#7c3aed;font-weight:700}
+.lvlbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:16px}
+.lvlbox-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:6px}
+.lvl-badge{font-weight:800;font-size:15px;color:var(--ink)}
+.lvl-xp{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lvl-bar{height:9px;border-radius:999px;background:var(--card2);overflow:hidden}
+.lvl-bar span{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);border-radius:999px;transition:width .6s cubic-bezier(.2,.8,.3,1)}
+.lvl-hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
 .streak-flame{font-size:46px;margin-bottom:8px;animation:flamepop .5s cubic-bezier(.2,1.4,.4,1)}
 @keyframes flamepop{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
 .res-list{margin-top:14px;text-align:left;max-height:230px;overflow-y:auto}
@@ -479,6 +488,17 @@ const CONFIG = {
 // Clean app URL with NO hash/query — used as the OAuth/redirect target so
 // Supabase appends a single "#access_token=…" instead of doubling to "##".
 const REDIRECT_URL = window.location.origin + window.location.pathname;
+
+// XP → level helpers (mirror the worker). Cumulative XP to reach level L is
+// 50*(L-1)*L. Used for the level chip and the profile progress bar.
+function xpForLevel(L){ return 50 * (L - 1) * L; }
+function levelForXp(xp){ let L = 1; while (xpForLevel(L + 1) <= (xp||0)) L++; return L; }
+function levelProgress(xp){
+  xp = xp || 0;
+  const L = levelForXp(xp);
+  const base = xpForLevel(L), next = xpForLevel(L + 1);
+  return { level: L, into: xp - base, span: next - base, pct: Math.round((xp - base) / (next - base) * 100) };
+}
 
 // Safety net: if a redirect ever lands with a doubled "##access_token", collapse
 // it to a single "#" BEFORE the Supabase client reads the hash, so login still works.
@@ -1581,6 +1601,7 @@ function ResultsCelebration({ data, onDone }){
       <div className="celebrate-t">{data.count} {data.count===1?"Wette":"Wetten"} abgerechnet</div>
       <div className="celebrate-s">
         {data.wonCount} richtig · {good?"+":""}{fmt(net)} € unterm Strich
+        {data.xpGained>0 && <span className="res-xp"> · +{data.xpGained} XP</span>}
       </div>
       <div className="res-list">
         {data.items.slice(0,6).map((it,i)=>
@@ -1621,6 +1642,14 @@ function Profile({ wallet, user, streak, markets, onOpen }){
         <div className="prof-name">{name}</div>
         <div className="prof-sub">{streak>0 && <span className="chip streak" style={{marginRight:6}}>🔥 {streak}</span>}<RollingNumber value={wallet.balance} format={v=>"€ "+fmt(Math.round(v))}/></div>
       </div>
+    </div>
+
+    <div className="lvlbox">
+      {(() => { const p = levelProgress(wallet.xp); return <>
+        <div className="lvlbox-top"><span className="lvl-badge">Level {p.level}</span><span className="lvl-xp">{wallet.xp||0} XP · {p.into}/{p.span} bis Lvl {p.level+1}</span></div>
+        <div className="lvl-bar"><span style={{width:p.pct+"%"}}/></div>
+        <div className="lvl-hint">XP gibt's nur für richtige Tipps — mutige Treffer auf hohe Quoten zählen mehr.</div>
+      </>; })()}
     </div>
 
     <div className="stat-grid">
@@ -1832,6 +1861,7 @@ function App(){
         <button className="chip mute" style={{cursor:"pointer"}} title={muted?"Ton aus":"Ton an"}
           onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}>{muted?"🔇":"🔊"}</button>
         {user ? <>
+          {(serverWallet.xp||0)>0 && <span className="chip lvl" title={`${serverWallet.xp} XP`}>Lvl {serverWallet.level||levelForXp(serverWallet.xp)}</span>}
           {streak>0 && <span className="chip streak" title={`${streak} Tage in Folge`}>🔥 {streak}</span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <span className="chip" title={user.email} style={{cursor:"pointer"}} onClick={()=>setTab("profile")}>{displayName}</span>
