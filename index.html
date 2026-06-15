@@ -314,9 +314,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .rules p{font-size:13.5px;line-height:1.6;color:var(--muted);margin:0 0 11px}
 .rules b{color:var(--ink)}
 .rules-net{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3px;color:var(--muted);margin-top:2px!important}
-.ph-upcoming{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
-.ph-enroute{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
-.ph-landed{background:var(--card2);color:var(--muted)}
+.ph-upcoming,.ph-aktiv{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
+.ph-enroute,.ph-abgeflogen{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
+.ph-landed,.ph-gelandet{background:var(--card2);color:var(--muted)}
 .ph-cancelled{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
 .seg{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);
   padding:10px 12px;border-radius:9px;transition:background .15s,color .15s}
@@ -549,11 +549,12 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
         <div className="codeline">
           <span className="code">{m.code}</span>
           {m.subcode && <span className="subcode">{m.subcode}</span>}
-          {m.phase && <span className={"phase ph-"+m.phase}>{
-            m.phase==="upcoming" ? "● bevorstehend" :
-            m.phase==="enroute"  ? "✈ unterwegs" :
-            m.phase==="landed"   ? "✓ abgeflogen" :
-            m.phase==="cancelled"? "✕ annulliert" : ""
+          {m.phase && <span className={"phase ph-"+(m.tab||m.phase)}>{
+            m.phase==="cancelled" ? "✕ annulliert" :
+            m.phase==="landed"    ? "✓ gelandet" :
+            m.phase==="enroute"   ? "✈ abgeflogen" :
+            m.bettable            ? "● bevorstehend" :
+            "🔒 geschlossen"
           }</span>}
         </div>
         <span className="pool">{fmt(total)} €</span>
@@ -598,16 +599,14 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
             <Breakdown m={m} total={total}/></>
         : <div className="riskt nopool">{m.phase==="landed"||m.phase==="cancelled" ? "Abgerechnet · keine Wetten" : "Noch keine Wetten · setz den ersten Tipp"}</div>}
 
-      {m.phase==="upcoming" && (m.bettable
-        ? <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>
-        : <div className="cdrow"><span className="betcd closed">🔒 Wetten geschlossen · startet bald</span></div>)}
+      {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       <div className="cfoot" onClick={e=>e.stopPropagation()}>
         <button className="ico" title="Share">↗</button>
         <button className="ico boost" title="Boost">⚡</button>
         {m.bettable
           ? <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Schließen":"Wetten"}</button>
-          : <button className="betbtn locked" disabled>{m.settled?"Abgeflogen":"Geschlossen"}</button>}
+          : <button className="betbtn locked" disabled>{m.phase==="cancelled"?"Annulliert":m.phase==="landed"?"Gelandet":m.phase==="enroute"?"Abgeflogen":"Geschlossen"}</button>}
       </div>
 
       {open && m.bettable && <div onClick={e=>e.stopPropagation()}><BetPanel m={m} total={total} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/></div>}
@@ -841,11 +840,12 @@ function Detail({m,total,back,...bet}){
             <div className="codeline">
               <span className="code">{m.code}</span>
               {m.subcode && <span className="subcode">{m.subcode}</span>}
-              {isFlight && m.phase && <span className={"phase ph-"+m.phase}>{
-                m.phase==="upcoming" ? "● bevorstehend" :
-                m.phase==="enroute"  ? "✈ unterwegs" :
-                m.phase==="landed"   ? "✓ abgeflogen" :
-                m.phase==="cancelled"? "✕ annulliert" : ""
+              {isFlight && m.phase && <span className={"phase ph-"+(m.tab||m.phase)}>{
+                m.phase==="cancelled" ? "✕ annulliert" :
+                m.phase==="landed"    ? "✓ gelandet" :
+                m.phase==="enroute"   ? "✈ abgeflogen" :
+                m.bettable            ? "● bevorstehend" :
+                "🔒 geschlossen"
               }</span>}
             </div>
             <span className="pool">{fmt(total)} €</span>
@@ -1092,11 +1092,8 @@ function boardToMarket(f){
   else if (relTime == null) phase = "upcoming";
   else if (relTime > now) phase = "upcoming";
   else if (st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")) phase = "landed";
-  // A DEPARTURE's delay outcome is fixed at takeoff — once it has actually
-  // departed (actual time known, or status says so), betting is closed.
-  else if (dirDep && (f.actualDep || st.includes("departed") || st.includes("airborne") || st.includes("en route") || st.includes("in air"))) phase = "landed";
-  else if (adbOnly && longPast) phase = "landed"; // aged-out: treat as done, delay unknown
-  else phase = "enroute";
+  else if (adbOnly && longPast) phase = "landed"; // aged-out: assume landed, delay unknown
+  else phase = "enroute"; // departed / in the air, not yet landed
   const settled = phase==="landed" || phase==="cancelled";
 
   // Betting closes 90 min BEFORE scheduled departure — so every bet is a real
@@ -1106,7 +1103,12 @@ function boardToMarket(f){
   const BET_LEAD_MS = 90*60*1000;
   const betCloseTs = relTime!=null ? relTime - BET_LEAD_MS : null;
   const bettable = phase==="upcoming" && betCloseTs!=null && now < betCloseTs;
-  const betClosed = !bettable; // closed: window passed, or already gone/landed
+
+  // Three tabs: aktiv (still bettable) · abgeflogen (closed, not yet landed) ·
+  // gelandet (landed or cancelled — resolved).
+  const tab = (phase==="landed"||phase==="cancelled") ? "gelandet"
+            : bettable ? "aktiv"
+            : "abgeflogen";
 
   // If we only have the ADB plan for a flight that's already gone, we don't
   // actually know the delay — show "—" rather than a misleading +0m.
@@ -1131,7 +1133,7 @@ function boardToMarket(f){
     phase,
     settled,
     bettable,
-    betClosed,
+    tab,
     betCloseISO: betCloseTs!=null ? new Date(betCloseTs).toISOString() : null,
     delayUnknown,
     dataSource: f.dataSource || "adb",
@@ -1352,7 +1354,7 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [tab,setTab]=useState("flights");
-  const [phaseFilter,setPhaseFilter]=useState("active"); // active (upcoming+enroute) | landed
+  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | abgeflogen | gelandet
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -1441,8 +1443,9 @@ function App(){
       </div>
 
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="active"?" on":"")} onClick={()=>setPhaseFilter("active")}>✈ Aktiv</button>
-        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ Abgeflogen</button>
+        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Aktiv</button>
+        <button className={"subpill"+(phaseFilter==="abgeflogen"?" on":"")} onClick={()=>setPhaseFilter("abgeflogen")}>✈ Abgeflogen</button>
+        <button className={"subpill"+(phaseFilter==="gelandet"?" on":"")} onClick={()=>setPhaseFilter("gelandet")}>✓ Gelandet</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
@@ -1452,9 +1455,9 @@ function App(){
       <div className="grid">
         {liveMarkets
           .filter(m => {
-            if (phaseFilter==="landed") return m.phase==="landed" || m.phase==="cancelled";
-            // "active" = bettable: about to depart OR in the air
-            return m.phase==="upcoming" || m.phase==="enroute";
+            if (phaseFilter==="gelandet")   return m.tab==="gelandet";
+            if (phaseFilter==="abgeflogen") return m.tab==="abgeflogen";
+            return m.tab==="aktiv";
           })
           .sort((a,b)=>{
             // 1) most betting volume first (where the action is), 2) then by time.
