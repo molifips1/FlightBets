@@ -296,6 +296,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .berhero-t{font-family:Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
 .berhero-s{font-size:13px;opacity:.9;margin-top:6px}
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;vertical-align:-1px;margin-right:6px;animation:spinrot .7s linear infinite;opacity:.8}
+.spin-d{width:13px;height:13px}
+@keyframes spinrot{to{transform:rotate(360deg)}}
 .segmented{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:16px}
 .phase{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.4px;padding:3px 8px;border-radius:999px;white-space:nowrap}
 
@@ -1238,19 +1241,32 @@ function useBoard(){
   useEffect(()=>{
     if (!CONFIG.API_BASE){ setStatus("demo"); return; }
     let dead=false;
-    async function tick(){
-      try{
-        const r = await fetch(`${CONFIG.API_BASE}/api/board?code=EDDB`);
-        if(!r.ok) throw new Error(r.status);
-        const d = await r.json();
-        if(dead) return;
-        setFlights((d.flights||[]).map(boardToMarket));
-        setLastUpdate(Date.now());
-        setStatus("live");
-      }catch(e){ if(!dead) setStatus("offline"); }
+    const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    async function tryFetch(){
+      const r = await fetch(`${CONFIG.API_BASE}/api/board?code=EDDB`);
+      if(!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      if(dead) return false;
+      setFlights((d.flights||[]).map(boardToMarket));
+      setLastUpdate(Date.now());
+      setStatus("live");
+      return true;
     }
-    tick();
-    const h=setInterval(tick, 15*60*1000); // 15 min — matches worker board cache
+    // Initial load: retry a few times (cold worker / slow network) while staying
+    // in "connecting" — only declare "offline" after several real failures.
+    async function initialLoad(){
+      for(let i=0;i<3;i++){
+        if(dead) return;
+        try{ if(await tryFetch()) return; }catch(e){}
+        if(dead) return;
+        await sleep(1200*(i+1));
+      }
+      if(!dead) setStatus("offline");
+    }
+    initialLoad();
+    // Periodic refresh: on success update to live; on a single miss leave the
+    // current status as-is (don't flash offline over already-loaded data).
+    const h=setInterval(()=>{ tryFetch().catch(()=>{}); }, 15*60*1000);
     return ()=>{ dead=true; clearInterval(h); };
   },[]);
   return { flights, status, lastUpdate };
@@ -1709,7 +1725,7 @@ function App(){
       <div className="berhero">
         <div className="berhero-k">FLUGHAFEN BER · BERLIN BRANDENBURG</div>
         <div className="berhero-t">Der ganze Flughafen. Jeder Flug. Live.</div>
-        <div className="berhero-s">{dataStatus==="live" ? `${boardFlights.length} Flüge live von der Anzeigetafel` : dataStatus==="offline" ? "Live-Tafel nicht erreichbar" : "Worker nicht verbunden — Demo-Modus"}</div>
+        <div className="berhero-s">{dataStatus==="live" ? `${boardFlights.length} Flüge live von der Anzeigetafel` : dataStatus==="connecting" ? <><span className="spin"/> Verbinde mit der Live-Tafel…</> : dataStatus==="offline" ? "Live-Tafel nicht erreichbar" : "Worker nicht verbunden — Demo-Modus"}</div>
       </div>
 
       <div className="subfilter">
@@ -1719,7 +1735,11 @@ function App(){
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
-        {dataStatus==="offline" ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft." : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
+        {dataStatus==="connecting"
+          ? <><span className="spin spin-d"/> Lade die Live-Tafel vom BER…</>
+          : dataStatus==="offline"
+          ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft."
+          : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
       </div>}
 
       <div className="grid">
