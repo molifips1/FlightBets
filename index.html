@@ -120,6 +120,7 @@ button{font-family:inherit}
 
 /* risk + breakdown */
 .riskt{font-size:12.5px;color:var(--muted);margin:12px 0 7px;font-weight:500}
+.riskt.nopool{margin:14px 0 4px;font-style:italic;opacity:.85}
 .riskt b{color:var(--ink)}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
 .rbar span{height:100%}
@@ -314,7 +315,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   padding:10px 12px;border-radius:9px;transition:background .15s,color .15s}
 .seg:hover{color:var(--ink)}
 .seg.on{background:var(--brand);color:#fff}
-.subfilter{display:flex;gap:8px;margin:-6px 0 16px;flex-wrap:wrap}
+.subfilter{display:flex;gap:8px;margin:18px 0 18px;flex-wrap:wrap}
 .subpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;
   color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
 .subpill:hover{color:var(--ink)}
@@ -568,11 +569,12 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
         <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
-      <Curve dist={m.dist} tone={m.status} marker={m.marker} axis={m.axis}/>
 
-      <div className="riskt">{isFlight?"Verspätungsrisiko":"Über-Ziel-Chance"}: <b>{m.risk}%</b></div>
-      <RiskBar outcomes={m.outcomes} total={total}/>
-      <Breakdown m={m} total={total}/>
+      {total>0
+        ? <><div className="riskt">Pool · <b>{fmt(total)} €</b> auf {m.outcomes.length} Tipps</div>
+            <RiskBar outcomes={m.outcomes} total={total}/>
+            <Breakdown m={m} total={total}/></>
+        : <div className="riskt nopool">{m.phase==="landed"||m.phase==="cancelled" ? "Abgerechnet · keine Wetten" : "Noch keine Wetten · setz den ersten Tipp"}</div>}
 
       <div className="cfoot" onClick={e=>e.stopPropagation()}>
         <button className="ico" title="Share">↗</button>
