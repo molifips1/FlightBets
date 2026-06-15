@@ -1804,8 +1804,8 @@ function App(){
           : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
       </div>}
 
-      <div className="grid">
-        {liveMarkets
+      {(() => {
+        const shown = liveMarkets
           .filter(m => {
             if (phaseFilter==="gelandet")   return m.tab==="gelandet";
             if (phaseFilter==="abgeflogen") return m.tab==="abgeflogen";
@@ -1818,9 +1818,21 @@ function App(){
             const ta = new Date(a.depISO || 0).getTime();
             const tb = new Date(b.depISO || 0).getTime();
             return ta - tb;
-          })
-          .map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
-      </div>
+          });
+        // Only show the empty state once data is actually loaded (not while connecting).
+        if (dataStatus==="live" && shown.length===0) {
+          const msg = phaseFilter==="aktiv"
+            ? { e1:"🕐", e2:"Gerade keine wettbaren Flüge",
+                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei oder sieh dir abgeflogene und gelandete Flüge an." }
+            : phaseFilter==="abgeflogen"
+            ? { e1:"✈", e2:"Keine abgeflogenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist, die aber noch nicht gelandet sind." }
+            : { e1:"✓", e2:"Noch keine gelandeten Flüge", e3:"Sobald heute Flüge gelandet sind und abgerechnet werden, erscheinen sie hier." };
+          return <div className="empty"><div className="e1">{msg.e1}</div><div className="e2">{msg.e2}</div><div className="e3">{msg.e3}</div></div>;
+        }
+        return <div className="grid">
+          {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+        </div>;
+      })()}
     </> : view.page==="daily" ? (
       <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
         openDetail={id=>setView({page:"detail",id})}/>
