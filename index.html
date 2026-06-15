@@ -1308,7 +1308,7 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [tab,setTab]=useState("flights");
-  const [phaseFilter,setPhaseFilter]=useState("all"); // all | soon | gone
+  const [phaseFilter,setPhaseFilter]=useState("active"); // active (upcoming+enroute) | landed
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -1397,10 +1397,8 @@ function App(){
       </div>
 
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="all"?" on":"")} onClick={()=>setPhaseFilter("all")}>Alle</button>
-        <button className={"subpill"+(phaseFilter==="soon"?" on":"")} onClick={()=>setPhaseFilter("soon")}>● startet bald</button>
-        <button className={"subpill"+(phaseFilter==="gone"?" on":"")} onClick={()=>setPhaseFilter("gone")}>✈ unterwegs</button>
-        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ gelandet</button>
+        <button className={"subpill"+(phaseFilter==="active"?" on":"")} onClick={()=>setPhaseFilter("active")}>✈ Aktiv</button>
+        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ Gelandet</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
@@ -1410,11 +1408,9 @@ function App(){
       <div className="grid">
         {liveMarkets
           .filter(m => {
-            if (phaseFilter==="all") return true;
-            if (phaseFilter==="soon") return m.phase==="upcoming";
             if (phaseFilter==="landed") return m.phase==="landed" || m.phase==="cancelled";
-            // "gone" = in the air, outcome not yet known
-            return m.phase==="enroute";
+            // "active" = bettable: about to depart OR in the air
+            return m.phase==="upcoming" || m.phase==="enroute";
           })
           .sort((a,b)=>{
             // Sort purely by scheduled time (departures by dep, arrivals by arr).
