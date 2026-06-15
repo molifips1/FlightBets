@@ -156,6 +156,9 @@ button{font-family:inherit}
   animation-name:fall;animation-timing-function:cubic-bezier(.35,.1,.5,1);animation-fill-mode:forwards}
 @keyframes fall{0%{top:-12px;opacity:1}85%{opacity:.9}100%{top:110vh;opacity:.3}}
 .chip.bal{transition:transform .2s ease}
+.chip.streak{background:color-mix(in srgb,#f59e0b 16%,transparent);color:#f59e0b;border-color:transparent;font-weight:700}
+.streak-flame{font-size:46px;margin-bottom:8px;animation:flamepop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes flamepop{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.2) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -1497,6 +1500,27 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [celebrate,setCelebrate]=useState(null);
+  const [streakWelcome,setStreakWelcome]=useState(null);
+  const streak = serverWallet.streak || 0;
+  const checkedForRef = useRef(null);
+  useEffect(()=>{
+    if(!user || !CONFIG.API_BASE) return;
+    if(checkedForRef.current===user.id) return; // once per signed-in user
+    checkedForRef.current = user.id;
+    (async()=>{
+      try{
+        const r = await authedFetch(`${CONFIG.API_BASE}/api/checkin`, { method:"POST" });
+        const d = await r.json();
+        if(d && !d.error){
+          if(!d.already && d.bonus>0){
+            setStreakWelcome({ streak:d.streak, bonus:d.bonus });
+            try{ navigator.vibrate && navigator.vibrate(20); }catch(_){}
+          }
+          setBump(b=>b+1); // refresh wallet (new balance + streak)
+        }
+      }catch(_){}
+    })();
+  },[user]);
   const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | abgeflogen | gelandet
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
@@ -1565,6 +1589,7 @@ function App(){
           {dataPill.t}
         </span>
         {user ? <>
+          {streak>0 && <span className="chip streak" title={`${streak} Tage in Folge`}>🔥 {streak}</span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <span className="chip" title={user.email}>{displayName}</span>
           <button className="chip" style={{cursor:"pointer"}} onClick={signOut}>Abmelden</button>
@@ -1640,6 +1665,13 @@ function App(){
 
     {toast && <div className="toast">{toast}</div>}
     <BetCelebration data={celebrate} onDone={()=>setCelebrate(null)}/>
+    {streakWelcome && <div className="celebrate" onClick={()=>setStreakWelcome(null)}>
+      <div className="celebrate-card">
+        <div className="streak-flame">🔥</div>
+        <div className="celebrate-t">{streakWelcome.streak} {streakWelcome.streak===1?"Tag":"Tage"} in Folge!</div>
+        <div className="celebrate-s">Willkommen zurück · <b style={{color:"var(--good)"}}>+{streakWelcome.bonus} €</b> Bonus</div>
+      </div>
+    </div>}
   </div>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
