@@ -177,7 +177,7 @@ button{font-family:inherit}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
-.rbar span{height:100%}
+.rbar span{height:100%;transition:width .6s cubic-bezier(.2,.8,.3,1)}
 .brk{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:4px;margin-top:9px;overflow:hidden}
 .bk{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);white-space:nowrap;min-width:0}
 .bk .d{width:7px;height:7px;border-radius:50%;flex:none}
@@ -313,7 +313,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .bk-mid{min-width:0}
 .bk-pool{font-size:13px;color:var(--muted);margin-bottom:6px}
 .bk-bar{height:5px;border-radius:999px;background:var(--line);overflow:hidden}
-.bk-bar span{display:block;height:100%;background:var(--brand);border-radius:999px;min-width:2px}
+.bk-bar span{display:block;height:100%;background:var(--brand);border-radius:999px;min-width:2px;transition:width .6s cubic-bezier(.2,.8,.3,1)}
 .bk-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);justify-self:end}
 
 /* ---- Detail: stake box ---- */
@@ -537,7 +537,7 @@ function Breakdown({m,total}){
   // Show the live odds (×) per bracket — what you'd win per € — since the bar
   // above already encodes the % share. Odds answer "what's my payout".
   return <div className="brk">{m.outcomes.map(o=>
-    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{o.pool>0?(t/o.pool).toFixed(1)+"×":"—"}</b></span>)}</div>;
+    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{o.pool>0?<RollingNumber value={t/o.pool} format={v=>v.toFixed(1)+"×"}/>:"—"}</b></span>)}</div>;
 }
 
 const SEED=[
@@ -605,7 +605,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
             "🔒 geschlossen"
           }</span>}
         </div>
-        <span className="pool">{fmt(total)} €</span>
+        <span className="pool"><RollingNumber value={total}/> €</span>
       </div>
 
       {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
@@ -644,7 +644,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <PoolCurve outcomes={m.outcomes} total={total}/>
 
       {total>0
-        ? <><div className="riskt">Pool · <b>{fmt(total)} €</b></div>
+        ? <><div className="riskt">Pool · <b><RollingNumber value={total}/> €</b></div>
             <RiskBar outcomes={m.outcomes} total={total}/>
             <Breakdown m={m} total={total}/></>
         : <div className="riskt nopool">{m.phase==="landed"||m.phase==="cancelled" ? "Abgerechnet · keine Wetten" : "Noch keine Wetten · setz den ersten Tipp"}</div>}
@@ -841,7 +841,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
         <div className="ol">{o.label}</div>
-        <div className="ox"><span className="om">{mult(o).toFixed(2)}×</span><span className="op">{fmt(o.pool)} €</span></div>
+        <div className="ox"><span className="om"><RollingNumber value={mult(o)} format={v=>v.toFixed(2)+"×"}/></span><span className="op"><RollingNumber value={o.pool}/> €</span></div>
       </button>)}
     </div>
     {pick && <div className="stake">
@@ -898,7 +898,7 @@ function Detail({m,total,back,...bet}){
                 "🔒 geschlossen"
               }</span>}
             </div>
-            <span className="pool">{fmt(total)} €</span>
+            <span className="pool"><RollingNumber value={total}/> €</span>
           </div>
           {isFlight ? <div className="route" style={{marginTop:14}}>
             <div className="stop">
@@ -940,10 +940,10 @@ function Detail({m,total,back,...bet}){
                   {on && <span className="bk-sel">GEWÄHLT</span>}
                 </div>
                 <div className="bk-mid">
-                  <div className="bk-pool">Pool {fmt(o.pool)} € · {total>0?pct+"%":"—"}</div>
+                  <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<RollingNumber value={pct} format={v=>Math.round(v)+"%"}/>:"—"}</div>
                   <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
                 </div>
-                <div className="bk-odds">{o.pool>0?mult.toFixed(2)+"×":"—"}</div>
+                <div className="bk-odds">{o.pool>0?<RollingNumber value={mult} format={v=>v.toFixed(2)+"×"}/>:"—"}</div>
               </button>;
             })}
           </div>
@@ -1479,7 +1479,7 @@ const Sound = (()=>{
   };
 })();
 
-function RollingNumber({ value, className }){
+function RollingNumber({ value, className, format }){
   const [shown,setShown]=useState(value);
   const fromRef=useRef(value), rafRef=useRef(null);
   useEffect(()=>{
@@ -1489,14 +1489,15 @@ function RollingNumber({ value, className }){
     const step=(t)=>{
       const p=Math.min(1,(t-t0)/dur);
       const eased=1-Math.pow(1-p,3); // ease-out cubic
-      setShown(Math.round(from+(to-from)*eased));
+      setShown(from+(to-from)*eased);
       if(p<1) rafRef.current=requestAnimationFrame(step);
-      else fromRef.current=to;
+      else { fromRef.current=to; setShown(to); }
     };
     rafRef.current=requestAnimationFrame(step);
     return ()=>cancelAnimationFrame(rafRef.current);
   },[value]);
-  return <span className={className}>{fmt(shown)}</span>;
+  const out = format ? format(shown) : fmt(Math.round(shown));
+  return <span className={className}>{out}</span>;
 }
 
 // Full-screen confetti + checkmark burst on a successful bet. `big` adds extra
