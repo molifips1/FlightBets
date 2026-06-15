@@ -112,8 +112,8 @@ button{font-family:inherit}
 
 /* status + curve */
 .statusline{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}
-.statlbl{font-weight:700;font-size:14px}
-.statdelay{font-family:Archivo;font-weight:800;font-size:21px}
+.statlbl{font-weight:700;font-size:14px;transition:color .5s ease}
+.statdelay{font-family:Archivo;font-weight:800;font-size:21px;transition:color .5s ease}
 .curvewrap{margin:6px 0 4px;position:relative}
 .curve{display:block;width:100%;height:84px;overflow:visible}
 .axis{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
@@ -193,10 +193,10 @@ button{font-family:inherit}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
-.rbar span{height:100%;transition:width .6s cubic-bezier(.2,.8,.3,1)}
+.rbar span{height:100%;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
 .brk{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:4px;margin-top:9px;overflow:hidden}
 .bk{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);white-space:nowrap;min-width:0}
-.bk .d{width:7px;height:7px;border-radius:50%;flex:none}
+.bk .d{width:7px;height:7px;border-radius:50%;flex:none;transition:background-color .5s ease}
 .bk b{color:var(--ink);font-weight:600}
 
 /* footer */
