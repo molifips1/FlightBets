@@ -131,9 +131,9 @@ button{font-family:inherit}
 .riskt b{color:var(--ink)}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
 .rbar span{height:100%}
-.brk{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:9px}
-.bk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
-.bk .d{width:8px;height:8px;border-radius:50%}
+.brk{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:4px;margin-top:9px;overflow:hidden}
+.bk{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);white-space:nowrap;min-width:0}
+.bk .d{width:7px;height:7px;border-radius:50%;flex:none}
 .bk b{color:var(--ink);font-weight:600}
 
 /* footer */
@@ -548,7 +548,6 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
-          {m.subcode && <span className="subcode">{m.subcode}</span>}
           {m.phase && <span className={"phase ph-"+(m.tab||m.phase)}>{
             m.phase==="cancelled" ? "✕ annulliert" :
             m.phase==="landed"    ? "✓ gelandet" :
@@ -564,14 +563,14 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
         <div className="route">
           <div className="stop">
             <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
-            <span className="cc">{m.from.cc}</span><span className="flag">{m.from.flag}</span>
+            <span className="flag">{m.from.flag}</span>
             <span className="sname">{m.from.name}</span>
             <span className="rtime">{m.from.dep}</span>
           </div>
           {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
           <div className="stop">
             <div className="dotline"><span className="rdot end"/></div>
-            <span className="cc">{m.to.cc}</span><span className="flag">{m.to.flag}</span>
+            <span className="flag">{m.to.flag}</span>
             <span className="sname">{m.to.name}</span>
             <span className="rtime">{
               m.actualArr && m.schedArr && m.actualArr!==m.schedArr
@@ -594,7 +593,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       <PoolCurve outcomes={m.outcomes} total={total}/>
 
       {total>0
-        ? <><div className="riskt">Pool · <b>{fmt(total)} €</b> auf {m.outcomes.length} Tipps</div>
+        ? <><div className="riskt">Pool · <b>{fmt(total)} €</b></div>
             <RiskBar outcomes={m.outcomes} total={total}/>
             <Breakdown m={m} total={total}/></>
         : <div className="riskt nopool">{m.phase==="landed"||m.phase==="cancelled" ? "Abgerechnet · keine Wetten" : "Noch keine Wetten · setz den ersten Tipp"}</div>}
@@ -853,13 +852,13 @@ function Detail({m,total,back,...bet}){
           {isFlight ? <div className="route" style={{marginTop:14}}>
             <div className="stop">
               <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
-              <span className="cc">{m.from.cc}</span><span className="flag">{m.from.flag}</span>
+              <span className="flag">{m.from.flag}</span>
               <span className="sname">{m.from.name}</span>
               <span className="rtime">{m.from.dep}</span>
             </div>
             <div className="stop">
               <div className="dotline"><span className="rdot end"/></div>
-              <span className="cc">{m.to.cc}</span><span className="flag">{m.to.flag}</span>
+              <span className="flag">{m.to.flag}</span>
               <span className="sname">{m.to.name}</span>
               <span className="rtime">{
                 m.actualArr && m.schedArr && m.actualArr!==m.schedArr
