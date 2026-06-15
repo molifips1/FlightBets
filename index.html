@@ -407,7 +407,7 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
 
 const RAKE=0.05;
 const fmt=n=>Math.round(n).toLocaleString("en-US");
-const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)"};
+const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
 const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
@@ -460,6 +460,19 @@ function Curve({dist,tone,marker,axis}){
     </div>
   );
 }
+// Live pool-distribution curve: the REAL euro on each delay bucket, smoothed
+// into a curve. Shape moves with every bet — the crowd's view of this flight.
+// The leading bucket (most money) is marked. Empty pool → flat baseline.
+function PoolCurve({outcomes,total}){
+  const vals = outcomes.map(o=>o.pool||0);
+  const hasMoney = total>0 && Math.max(...vals)>0;
+  const leadIdx = hasMoney ? vals.indexOf(Math.max(...vals)) : 0;
+  const tone = outcomes[leadIdx]?.tone || "good";
+  const axis = outcomes.map(o=>o.label);
+  const dist = hasMoney ? vals : vals.map(()=>0.0001);
+  return <Curve dist={dist} tone={hasMoney?tone:"muted"} marker={hasMoney?leadIdx:null} axis={axis}/>;
+}
+
 function RiskBar({outcomes,total}){
   const t = total>0 ? total : 0;
   return <div className="rbar">{outcomes.map(o=>
@@ -569,6 +582,8 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
         <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}{isFlight&&m.dataSource==="aeroapi-pred"?" · Prognose":""}</span>
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
+
+      <PoolCurve outcomes={m.outcomes} total={total}/>
 
       {total>0
         ? <><div className="riskt">Pool · <b>{fmt(total)} €</b> auf {m.outcomes.length} Tipps</div>
