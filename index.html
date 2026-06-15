@@ -141,6 +141,21 @@ button{font-family:inherit}
 .lb-emoji{font-size:40px;margin-bottom:12px}
 .lb-et{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px}
 .lb-es{font-size:13.5px;line-height:1.55;max-width:340px;margin:0 auto}
+
+/* ---- Bet celebration micro-interaction ---- */
+.celebrate{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;pointer-events:auto;overflow:hidden}
+.celebrate-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 34px;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.28);animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
+.celebrate-check{width:58px;height:58px;border-radius:50%;background:var(--good);color:#fff;font-size:32px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 12px;animation:checkpop .45s cubic-bezier(.2,1.4,.4,1)}
+.celebrate-t{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:4px}
+.celebrate-s{font-size:13.5px;color:var(--muted)}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes checkpop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.confetti{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;opacity:.9;
+  animation-name:fall;animation-timing-function:ease-in;animation-fill-mode:forwards}
+@keyframes fall{0%{top:-12px;opacity:1}100%{top:110vh;opacity:.5}}
+.chip.bal{transition:transform .2s ease}
 .betcd{font-size:12.5px;color:var(--muted);font-weight:500}
 .betcd b{color:var(--ink);font-variant-numeric:tabular-nums}
 .betcd.soon{color:var(--bad)}
@@ -1411,6 +1426,59 @@ function Leaderboard({ players, me }){
   </div>;
 }
 
+// Smoothly animates a number from its previous value to the new one (the
+// "rolling counter" the article calls a key micro-interaction). Used for the
+// balance so it ticks up/down instead of snapping.
+function RollingNumber({ value, className }){
+  const [shown,setShown]=useState(value);
+  const fromRef=useRef(value), rafRef=useRef(null);
+  useEffect(()=>{
+    const from=fromRef.current, to=value, dur=600, t0=performance.now();
+    if(from===to) return;
+    cancelAnimationFrame(rafRef.current);
+    const step=(t)=>{
+      const p=Math.min(1,(t-t0)/dur);
+      const eased=1-Math.pow(1-p,3); // ease-out cubic
+      setShown(Math.round(from+(to-from)*eased));
+      if(p<1) rafRef.current=requestAnimationFrame(step);
+      else fromRef.current=to;
+    };
+    rafRef.current=requestAnimationFrame(step);
+    return ()=>cancelAnimationFrame(rafRef.current);
+  },[value]);
+  return <span className={className}>{fmt(shown)}</span>;
+}
+
+// Full-screen confetti + checkmark burst on a successful bet. `big` adds extra
+// flair for a player's first-ever bet. Auto-dismisses.
+function BetCelebration({ data, onDone }){
+  useEffect(()=>{
+    if(!data) return;
+    const t=setTimeout(onDone, data.big?2200:1400);
+    return ()=>clearTimeout(t);
+  },[data]);
+  if(!data) return null;
+  const colors=["#22c55e","#3b82f6","#f59e0b","#ef4444","#a855f7"];
+  const n=data.big?40:22;
+  const bits=Array.from({length:n},(_, i)=>({
+    left:Math.random()*100, delay:Math.random()*0.25,
+    rot:Math.random()*360, col:colors[i%colors.length],
+    dur:0.9+Math.random()*0.7,
+  }));
+  return <div className="celebrate" onClick={onDone}>
+    <div className="celebrate-card">
+      <div className="celebrate-check">✓</div>
+      <div className="celebrate-t">{data.big?"Erste Wette platziert! 🎉":"Wette platziert!"}</div>
+      <div className="celebrate-s">{fmt(data.stake)} € auf „{data.label}"</div>
+    </div>
+    {bits.map((b,i)=><span key={i} className="confetti" style={{
+      left:b.left+"%", background:b.col,
+      animationDelay:b.delay+"s", animationDuration:b.dur+"s",
+      transform:`rotate(${b.rot}deg)`,
+    }}/>)}
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
@@ -1428,6 +1496,7 @@ function App(){
   const [stake,setStake]=useState(100);
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
+  const [celebrate,setCelebrate]=useState(null);
   const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | abgeflogen | gelandet
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
@@ -1471,7 +1540,10 @@ function App(){
         setToast(d.error==="insufficient_funds"?"Nicht genug Guthaben":d.error==="market_settled"?"Markt bereits abgerechnet":d.error==="betting_closed"?"Wetten für diesen Flug sind geschlossen":d.error==="unauthorized"?"Bitte neu anmelden":"Wette fehlgeschlagen");
         return;
       }
-      setToast(`${fmt(stake)} € auf „${o.label}" gesetzt`);
+      // Success — celebrate. First-ever bet (no prior settled/placed) gets extra flair.
+      const firstBet = (serverWallet.balance>=925 && (serverWallet.staked||0)===0);
+      try{ navigator.vibrate && navigator.vibrate(firstBet?[20,40,20]:30); }catch(_){}
+      setCelebrate({ stake, label:o.label, big:firstBet });
       setBump(b=>b+1); // refetch pools + wallet
     }catch(e){ setToast("Wette fehlgeschlagen — Server nicht erreichbar"); }
   }
@@ -1493,7 +1565,7 @@ function App(){
           {dataPill.t}
         </span>
         {user ? <>
-          <span className="chip bal">€ {fmt(wallet)}</span>
+          <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <span className="chip" title={user.email}>{displayName}</span>
           <button className="chip" style={{cursor:"pointer"}} onClick={signOut}>Abmelden</button>
         </> : (
@@ -1567,6 +1639,7 @@ function App(){
     </div>
 
     {toast && <div className="toast">{toast}</div>}
+    <BetCelebration data={celebrate} onDone={()=>setCelebrate(null)}/>
   </div>;
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
