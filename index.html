@@ -1413,9 +1413,11 @@ function App(){
             return m.phase==="upcoming" || m.phase==="enroute";
           })
           .sort((a,b)=>{
-            // Sort purely by scheduled time (departures by dep, arrivals by arr).
-            const ta = new Date((a.direction==="arrival" ? a.arrISO : a.depISO) || a.depISO || 0).getTime();
-            const tb = new Date((b.direction==="arrival" ? b.arrISO : b.depISO) || b.depISO || 0).getTime();
+            // 1) most betting volume first (where the action is), 2) then by time.
+            const va = total(a), vb = total(b);
+            if (vb !== va) return vb - va;
+            const ta = new Date(a.depISO || 0).getTime();
+            const tb = new Date(b.depISO || 0).getTime();
             return ta - tb;
           })
           .map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
