@@ -1291,8 +1291,6 @@ function App(){
   const [ops,setOps]=useState(false);
   const [toast,setToast]=useState(null);
   const [tab,setTab]=useState("flights");
-  const [query,setQuery]=useState("");
-  const [dirFilter,setDirFilter]=useState("departure");
   const [phaseFilter,setPhaseFilter]=useState("all"); // all | soon | gone
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
@@ -1381,26 +1379,12 @@ function App(){
         <div className="berhero-s">{dataStatus==="live" ? `${boardFlights.length} Flüge live von der Anzeigetafel` : dataStatus==="offline" ? "Live-Tafel nicht erreichbar" : "Worker nicht verbunden — Demo-Modus"}</div>
       </div>
 
-      <div className="controls">
-        <div className="search">🔎<input placeholder="Flug suchen (LH 1925, easyJet, FRA…)" value={query} onChange={e=>setQuery(e.target.value)}/></div>
-      </div>
-      <div className="segmented">
-        <button className={"seg"+(dirFilter==="departure"?" on":"")} onClick={()=>setDirFilter("departure")}>🛫 Abflüge</button>
-        <button className={"seg"+(dirFilter==="arrival"?" on":"")} onClick={()=>setDirFilter("arrival")}>🛬 Ankünfte</button>
-        <button className={"seg"+(dirFilter==="all"?" on":"")} onClick={()=>setDirFilter("all")}>Alle</button>
-      </div>
-      {dirFilter!=="all" && <div className="subfilter">
+      <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="all"?" on":"")} onClick={()=>setPhaseFilter("all")}>Alle</button>
-        <button className={"subpill"+(phaseFilter==="soon"?" on":"")} onClick={()=>setPhaseFilter("soon")}>
-          {dirFilter==="arrival"?"● bald erwartet":"● startet bald"}
-        </button>
-        <button className={"subpill"+(phaseFilter==="gone"?" on":"")} onClick={()=>setPhaseFilter("gone")}>
-          {dirFilter==="arrival"?"✈ im Anflug":"✈ unterwegs"}
-        </button>
-        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>
-          ✓ gelandet
-        </button>
-      </div>}
+        <button className={"subpill"+(phaseFilter==="soon"?" on":"")} onClick={()=>setPhaseFilter("soon")}>● startet bald</button>
+        <button className={"subpill"+(phaseFilter==="gone"?" on":"")} onClick={()=>setPhaseFilter("gone")}>✈ unterwegs</button>
+        <button className={"subpill"+(phaseFilter==="landed"?" on":"")} onClick={()=>setPhaseFilter("landed")}>✓ gelandet</button>
+      </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
         {dataStatus==="offline" ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft." : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
@@ -1408,7 +1392,6 @@ function App(){
 
       <div className="grid">
         {liveMarkets
-          .filter(m => dirFilter==="all" || m.direction===dirFilter)
           .filter(m => {
             if (phaseFilter==="all") return true;
             if (phaseFilter==="soon") return m.phase==="upcoming";
@@ -1416,7 +1399,6 @@ function App(){
             // "gone" = in the air, outcome not yet known
             return m.phase==="enroute";
           })
-          .filter(m => !query || (m.code+" "+m.subcode+" "+(m.to?.name||"")+" "+(m.from?.name||"")).toLowerCase().includes(query.toLowerCase()))
           .sort((a,b)=>{
             // Sort purely by scheduled time (departures by dep, arrivals by arr).
             const ta = new Date((a.direction==="arrival" ? a.arrISO : a.depISO) || a.depISO || 0).getTime();
