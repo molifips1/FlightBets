@@ -287,6 +287,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .authmsg.ok{background:color-mix(in srgb,var(--good) 12%,transparent);color:var(--good)}
 .authmsg.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
 .authclose{width:100%;background:none;border:none;color:var(--muted);font-family:inherit;font-size:13px;margin-top:14px;cursor:pointer}
+.authlink{width:100%;background:none;border:none;color:var(--brand);font-family:inherit;font-size:13px;font-weight:600;margin-top:10px;cursor:pointer}
 .stakebox{margin-top:12px}
 .stakerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .stakelbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
@@ -1216,6 +1217,10 @@ function AuthModal({ onClose }){
         const { error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ name } } });
         if(error) throw error;
         setMsg("Fast geschafft! Wir haben dir eine Bestätigungs-Mail geschickt. Bitte den Link darin anklicken, dann kannst du dich anmelden.");
+      }else if(mode==="reset"){
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+        if(error) throw error;
+        setMsg("Wir haben dir einen Link zum Zurücksetzen des Passworts geschickt. Schau in dein Postfach.");
       }else{
         const { error } = await sb.auth.signInWithPassword({ email, password:pass });
         if(error) throw error;
@@ -1223,30 +1228,34 @@ function AuthModal({ onClose }){
       }
     }catch(e){
       const m=(e&&e.message)||"Fehler";
-      setErr(/confirm/i.test(m)?"Bitte zuerst deine E-Mail bestätigen (Link in der Mail).":/invalid/i.test(m)?"E-Mail oder Passwort falsch.":m);
+      setErr(/rate limit/i.test(m)?"E-Mail-Limit erreicht — bitte etwas später erneut versuchen.":/confirm/i.test(m)?"Bitte zuerst deine E-Mail bestätigen (Link in der Mail).":/invalid/i.test(m)?"E-Mail oder Passwort falsch.":m);
     }finally{ setBusy(false); }
   }
 
   return <div className="modal-bg" onClick={onClose}>
     <div className="modal" onClick={e=>e.stopPropagation()}>
-      <div className="modal-h">{mode==="login"?"Anmelden":"Konto erstellen"}</div>
+      <div className="modal-h">{mode==="login"?"Anmelden":mode==="reset"?"Passwort zurücksetzen":"Konto erstellen"}</div>
       <div className="authtabs">
-        <button className={mode==="login"?"on":""} onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>Anmelden</button>
+        <button className={mode==="login"||mode==="reset"?"on":""} onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>Anmelden</button>
         <button className={mode==="signup"?"on":""} onClick={()=>{setMode("signup");setErr(null);setMsg(null)}}>Registrieren</button>
       </div>
 
       {msg ? <div className="authmsg ok">{msg}</div> : <>
         {mode==="signup" && <input className="authinput" placeholder="Anzeigename" value={name} onChange={e=>setName(e.target.value)}/>}
         <input className="authinput" type="email" placeholder="E-Mail" value={email} onChange={e=>setEmail(e.target.value)}/>
-        <input className="authinput" type="password" placeholder="Passwort" value={pass} onChange={e=>setPass(e.target.value)}/>
+        {mode!=="reset" && <input className="authinput" type="password" placeholder="Passwort" value={pass} onChange={e=>setPass(e.target.value)}/>}
         {err && <div className="authmsg bad">{err}</div>}
-        <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!email||!pass} onClick={submit}>
-          {busy?"…":mode==="login"?"Anmelden":"Konto erstellen"}
+        <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!email||(mode!=="reset"&&!pass)} onClick={submit}>
+          {busy?"…":mode==="login"?"Anmelden":mode==="reset"?"Link senden":"Konto erstellen"}
         </button>
-        <div className="author"><span>oder</span></div>
-        <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>
-          <span style={{fontWeight:700}}>G</span> Mit Google anmelden
-        </button>
+        {mode==="login" && <button className="authlink" onClick={()=>{setMode("reset");setErr(null);setMsg(null)}}>Passwort vergessen?</button>}
+        {mode==="reset" && <button className="authlink" onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>← Zurück zum Anmelden</button>}
+        {mode!=="reset" && <>
+          <div className="author"><span>oder</span></div>
+          <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:window.location.href}})}>
+            <span style={{fontWeight:700}}>G</span> Mit Google anmelden
+          </button>
+        </>}
       </>}
       <button className="authclose" onClick={onClose}>Schließen</button>
     </div>
