@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-dbclosed-v13 -->
+<!-- build: v2026-06-16-closedplus-v15 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -605,6 +605,10 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ct-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ct-res{font-weight:800;font-family:'IBM Plex Mono',monospace}
 .ct-state{font-size:10.5px;color:var(--muted);margin-top:2px}
+.ctable-search{margin:6px 0 8px}
+.ctable-input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;outline:none}
+.ctable-input:focus{border-color:var(--brand)}
+.ct-none{text-align:center;color:var(--muted);padding:22px 14px;font-style:italic}
 </style>
 </head>
 <body>
@@ -2186,35 +2190,56 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 // the flight was bet on). Rows are informational (not clickable: many are older
 // flights no longer on the live board).
 function ClosedTable({ rows }){
+  const [q,setQ]=useState("");
   const fmtDate = d => {
     if(!d) return "—";
     try { return new Date(d+"T00:00:00").toLocaleDateString("de-DE",{ weekday:"short", day:"numeric", month:"short" }); }
     catch(e){ return d; }
   };
-  return <div className="ctable-wrap">
-    <table className="ctable">
-      <thead>
-        <tr><th>Flug</th><th>Datum</th><th>Ergebnis</th><th className="ta-r">Pool</th></tr>
-      </thead>
-      <tbody>
-        {rows.map((r,i)=>{
-          const d = r.delayMin;
-          const status = d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
-          const label  = d==null ? "k. A." : (d>=0?"+":"")+d+"m";
-          const settled = r.poolTotal!=null;
-          return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
-            <td><div className="ct-code">{r.ident}</div><div className="ct-route">→ {r.dest}</div></td>
-            <td>{fmtDate(r.date)}</td>
-            <td>
-              <span className="ct-res" style={{color:`var(--${status})`}}>{label}</span>
-              <div className="ct-state">{settled ? "✓ Abgerechnet" : "Aufgezeichnet"}</div>
-            </td>
-            <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
-          </tr>;
-        })}
-      </tbody>
-    </table>
-  </div>;
+  const fmtTime = iso => {
+    if(!iso) return "—";
+    try { return new Date(iso).toLocaleTimeString("de-DE",{ timeZone:"Europe/Berlin", hour:"2-digit", minute:"2-digit", hour12:false }); }
+    catch(e){ return "—"; }
+  };
+  const bucketLabel = d => d>=60?"+60m" : d>=30?"+30m" : d>=15?"+15m" : "Pünktlich";
+  const query = q.trim().toLowerCase();
+  const filtered = query
+    ? rows.filter(r => (r.dest||"").toLowerCase().includes(query) || (r.ident||"").toLowerCase().includes(query))
+    : rows;
+  return <>
+    <div className="ctable-search">
+      <input className="ctable-input" placeholder="🔍 Nach Ziel oder Flug suchen…" value={q} onChange={e=>setQ(e.target.value)}/>
+    </div>
+    <div className="ctable-wrap">
+      <table className="ctable">
+        <thead>
+          <tr><th>Flug</th><th>Abflug</th><th>Ankunft</th><th>Datum</th><th>Uhrzeit</th><th>Ergebnis</th><th>Gewinner</th><th className="ta-r">Wetten</th><th className="ta-r">Pool</th></tr>
+        </thead>
+        <tbody>
+          {filtered.map((r,i)=>{
+            const cancelled = r.cancelled===1 || r.cancelled===true;
+            const d = r.delayMin;
+            const status = cancelled ? "bad" : d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
+            const label  = cancelled ? "Annulliert" : d==null ? "k. A." : (d>=0?"+":"")+d+"m";
+            const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
+            const settled = r.poolTotal!=null;
+            return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
+              <td className="ct-code">{r.ident}</td>
+              <td>🇩🇪 BER</td>
+              <td>{flagFor(r.dest)} {r.dest}</td>
+              <td>{fmtDate(r.date)}</td>
+              <td>{fmtTime(r.schedDep)}</td>
+              <td><span className="ct-res" style={{color:`var(--${status})`}}>{label}</span></td>
+              <td><span style={{color:`var(--${status})`,fontWeight:700}}>{winner}</span></td>
+              <td className="ta-r">{r.nBets||0}</td>
+              <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
+            </tr>;
+          })}
+          {filtered.length===0 && <tr><td colSpan={9} className="ct-none">Keine Treffer.</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  </>;
 }
 
 function App(){
