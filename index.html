@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-curve-v4 -->
+<!-- build: v2026-06-16-sheet-v5 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -556,6 +556,41 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .dh-p{font-family:Archivo;font-weight:800;font-size:20px}
 .dh-place{background:#fff;color:var(--ink);border:none;border-radius:10px;padding:13px 24px;font-weight:700;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;cursor:pointer;position:relative;z-index:1;transition:transform .1s}
 .dh-place:hover{transform:translateY(-1px)}
+/* ---- Quick-bet bottom sheet ---- */
+.sheet-bg{position:fixed;inset:0;background:rgba(10,20,40,.45);backdrop-filter:blur(3px);z-index:210;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:22px 22px 0 0;
+  padding:14px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.28);
+  animation:sheetUp .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(min-width:560px){.sheet-bg{align-items:center}.sheet{border-radius:22px;animation:sheetPop .2s ease-out}}
+@keyframes sheetPop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.sheet-grip{width:40px;height:5px;border-radius:999px;background:var(--line);margin:0 auto 14px}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.sheet-code{font-family:Archivo;font-weight:800;font-size:21px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sheet-route{font-size:13px;color:var(--muted);margin-top:3px}
+.sheet-x{width:34px;height:34px;border-radius:50%;border:none;background:var(--card2);color:var(--ink);font-size:14px;cursor:pointer;flex:none}
+.sheet-lbl{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+.chips-row{display:flex;gap:7px;margin-bottom:18px}
+.chip-coin{flex:1;aspect-ratio:1;border-radius:14px;border:2px solid var(--line);background:var(--card2);
+  font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:1px;transition:transform .1s,border-color .15s,background .15s,color .15s}
+.chip-coin small{font-size:9px;font-weight:700;opacity:.7}
+.chip-coin.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,var(--card));color:var(--brand);transform:translateY(-2px)}
+.chip-coin.dis{opacity:.35;cursor:default}
+.sheet-brackets{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.sheet-bk{display:flex;align-items:center;gap:11px;padding:14px;border:1.5px solid var(--line);border-radius:13px;
+  background:var(--card2);cursor:pointer;font-family:inherit;font-size:15px;color:var(--ink);transition:border-color .15s,background .15s}
+.sheet-bk.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--card))}
+.sheet-bk-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.sheet-bk-name{font-weight:700}
+.sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
+.sheet-pay{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.sheet-pay b{font-size:20px;color:var(--good)}
+.sheet-place{width:100%;border:none;border-radius:14px;padding:16px;margin-top:6px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13.5px;letter-spacing:.5px;
+  background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
+.sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
+.sheet-place:disabled{background:var(--line);color:var(--muted);cursor:default}
 </style>
 </head>
 <body>
@@ -734,7 +769,7 @@ const TICKER=[
   ["@brandenburg","FR 8542","+100"],["@gatecrasher","LH 1957","+60"],["@verspätet","TÄGLICH","+100"],
   ["@willybrandt","EW 2087","+140"],["@schönefeld","LH 1925","+100"]];
 
-function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
+function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
   if(m.type==="discussion"){
     const msgs=[["berliner_jung","2d","Wie sieht's heute mit den Verspätungen aus?"],["berliner_jung","2d","Morgen zusammen ☕"],
       ["tegel4ever","2d","Interessante Entwicklung am BER."],["tegel4ever","2d","Daumen drücken!"],
@@ -828,7 +863,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
         ? <div className="cbrackets" onClick={e=>e.stopPropagation()}>
             {m.outcomes.map(o=>{
               const odds = displayOdds(m.outcomes, o);
-              return <button key={o.id} className="cbk" onClick={()=>onOpen(m.id,o.id)}>
+              return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
                 <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
                 <span className="cbk-name">{o.label}</span>
                 <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
@@ -2011,6 +2046,62 @@ function Legal(){
   </div>;
 }
 
+// Quick-bet bottom sheet (bahn.bet style): chips for the stake, the four
+// brackets to pick, an honest payout estimate, and a big place button. Slides
+// up from the bottom on mobile; centers on desktop.
+function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
+  const CHIPS=[5,10,20,50,100,200];
+  const [oid,setOid]=useState(initialOutcome || (market.outcomes[0]?.id));
+  const firstAffordable = CHIPS.find(c=>c<=wallet) || CHIPS[0];
+  const [stake,setStake]=useState(wallet>=50?50:firstAffordable);
+  const o = market.outcomes.find(x=>x.id===oid) || market.outcomes[0];
+  const total = market.outcomes.reduce((s,x)=>s+x.pool,0);
+  // Honest payout estimate on the REAL pools (the seed only feeds the × display).
+  const proj = (oo,st)=>{ if(!oo) return 0; const np=(oo.pool||0)+st, nt=total+st; return (st/np)*nt*(1-RAKE); };
+  const tooMuch = stake>wallet;
+  const place=()=>{ if(tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
+  return <div className="sheet-bg" onClick={onClose}>
+    <div className="sheet" onClick={e=>e.stopPropagation()}>
+      <div className="sheet-grip"/>
+      <div className="sheet-head">
+        <div>
+          <div className="sheet-code">{market.code}{market.subcode && <span className="subcode">{market.subcode}</span>}</div>
+          <div className="sheet-route">{market.from?.name} → {market.to?.name}</div>
+        </div>
+        <button className="sheet-x" onClick={onClose} aria-label="Schließen">✕</button>
+      </div>
+
+      <div className="sheet-lbl">Einsatz wählen</div>
+      <div className="chips-row">
+        {CHIPS.map(c=><button key={c} disabled={c>wallet}
+          className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
+          onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
+      </div>
+
+      <div className="sheet-lbl">Dein Tipp</div>
+      <div className="sheet-brackets">
+        {market.outcomes.map(x=>{
+          const on=x.id===oid; const od=displayOdds(market.outcomes,x);
+          return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
+            <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
+            <span className="sheet-bk-name">{x.label}</span>
+            <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
+          </button>;
+        })}
+      </div>
+
+      <div className="sheet-pay">
+        <span>Bei Gewinn (geschätzt)</span>
+        <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
+      </div>
+      <button className="sheet-place" disabled={tooMuch||stake<=0} onClick={place}>
+        {tooMuch ? "Nicht genug Guthaben" : `Wette platzieren — ${stake}€ auf ${o.label}`}
+      </button>
+    </div>
+  </div>;
+}
+
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
@@ -2031,6 +2122,8 @@ function App(){
   const [celebrate,setCelebrate]=useState(null);
   const [muted,setMuted]=useState(Sound.muted);
   const [menuOpen,setMenuOpen]=useState(false);
+  const [betSheet,setBetSheet]=useState(null); // {marketId, outcomeId} for the quick-bet sheet
+  const onQuickBet=(mid,oid)=>{ setBetSheet({marketId:mid, outcomeId:oid}); };
   // --- Browser back/forward support (no URL change) ----------------------
   // Mirror the navigation state (tab / view / menu) into the History API so the
   // browser's back button reverses the last in-app navigation. We push an entry
@@ -2114,14 +2207,15 @@ function App(){
                  : dataStatus === "offline" ? { t:"OFFLINE", bg:"var(--bad)",  fg:"#fff" }
                  :                            { t:"…",       bg:"var(--card2)", fg:"var(--muted)" };
 
-  async function onBet(m,o){
+  async function onBet(m,o,betStake){
+    const s = (betStake!=null) ? betStake : stake;
     if(!user){ setAuthOpen(true); setToast("Zum Wetten bitte anmelden"); return; }
-    if(stake<=0||stake>wallet)return;
+    if(s<=0||s>wallet)return;
     if(!CONFIG.API_BASE){ setToast("Kein Server verbunden"); return; }
     try{
       const r = await authedFetch(`${CONFIG.API_BASE}/api/bet`, {
         method:"POST", headers:{"content-type":"application/json"},
-        body: JSON.stringify({ flightId: m.id, ident: m.code, direction: m.direction, outcome: o.id, stake }),
+        body: JSON.stringify({ flightId: m.id, ident: m.code, direction: m.direction, outcome: o.id, stake: s }),
       });
       const d = await r.json();
       if(d.error){
@@ -2131,7 +2225,7 @@ function App(){
       // Success — celebrate. First-ever bet (no prior settled/placed) gets extra flair.
       const firstBet = (serverWallet.balance>=925 && (serverWallet.staked||0)===0);
       Sound.bet();
-      setCelebrate({ stake, label:o.label, big:firstBet });
+      setCelebrate({ stake: s, label:o.label, big:firstBet });
       setBump(b=>b+1); // refetch pools + wallet
     }catch(e){ setToast("Wette fehlgeschlagen — Server nicht erreichbar"); }
   }
@@ -2140,7 +2234,7 @@ function App(){
   function reset(){ setToast("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt."); }
 
   const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || "Konto") : null;
-  const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle};
+  const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,onQuickBet};
   const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
 
   return <div className="app">
@@ -2310,6 +2404,9 @@ function App(){
     </div>
 
     {toast && <div className="toast">{toast}</div>}
+    {betSheet && (()=>{ const mk = allFindable.find(x=>x.id===betSheet.marketId); return mk
+      ? <BetSheet market={mk} initialOutcome={betSheet.outcomeId} wallet={wallet} onBet={onBet} onClose={()=>setBetSheet(null)}/>
+      : null; })()}
     <BetCelebration data={celebrate} onDone={()=>setCelebrate(null)}/>
     {streakWelcome && <div className="celebrate" onClick={()=>setStreakWelcome(null)}>
       <div className="celebrate-card">
