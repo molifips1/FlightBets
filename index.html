@@ -733,19 +733,19 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
   const isFlight=m.type==="flight";
   const open=openBet===m.id;
   // Play a one-time "betting just closed" animation when this card transitions
-  // from bettable → not bettable while on screen. Skips the first render and
-  // already-closed cards, and never repeats.
+  // Play a one-time "betting just closed" animation the moment the live countdown
+  // reaches zero WHILE the card is on screen. We schedule it off the real close
+  // time (not the board's stale `bettable` flag, which only updates on refetch —
+  // and which would also move the card to another tab, so it could never show).
   const [closing,setClosing]=useState(false);
-  const wasBettable=useRef(m.bettable);
   useEffect(()=>{
-    if(wasBettable.current===true && m.bettable===false){
-      setClosing(true);
-      const t=setTimeout(()=>setClosing(false),1800);
-      wasBettable.current=m.bettable;
-      return ()=>clearTimeout(t);
-    }
-    wasBettable.current=m.bettable;
-  },[m.bettable]);
+    if(!m.bettable || !m.betCloseISO) return;
+    const ms = new Date(m.betCloseISO).getTime() - Date.now();
+    if(isNaN(ms) || ms<=0 || ms>24*60*60*1000) return; // skip if already closed or absurdly far
+    let t2;
+    const t1=setTimeout(()=>{ setClosing(true); t2=setTimeout(()=>setClosing(false),1800); }, ms);
+    return ()=>{ clearTimeout(t1); clearTimeout(t2); };
+  },[m.betCloseISO, m.bettable]);
   return (
     <div className={"card click neon"+(closing?" closing":"")} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
       <div className="chead">
