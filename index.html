@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-closedtable-v12 -->
+<!-- build: v2026-06-16-dbclosed-v13 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1599,6 +1599,32 @@ function useMorningLine(){
   return ml;
 }
 
+// Closed-flights chronicle for the "Geschlossen" table, from the database
+// (full history, independent of the live board window). Refreshes on `bump`
+// (after a bet settles) and every 5 min.
+function useSettled(bump){
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(()=>{
+    if(!CONFIG.API_BASE){ setLoading(false); return; }
+    let dead=false;
+    async function load(){
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/settled`);
+        if(!r.ok) return;
+        const d = await r.json();
+        if(dead) return;
+        setRows(d.rows||[]);
+      }catch(e){}
+      finally{ if(!dead) setLoading(false); }
+    }
+    load();
+    const h=setInterval(load, 5*60*1000);
+    return ()=>{ dead=true; clearInterval(h); };
+  },[bump]);
+  return { rows, loading };
+}
+
 function useRouteStats(dest){
   const [stats,setStats]=useState(null);
   useEffect(()=>{
@@ -2154,32 +2180,36 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 }
 
 
-// Closed/settled flights shown as a compact table (instead of cards). Each row
-// links to the flight's detail page. "Ergebnis" is the actual delay once known;
-// the state badge shows whether it's just closed or already settled.
-function ClosedTable({ rows, total, onOpen }){
+// Closed-flights chronicle as a compact table, fed from the database
+// (/api/settled) — independent of the live board window, so it shows the full
+// history. Each row: flight + route, date, result (actual delay), and pool (if
+// the flight was bet on). Rows are informational (not clickable: many are older
+// flights no longer on the live board).
+function ClosedTable({ rows }){
+  const fmtDate = d => {
+    if(!d) return "—";
+    try { return new Date(d+"T00:00:00").toLocaleDateString("de-DE",{ weekday:"short", day:"numeric", month:"short" }); }
+    catch(e){ return d; }
+  };
   return <div className="ctable-wrap">
     <table className="ctable">
       <thead>
-        <tr><th>Flug</th><th>Abflug</th><th>Ergebnis</th><th className="ta-r">Pool</th></tr>
+        <tr><th>Flug</th><th>Datum</th><th>Ergebnis</th><th className="ta-r">Pool</th></tr>
       </thead>
       <tbody>
-        {rows.map(m=>{
-          const color = m.delayUnknown ? "var(--muted)" : TONE[m.status];
-          return <tr key={m.id} onClick={()=>onOpen(m.id)}>
+        {rows.map((r,i)=>{
+          const d = r.delayMin;
+          const status = d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
+          const label  = d==null ? "k. A." : (d>=0?"+":"")+d+"m";
+          const settled = r.poolTotal!=null;
+          return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
+            <td><div className="ct-code">{r.ident}</div><div className="ct-route">→ {r.dest}</div></td>
+            <td>{fmtDate(r.date)}</td>
             <td>
-              <div className="ct-code">{m.code}</div>
-              <div className="ct-route">→ {m.to.name}</div>
+              <span className="ct-res" style={{color:`var(--${status})`}}>{label}</span>
+              <div className="ct-state">{settled ? "✓ Abgerechnet" : "Aufgezeichnet"}</div>
             </td>
-            <td>
-              <div>{m.dateLabel || "—"}</div>
-              <div className="ct-sub">{m.from.dep}</div>
-            </td>
-            <td>
-              <span className="ct-res" style={{color}}>{m.delay}</span>
-              <div className="ct-state">{m.settled ? "✓ Abgerechnet" : "🔒 Geschlossen"}</div>
-            </td>
-            <td className="ta-r">{fmt(total(m))} €</td>
+            <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
           </tr>;
         })}
       </tbody>
@@ -2284,6 +2314,7 @@ function App(){
             settledOutcome: set ? set.outcome : null};
   };
   const morningLine = useMorningLine();
+  const closedFlights = useSettled(bump);
   const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: blendSeed(morningLine, m.code, m.otherCode) }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
@@ -2427,37 +2458,29 @@ function App(){
       </div>}
 
       {(() => {
-        const closed = phaseFilter==="geschlossen";
+        // "Geschlossen": full chronicle from the database (independent of the
+        // live board window).
+        if (phaseFilter==="geschlossen") {
+          if (closedFlights.loading && closedFlights.rows.length===0) {
+            return <div className="emptyboard"><span className="spin spin-d"/> Lade geschlossene Flüge…</div>;
+          }
+          if (closedFlights.rows.length===0) {
+            return <div className="empty"><div className="e1">🔒</div><div className="e2">Noch keine geschlossenen Flüge</div><div className="e3">Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.</div></div>;
+          }
+          return <ClosedTable rows={closedFlights.rows}/>;
+        }
+
+        // "Aktiv": bettable flights as cards from the live board.
         const shown = liveMarkets
-          .filter(m => {
-            if (closed) {
-              if (m.tab!=="abgeflogen" && m.tab!=="gelandet") return false;
-              // Hide pure noise: resolved flights whose result we never learned
-              // (k. A.) AND that nobody bet on.
-              if (m.delayUnknown && total(m)===0) return false;
-              return true;
-            }
-            return m.tab==="aktiv";
-          })
+          .filter(m => m.tab==="aktiv")
           .sort((a,b)=>{
-            if (closed) {
-              // A log of recently closed flights: newest departure first.
-              return new Date(b.depISO || 0).getTime() - new Date(a.depISO || 0).getTime();
-            }
-            // Aktiv: most betting volume first (where the action is), then by time.
             const va = total(a), vb = total(b);
             if (vb !== va) return vb - va;
             return new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime();
           });
-        // Only show the empty state once data is actually loaded (not while connecting).
         if (dataStatus==="live" && shown.length===0) {
-          const msg = closed
-            ? { e1:"🔒", e2:"Keine geschlossenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist — mit Ergebnis, sobald sie gelandet und abgerechnet sind." }
-            : { e1:"🕐", e2:"Gerade keine wettbaren Flüge",
-                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei." };
-          return <div className="empty"><div className="e1">{msg.e1}</div><div className="e2">{msg.e2}</div><div className="e3">{msg.e3}</div></div>;
+          return <div className="empty"><div className="e1">🕐</div><div className="e2">Gerade keine wettbaren Flüge</div><div className="e3">Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.</div></div>;
         }
-        if (closed) return <ClosedTable rows={shown} total={total} onOpen={id=>setView({page:"detail",id})}/>;
         return <div className="grid">
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
         </div>;
