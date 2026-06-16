@@ -133,6 +133,16 @@ button{font-family:inherit}
   padding:17px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
 .card.click{cursor:pointer}
 .card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
+/* Interactive bracket rows on the card front (replace the old Wetten button). */
+.cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.cbk{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border:1px solid var(--line);
+  background:var(--card2);border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);
+  transition:border-color .15s,transform .1s,background .15s}
+.cbk:hover{border-color:var(--brand);background:var(--card)}
+.cbk:active{transform:scale(.99)}
+.cbk-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.cbk-name{font-weight:600}
+.cbk-odds{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
 /* Neon edge — only in dark mode, where the glow reads. Colour comes from the
    card's --neon (set by flight status: green on-time, red late, etc.). */
 [data-theme="dark"] .card.neon{
@@ -792,19 +802,23 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
 
       {total>0
         ? <><div className="riskt">Pool · <b><RollingNumber value={total}/> €</b></div>
-            <RiskBar outcomes={m.outcomes} total={total}/>
-            <Breakdown m={m} total={total}/></>
+            <RiskBar outcomes={m.outcomes} total={total}/></>
         : <div className="riskt nopool">{m.phase==="landed"||m.phase==="cancelled" ? "Abgerechnet · keine Wetten" : "Noch keine Wetten · setz den ersten Tipp"}</div>}
 
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
-      <div className="cfoot" onClick={e=>e.stopPropagation()}>
-        {m.bettable
-          ? <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Schließen":"Wetten"}</button>
-          : <button className="betbtn locked" disabled>{m.phase==="cancelled"?"Annulliert":m.phase==="landed"?"Gelandet":m.phase==="enroute"?"Abgeflogen":"Geschlossen"}</button>}
-      </div>
-
-      {open && m.bettable && <div onClick={e=>e.stopPropagation()}><BetPanel m={m} total={total} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/></div>}
+      {m.bettable
+        ? <div className="cbrackets" onClick={e=>e.stopPropagation()}>
+            {m.outcomes.map(o=>{
+              const odds = total>0 && o.pool>0 ? total/o.pool : null;
+              return <button key={o.id} className="cbk" onClick={()=>onOpen(m.id,o.id)}>
+                <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
+                <span className="cbk-name">{o.label}</span>
+                <span className="cbk-odds">{odds?odds.toFixed(2)+"×":"—"}</span>
+              </button>;
+            })}
+          </div>
+        : <div className="cfoot"><button className="betbtn locked" disabled>{m.phase==="cancelled"?"Annulliert":m.phase==="landed"?"Gelandet":m.phase==="enroute"?"Abgeflogen":"Geschlossen"}</button></div>}
     </div>
   );
 }
@@ -1032,14 +1046,17 @@ function RouteStats({ dest, destName }){
   </div>;
 }
 
-function Detail({m,total,back,...bet}){
+function Detail({m,total,back,initialPick,...bet}){
   const isFlight = m.type==="flight";
   const [pick,setPick] = [bet.pick, bet.setPick];
   // Default: preselect the first bracket (Pünktlich) so the bet box is open,
   // unless the flight is already settled (landed/cancelled — betting closed).
   React.useEffect(()=>{
-    if(!m.settled && m.outcomes && m.outcomes.length){ setPick(m.outcomes[0].id); }
-    else if(m.settled){ setPick(null); }
+    if(m.settled){ setPick(null); return; }
+    if(m.outcomes && m.outcomes.length){
+      const want = (initialPick && m.outcomes.some(o=>o.id===initialPick)) ? initialPick : m.outcomes[0].id;
+      setPick(want);
+    }
   }, [m.id, m.settled]);
   const sel = m.outcomes.find(o=>o.id===pick);
   const s = Math.min(bet.stake, bet.wallet);
@@ -2111,7 +2128,7 @@ function App(){
 
   return <div className="app">
     <div className="top">
-      <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>flug<span className="pin">.</span>bet</div>
+      <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span>flug<span className="pin">.</span>bet</div>
       <div className="topr">
         <span className="chip" title={lastUpdate?`Aktualisiert ${new Date(lastUpdate).toLocaleTimeString()}`:"Noch keine Daten"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
           <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
@@ -2252,14 +2269,14 @@ function App(){
           return <div className="empty"><div className="e1">{msg.e1}</div><div className="e2">{msg.e2}</div><div className="e3">{msg.e3}</div></div>;
         }
         return <div className="grid">
-          {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={id=>setView({page:"detail",id})} {...betProps}/>)}
+          {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
         </div>;
       })()}
     </> : view.page==="daily" ? (
       <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
         openDetail={id=>setView({page:"detail",id})}/>
     ) : detailMarket ? (
-      <Detail m={detailMarket} total={total(detailMarket)} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
+      <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
 
     <div className="pagefoot">
