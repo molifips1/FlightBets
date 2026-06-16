@@ -946,7 +946,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
 // state while the history is still filling up.
 function RouteStats({ dest, destName }){
   const stats = useRouteStats(dest);
-  const MIN_FLIGHTS = 5; // below this, the average isn't meaningful yet
+  const MIN_FLIGHTS = 1; // TESTPHASE: ab 1 Flug anzeigen. VOR LAUNCH wieder auf ~5–10 setzen!
   return <div className="rstats">
     <div className="rstats-h">📊 Strecken-Statistik · BER → {destName||dest}</div>
     {stats===null ? (
