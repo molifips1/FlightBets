@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-pool-v8 -->
+<!-- build: v2026-06-16-pool-v9 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -821,7 +821,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             "🔒 geschlossen"
           }</span>}
         </div>
-        <span className="pool">Pool <RollingNumber value={total}/> €</span>
+        <span className="pool"><RollingNumber value={total}/> €</span>
       </div>
 
       {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
@@ -1132,7 +1132,7 @@ function Detail({m,total,back,initialPick,...bet}){
                 "🔒 geschlossen"
               }</span>}
             </div>
-            <span className="pool">Pool <RollingNumber value={total}/> €</span>
+            <span className="pool"><RollingNumber value={total}/> €</span>
           </div>
           {isFlight ? <div className="route" style={{marginTop:14}}>
             <div className="stop">
