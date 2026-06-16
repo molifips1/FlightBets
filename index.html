@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-PINNED-v2 -->
+<!-- build: v2026-06-16-odds-v3 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -611,6 +611,17 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
   : null;
 
 const RAKE=0.05;
+// DISPLAY-ONLY opening liquidity so the odds (×) never show "—" on an empty
+// market. These euros are NOT real money and are NOT used for payouts (the
+// worker settles on the real pools only) — they only make the × look alive
+// before real bets arrive. Real stakes add on top and shift the odds normally.
+const SEED_POOL = { a:100, b:60, c:30, d:50 };
+function displayOdds(outcomes, o){
+  const eff = oo => (oo.pool||0) + (SEED_POOL[oo.id]||0);
+  const tot = outcomes.reduce((s,oo)=>s+eff(oo),0);
+  const mine = eff(o);
+  return mine>0 ? tot/mine : null;
+}
 const fmt=n=>Math.round(n).toLocaleString("en-US");
 const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
 const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
@@ -811,11 +822,11 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       {m.bettable
         ? <div className="cbrackets" onClick={e=>e.stopPropagation()}>
             {m.outcomes.map(o=>{
-              const odds = total>0 && o.pool>0 ? total/o.pool : null;
+              const odds = displayOdds(m.outcomes, o);
               return <button key={o.id} className="cbk" onClick={()=>onOpen(m.id,o.id)}>
                 <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
                 <span className="cbk-name">{o.label}</span>
-                <span className="cbk-odds">{odds?odds.toFixed(2)+"×":"—"}</span>
+                <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
               </button>;
             })}
           </div>
@@ -1111,7 +1122,7 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="sectlbl">Tippe die Verspätung · {m.outcomes.length} Optionen</div>
           <div className="brackets">
             {m.outcomes.map(o=>{
-              const mult = total/(o.pool||1);
+              const mult = displayOdds(m.outcomes, o);
               const share = o.pool/maxPool;
               const pct = total>0 ? Math.round(o.pool/total*100) : 0;
               const on = pick===o.id;
@@ -1124,7 +1135,7 @@ function Detail({m,total,back,initialPick,...bet}){
                   <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<><RollingNumber value={pct} format={v=>Math.round(v)+"%"}/> des Pools</>:"—"}</div>
                   <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
                 </div>
-                <div className="bk-odds">{o.pool>0?<RollingNumber value={mult} format={v=>v.toFixed(2)+"×"}/>:"—"}</div>
+                <div className="bk-odds">{mult!=null?<RollingNumber value={mult} format={v=>v.toFixed(2)+"×"}/>:"—"}</div>
               </button>;
             })}
           </div>
