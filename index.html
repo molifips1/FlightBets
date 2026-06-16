@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-legal-v11 -->
+<!-- build: v2026-06-16-closedtable-v12 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -591,6 +591,20 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
 .sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
 .sheet-place:disabled{background:var(--line);color:var(--muted);cursor:default}
+/* ---- Closed flights table ---- */
+.ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.ctable{width:100%;border-collapse:collapse;font-size:13.5px}
+.ctable th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--card2);white-space:nowrap}
+.ctable th.ta-r,.ctable td.ta-r{text-align:right}
+.ctable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink);white-space:nowrap}
+.ctable tbody tr{cursor:pointer;transition:background .12s}
+.ctable tbody tr:hover{background:var(--card2)}
+.ctable tbody tr:last-child td{border-bottom:none}
+.ct-code{font-family:Archivo;font-weight:800;font-size:14.5px}
+.ct-route{font-size:11.5px;color:var(--muted);margin-top:1px}
+.ct-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.ct-res{font-weight:800;font-family:'IBM Plex Mono',monospace}
+.ct-state{font-size:10.5px;color:var(--muted);margin-top:2px}
 </style>
 </head>
 <body>
@@ -2140,6 +2154,39 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 }
 
 
+// Closed/settled flights shown as a compact table (instead of cards). Each row
+// links to the flight's detail page. "Ergebnis" is the actual delay once known;
+// the state badge shows whether it's just closed or already settled.
+function ClosedTable({ rows, total, onOpen }){
+  return <div className="ctable-wrap">
+    <table className="ctable">
+      <thead>
+        <tr><th>Flug</th><th>Abflug</th><th>Ergebnis</th><th className="ta-r">Pool</th></tr>
+      </thead>
+      <tbody>
+        {rows.map(m=>{
+          const color = m.delayUnknown ? "var(--muted)" : TONE[m.status];
+          return <tr key={m.id} onClick={()=>onOpen(m.id)}>
+            <td>
+              <div className="ct-code">{m.code}</div>
+              <div className="ct-route">→ {m.to.name}</div>
+            </td>
+            <td>
+              <div>{m.dateLabel || "—"}</div>
+              <div className="ct-sub">{m.from.dep}</div>
+            </td>
+            <td>
+              <span className="ct-res" style={{color}}>{m.delay}</span>
+              <div className="ct-state">{m.settled ? "✓ Abgerechnet" : "🔒 Geschlossen"}</div>
+            </td>
+            <td className="ta-r">{fmt(total(m))} €</td>
+          </tr>;
+        })}
+      </tbody>
+    </table>
+  </div>;
+}
+
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
@@ -2214,7 +2261,7 @@ function App(){
       }catch(_){}
     })();
   },[user]);
-  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | abgeflogen | gelandet
+  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | geschlossen
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -2367,9 +2414,8 @@ function App(){
       </div></div>
 
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Wettbar</button>
-        <button className={"subpill"+(phaseFilter==="abgeflogen"?" on":"")} onClick={()=>setPhaseFilter("abgeflogen")}>🔒 Geschlossen</button>
-        <button className={"subpill"+(phaseFilter==="gelandet"?" on":"")} onClick={()=>setPhaseFilter("gelandet")}>✓ Abgerechnet</button>
+        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Aktiv</button>
+        <button className={"subpill"+(phaseFilter==="geschlossen"?" on":"")} onClick={()=>setPhaseFilter("geschlossen")}>🔒 Geschlossen</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
@@ -2381,37 +2427,37 @@ function App(){
       </div>}
 
       {(() => {
+        const closed = phaseFilter==="geschlossen";
         const shown = liveMarkets
           .filter(m => {
-            if (phaseFilter==="gelandet") {
-              if (m.tab!=="gelandet") return false;
+            if (closed) {
+              if (m.tab!=="abgeflogen" && m.tab!=="gelandet") return false;
               // Hide pure noise: resolved flights whose result we never learned
-              // (k. A.) AND that nobody bet on. Keep known results and any flight
-              // with stakes.
+              // (k. A.) AND that nobody bet on.
               if (m.delayUnknown && total(m)===0) return false;
               return true;
             }
-            if (phaseFilter==="abgeflogen") return m.tab==="abgeflogen";
             return m.tab==="aktiv";
           })
           .sort((a,b)=>{
-            // 1) most betting volume first (where the action is), 2) then by time.
+            if (closed) {
+              // A log of recently closed flights: newest departure first.
+              return new Date(b.depISO || 0).getTime() - new Date(a.depISO || 0).getTime();
+            }
+            // Aktiv: most betting volume first (where the action is), then by time.
             const va = total(a), vb = total(b);
             if (vb !== va) return vb - va;
-            const ta = new Date(a.depISO || 0).getTime();
-            const tb = new Date(b.depISO || 0).getTime();
-            return ta - tb;
+            return new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime();
           });
         // Only show the empty state once data is actually loaded (not while connecting).
         if (dataStatus==="live" && shown.length===0) {
-          const msg = phaseFilter==="aktiv"
-            ? { e1:"🕐", e2:"Gerade keine wettbaren Flüge",
-                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei oder sieh dir geschlossene und abgerechnete Flüge an." }
-            : phaseFilter==="abgeflogen"
-            ? { e1:"🔒", e2:"Keine geschlossenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist, die aber noch nicht abgerechnet wurden." }
-            : { e1:"✓", e2:"Noch keine abgerechneten Flüge", e3:"Sobald heute Flüge gelandet sind und abgerechnet werden, erscheinen sie hier." };
+          const msg = closed
+            ? { e1:"🔒", e2:"Keine geschlossenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist — mit Ergebnis, sobald sie gelandet und abgerechnet sind." }
+            : { e1:"🕐", e2:"Gerade keine wettbaren Flüge",
+                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei." };
           return <div className="empty"><div className="e1">{msg.e1}</div><div className="e2">{msg.e2}</div><div className="e3">{msg.e3}</div></div>;
         }
+        if (closed) return <ClosedTable rows={shown} total={total} onOpen={id=>setView({page:"detail",id})}/>;
         return <div className="grid">
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
         </div>;
