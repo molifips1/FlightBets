@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>flight.bet — predict flight delays</title>
+<title>flug.bet — Flugverspätungen tippen</title>
 <meta name="description" content="Play-money prediction markets on flight delays." />
 <meta name="theme-color" content="#0E2A47" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="flight.bet — predict flight delays" />
+<meta property="og:title" content="flug.bet — Flugverspätungen tippen" />
 <meta property="og:description" content="Play-money prediction markets on flight delays." />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1700,7 +1700,7 @@ function Legal(){
 
     <section className="legal-sec">
       <h3>Spielgeld-Hinweis</h3>
-      <p>ber.bet ist ein kostenloses Unterhaltungsangebot. Alle Einsätze erfolgen ausschließlich mit <b>fiktivem Spielgeld ohne jeden Geldwert</b>. Es können keine echten Einsätze getätigt, keine echten Gewinne ausgezahlt und kein Spielgeld gekauft werden. ber.bet ist <b>kein Glücksspiel</b> im Sinne des Glücksspielstaatsvertrags und steht in keiner Verbindung zum Flughafen BER, zu Fluggesellschaften oder Datenanbietern.</p>
+      <p>flug.bet ist ein kostenloses Unterhaltungsangebot. Alle Einsätze erfolgen ausschließlich mit <b>fiktivem Spielgeld ohne jeden Geldwert</b>. Es können keine echten Einsätze getätigt, keine echten Gewinne ausgezahlt und kein Spielgeld gekauft werden. flug.bet ist <b>kein Glücksspiel</b> im Sinne des Glücksspielstaatsvertrags und steht in keiner Verbindung zum Flughafen BER, zu Fluggesellschaften oder Datenanbietern.</p>
     </section>
 
     <section className="legal-sec">
@@ -1863,7 +1863,7 @@ function App(){
 
   return <div className="app">
     <div className="top">
-      <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>ber<span className="pin">.</span>bet</div>
+      <div className="wm" onClick={()=>setView({page:"home"})}><span className="plane">✈</span>flug<span className="pin">.</span>bet</div>
       <div className="topr">
         <button className="iconbtn" onClick={()=>setTheme(t=>t==="light"?"dark":"light")}>{theme==="light"?"🌙":"☀️"}</button>
         <span className="chip" title={lastUpdate?`Aktualisiert ${new Date(lastUpdate).toLocaleTimeString()}`:"Noch keine Daten"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
