@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-odds-v3 -->
+<!-- build: v2026-06-16-curve-v4 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -680,8 +680,13 @@ function Curve({dist,tone,marker,axis}){
 // into a curve. Shape moves with every bet — the crowd's view of this flight.
 // The leading bucket (most money) is marked. Empty pool → flat baseline.
 function PoolCurve({outcomes,total}){
-  const vals = outcomes.map(o=>o.pool||0);
-  const hasMoney = total>0 && Math.max(...vals)>0;
+  // Use the same opening line (seed) as the odds, so the distribution curve
+  // shows a sensible shape immediately and shifts as real bets come in —
+  // instead of sitting flat on an empty market.
+  const eff = o => (o.pool||0) + (SEED_POOL[o.id]||0);
+  const vals = outcomes.map(eff);
+  const effTotal = vals.reduce((a,b)=>a+b,0);
+  const hasMoney = effTotal>0 && Math.max(...vals)>0;
   const leadIdx = hasMoney ? vals.indexOf(Math.max(...vals)) : 0;
   const tone = outcomes[leadIdx]?.tone || "good";
   const axis = outcomes.map(o=>o.label);
