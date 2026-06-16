@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-pool-v9 -->
+<!-- build: v2026-06-16-mline-v10 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -646,13 +646,36 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
   : null;
 
 const RAKE=0.05;
-// DISPLAY-ONLY opening liquidity so the odds (×) never show "—" on an empty
-// market. These euros are NOT real money and are NOT used for payouts (the
-// worker settles on the real pools only) — they only make the × look alive
+// DISPLAY-ONLY opening liquidity ("morning line") so the odds (×) never show "—"
+// on an empty market. These euros are NOT real money and are NOT used for payouts
+// (the worker settles on the real pools only) — they only make the × look alive
 // before real bets arrive. Real stakes add on top and shift the odds normally.
-const SEED_POOL = { a:100, b:60, c:30, d:50 };
-function displayOdds(outcomes, o){
-  const eff = oo => (oo.pool||0) + (SEED_POOL[oo.id]||0);
+// DEFAULT_SEED is the fallback line when we have no history for a flight yet;
+// blendSeed() personalises it per flight from collected history.
+const DEFAULT_SEED = { a:100, b:60, c:30, d:50 };
+const SEED_POOL = DEFAULT_SEED;          // back-compat alias
+const SEED_TOTAL = DEFAULT_SEED.a+DEFAULT_SEED.b+DEFAULT_SEED.c+DEFAULT_SEED.d; // 240
+const PRIOR_N = 12;                       // how many "virtual" samples the default line is worth
+const IDENT_MIN = 8;                      // min flight-number samples before we trust the per-number history over the route
+
+// Build a per-flight morning line from collected history. Blends the default
+// line (as a prior) with the flight's own form, sample-weighted: little data →
+// stays near the default; lots of data → reflects the real distribution.
+// Prefers the specific flight NUMBER once it has enough samples, else the ROUTE.
+function blendSeed(ml, ident, dest){
+  const defP = { a:DEFAULT_SEED.a/SEED_TOTAL, b:DEFAULT_SEED.b/SEED_TOTAL, c:DEFAULT_SEED.c/SEED_TOTAL, d:DEFAULT_SEED.d/SEED_TOTAL };
+  const identH = ml && ml.byIdent && ml.byIdent[ident];
+  const destH  = ml && ml.byDest  && ml.byDest[dest];
+  const hist = (identH && identH.n >= IDENT_MIN) ? identH : (destH && destH.n > 0 ? destH : null);
+  let wa=PRIOR_N*defP.a, wb=PRIOR_N*defP.b, wc=PRIOR_N*defP.c, wd=PRIOR_N*defP.d;
+  if(hist){ wa+=hist.a; wb+=hist.b; wc+=hist.c; wd+=hist.d; }
+  const tot = wa+wb+wc+wd || 1;
+  return { a:SEED_TOTAL*wa/tot, b:SEED_TOTAL*wb/tot, c:SEED_TOTAL*wc/tot, d:SEED_TOTAL*wd/tot };
+}
+
+function displayOdds(outcomes, o, seed){
+  const S = seed || DEFAULT_SEED;
+  const eff = oo => (oo.pool||0) + (S[oo.id]||0);
   const tot = outcomes.reduce((s,oo)=>s+eff(oo),0);
   const mine = eff(o);
   return mine>0 ? tot/mine : null;
@@ -714,11 +737,12 @@ function Curve({dist,tone,marker,axis}){
 // Live pool-distribution curve: the REAL euro on each delay bucket, smoothed
 // into a curve. Shape moves with every bet — the crowd's view of this flight.
 // The leading bucket (most money) is marked. Empty pool → flat baseline.
-function PoolCurve({outcomes,total}){
+function PoolCurve({outcomes,total,seed}){
   // Use the same opening line (seed) as the odds, so the distribution curve
   // shows a sensible shape immediately and shifts as real bets come in —
   // instead of sitting flat on an empty market.
-  const eff = o => (o.pool||0) + (SEED_POOL[o.id]||0);
+  const S = seed || DEFAULT_SEED;
+  const eff = o => (o.pool||0) + (S[o.id]||0);
   const vals = outcomes.map(eff);
   const effTotal = vals.reduce((a,b)=>a+b,0);
   const hasMoney = effTotal>0 && Math.max(...vals)>0;
@@ -850,7 +874,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
 
-      <PoolCurve outcomes={m.outcomes} total={total}/>
+      <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
 
       {total>0 && <RiskBar outcomes={m.outcomes} total={total}/>}
 
@@ -859,7 +883,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       {m.bettable
         ? <div className="cbrackets" onClick={e=>e.stopPropagation()}>
             {m.outcomes.map(o=>{
-              const odds = displayOdds(m.outcomes, o);
+              const odds = displayOdds(m.outcomes, o, m.seed);
               return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
                 <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
                 <span className="cbk-name">{o.label}</span>
@@ -1151,7 +1175,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
-          <PoolCurve outcomes={m.outcomes} total={total}/>
+          <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
@@ -1159,7 +1183,7 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="sectlbl">Tippe die Verspätung · {m.outcomes.length} Optionen</div>
           <div className="brackets">
             {m.outcomes.map(o=>{
-              const mult = displayOdds(m.outcomes, o);
+              const mult = displayOdds(m.outcomes, o, m.seed);
               const share = o.pool/maxPool;
               const pct = total>0 ? Math.round(o.pool/total*100) : 0;
               const on = pick===o.id;
@@ -1536,7 +1560,31 @@ function usePools(bump){
   return { pools, settled };
 }
 
-// Historical reliability for a route (BER → dest), fetched when a detail page opens.
+// Morning-line source: per-route and per-flight-number delay history from the
+// worker (D1 only, no paid API). Fetched once on load + hourly. Used to build a
+// data-driven opening line per flight via blendSeed(). Empty {} until enough
+// history is collected — blendSeed then just returns the default line.
+function useMorningLine(){
+  const [ml, setMl] = useState({ byDest:{}, byIdent:{} });
+  useEffect(()=>{
+    if(!CONFIG.API_BASE) return;
+    let dead=false;
+    async function load(){
+      try{
+        const r = await fetch(`${CONFIG.API_BASE}/api/morning-line`);
+        if(!r.ok) return;
+        const d = await r.json();
+        if(dead) return;
+        setMl({ byDest: d.byDest||{}, byIdent: d.byIdent||{} });
+      }catch(e){}
+    }
+    load();
+    const h=setInterval(load, 60*60*1000); // hourly — history changes slowly
+    return ()=>{ dead=true; clearInterval(h); };
+  },[]);
+  return ml;
+}
+
 function useRouteStats(dest){
   const [stats,setStats]=useState(null);
   useEffect(()=>{
@@ -2078,7 +2126,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
       <div className="sheet-lbl">Dein Tipp</div>
       <div className="sheet-brackets">
         {market.outcomes.map(x=>{
-          const on=x.id===oid; const od=displayOdds(market.outcomes,x);
+          const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
           return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
             <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
             <span className="sheet-bk-name">{x.label}</span>
@@ -2195,7 +2243,8 @@ function App(){
             bettable: settled ? false : mkt.bettable, // settled ⇒ never bettable
             settledOutcome: set ? set.outcome : null};
   };
-  const liveMarkets = boardFlights.map(mergeStakes);
+  const morningLine = useMorningLine();
+  const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: blendSeed(morningLine, m.code, m.otherCode) }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
 
