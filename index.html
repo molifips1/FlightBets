@@ -2078,9 +2078,9 @@ function App(){
       </div>
 
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Aktiv</button>
-        <button className={"subpill"+(phaseFilter==="abgeflogen"?" on":"")} onClick={()=>setPhaseFilter("abgeflogen")}>✈ Abgeflogen</button>
-        <button className={"subpill"+(phaseFilter==="gelandet"?" on":"")} onClick={()=>setPhaseFilter("gelandet")}>✓ Gelandet</button>
+        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Wettbar</button>
+        <button className={"subpill"+(phaseFilter==="abgeflogen"?" on":"")} onClick={()=>setPhaseFilter("abgeflogen")}>🔒 Geschlossen</button>
+        <button className={"subpill"+(phaseFilter==="gelandet"?" on":"")} onClick={()=>setPhaseFilter("gelandet")}>✓ Abgerechnet</button>
       </div>
 
       {dataStatus!=="live" && <div className="emptyboard">
@@ -2110,10 +2110,10 @@ function App(){
         if (dataStatus==="live" && shown.length===0) {
           const msg = phaseFilter==="aktiv"
             ? { e1:"🕐", e2:"Gerade keine wettbaren Flüge",
-                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei oder sieh dir abgeflogene und gelandete Flüge an." }
+                e3:"Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei oder sieh dir geschlossene und abgerechnete Flüge an." }
             : phaseFilter==="abgeflogen"
-            ? { e1:"✈", e2:"Keine abgeflogenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist, die aber noch nicht gelandet sind." }
-            : { e1:"✓", e2:"Noch keine gelandeten Flüge", e3:"Sobald heute Flüge gelandet sind und abgerechnet werden, erscheinen sie hier." };
+            ? { e1:"🔒", e2:"Keine geschlossenen Flüge", e3:"Hier erscheinen Flüge, deren Wettfenster geschlossen ist, die aber noch nicht abgerechnet wurden." }
+            : { e1:"✓", e2:"Noch keine abgerechneten Flüge", e3:"Sobald heute Flüge gelandet sind und abgerechnet werden, erscheinen sie hier." };
           return <div className="empty"><div className="e1">{msg.e1}</div><div className="e2">{msg.e2}</div><div className="e3">{msg.e3}</div></div>;
         }
         return <div className="grid">
