@@ -1225,8 +1225,18 @@ function boardToMarket(f){
       return new Date(iso).toLocaleDateString("de-DE", { timeZone:"Europe/Berlin", weekday:"short", day:"numeric", month:"long" });
     } catch(e) { return ""; }
   };
+  // ID must be unique PER FLIGHT INSTANCE, not just per flight number — otherwise
+  // every day's "LH181" shares one id, and a single settlement record would mark
+  // all future LH181 as settled (and block their payouts). Include the scheduled
+  // departure date (Berlin) so each day's flight is distinct.
+  const idDate = (() => {
+    const iso = f.scheduledDep || f.scheduledArr;
+    if (!iso) return "x";
+    try { return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" }); } // YYYY-MM-DD
+    catch(e){ return "x"; }
+  })();
   return {
-    id: "bd_"+f.ident,
+    id: "bd_"+f.ident+"_"+idDate,
     type: "flight",
     live: true,
     phase,
@@ -1808,7 +1818,9 @@ function App(){
     const p = serverPools[mkt.id] || {};
     const outcomes = mkt.outcomes.map(o => ({...o, pool: p[o.id] || 0}));
     const set = serverSettled[mkt.id];
-    return {...mkt, outcomes, settled: mkt.settled || !!set,
+    const settled = mkt.settled || !!set;
+    return {...mkt, outcomes, settled,
+            bettable: settled ? false : mkt.bettable, // settled ⇒ never bettable
             settledOutcome: set ? set.outcome : null};
   };
   const liveMarkets = boardFlights.map(mergeStakes);
