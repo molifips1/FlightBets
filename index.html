@@ -81,6 +81,29 @@ button{font-family:inherit}
 .menu-item.danger{color:var(--bad)}
 .menu-div{height:1px;background:var(--line);margin:6px 8px}
 .menu-foot{text-align:center;font-size:11px;color:var(--muted);padding:10px;border-top:1px solid var(--line)}
+.settings{max-width:640px;margin:0 auto}
+.set-sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.set-h{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;font-size:15px;color:var(--ink)}
+.set-field{display:block;margin-bottom:14px}
+.set-field>span{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.set-inline{display:flex;gap:8px}
+.set-inline input{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:inherit}
+.set-inline input:focus{outline:none;border-color:var(--brand)}
+.set-btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:0 16px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.set-btn:disabled{opacity:.6;cursor:default}
+.set-hint{display:block;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+.toggle{width:46px;height:26px;border-radius:999px;border:none;background:var(--line);cursor:pointer;position:relative;transition:background .2s}
+.toggle.on{background:var(--brand)}
+.toggle span{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on span{left:23px}
+.danger-sec{border-color:color-mix(in srgb,var(--bad) 30%,var(--line))}
+.set-del{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 35%,transparent);border-radius:10px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer}
+.set-del:disabled{opacity:.6;cursor:default}
+.set-confirm{display:flex;flex-direction:column;gap:10px}
+.set-confirm>span{font-weight:700;color:var(--ink)}
+.set-confirm-row{display:flex;gap:8px}
+.set-cancel{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-weight:600;font-size:14px;cursor:pointer}
 
 /* ticker */
 .ticker{margin-top:12px;background:#0B1118;border:1px solid #1B2737;border-radius:10px;overflow:hidden;position:relative;height:42px;display:flex;align-items:center}
@@ -1809,6 +1832,85 @@ function Profile({ wallet, user, streak, markets, onOpen }){
 // Legal page — TEMPLATE with placeholders. The bracketed [...] parts MUST be
 // replaced with real, legally-reviewed text before a public launch. This is a
 // scaffold, not legal advice.
+function Settings({ user, theme, setTheme, muted, setMuted, signOut, setToast }){
+  const [name,setName]=useState(user?.user_metadata?.name || "");
+  const [email,setEmail]=useState(user?.email || "");
+  const [pw,setPw]=useState("");
+  const [busy,setBusy]=useState("");
+  const [confirmDel,setConfirmDel]=useState(false);
+
+  const saveName=async()=>{
+    const n=name.trim(); if(!n){setToast("Name darf nicht leer sein");return;}
+    setBusy("name");
+    try{ const {error}=await sb.auth.updateUser({data:{name:n}}); setToast(error?("Fehler: "+error.message):"Anzeigename gespeichert"); }
+    catch(e){ setToast("Fehler beim Speichern"); } finally{ setBusy(""); }
+  };
+  const saveEmail=async()=>{
+    const e2=email.trim(); if(!e2){setToast("E-Mail darf nicht leer sein");return;}
+    setBusy("email");
+    try{ const {error}=await sb.auth.updateUser({email:e2}); setToast(error?("Fehler: "+error.message):"Bestätigungs-Mail verschickt — bitte beide Postfächer prüfen"); }
+    catch(e){ setToast("Fehler beim Ändern"); } finally{ setBusy(""); }
+  };
+  const savePw=async()=>{
+    if(pw.length<8){setToast("Passwort muss mind. 8 Zeichen haben");return;}
+    setBusy("pw");
+    try{ const {error}=await sb.auth.updateUser({password:pw}); setToast(error?("Fehler: "+error.message):"Passwort geändert"); setPw(""); }
+    catch(e){ setToast("Fehler beim Ändern"); } finally{ setBusy(""); }
+  };
+  const doDelete=async()=>{
+    setBusy("del");
+    try{
+      const r=await authedFetch(`${CONFIG.API_BASE}/api/delete-account`,{method:"POST"});
+      const d=await r.json();
+      if(d.ok){ setToast("Konto gelöscht. Du wirst abgemeldet."); setTimeout(()=>signOut(),1500); }
+      else setToast("Löschen fehlgeschlagen: "+(d.error||"unbekannt"));
+    }catch(e){ setToast("Löschen fehlgeschlagen — Server nicht erreichbar"); }
+    finally{ setBusy(""); setConfirmDel(false); }
+  };
+
+  return <div className="settings">
+    <div className="rankhead"><h2>⚙️ Einstellungen</h2><p>Darstellung, Konto und Daten.</p></div>
+
+    <div className="set-sec">
+      <div className="set-h">Darstellung</div>
+      <div className="set-row"><span>Dunkler Modus</span>
+        <button className={"toggle"+(theme==="dark"?" on":"")} onClick={()=>setTheme(t=>t==="light"?"dark":"light")}><span/></button></div>
+      <div className="set-row"><span>Ton</span>
+        <button className={"toggle"+(!muted?" on":"")} onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}><span/></button></div>
+    </div>
+
+    {user ? <>
+      <div className="set-sec">
+        <div className="set-h">Konto</div>
+        <label className="set-field"><span>Anzeigename</span>
+          <div className="set-inline"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Dein Name"/>
+            <button className="set-btn" disabled={busy==="name"} onClick={saveName}>{busy==="name"?"…":"Speichern"}</button></div></label>
+        <label className="set-field"><span>E-Mail</span>
+          <div className="set-inline"><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@mail.de"/>
+            <button className="set-btn" disabled={busy==="email"} onClick={saveEmail}>{busy==="email"?"…":"Ändern"}</button></div>
+          <span className="set-hint">Du erhältst eine Bestätigungs-Mail an die neue Adresse.</span></label>
+        <label className="set-field"><span>Neues Passwort</span>
+          <div className="set-inline"><input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/>
+            <button className="set-btn" disabled={busy==="pw"} onClick={savePw}>{busy==="pw"?"…":"Ändern"}</button></div></label>
+      </div>
+
+      <div className="set-sec danger-sec">
+        <div className="set-h">Konto löschen</div>
+        <p className="set-hint">Löscht dein Konto und alle deine Daten (Guthaben, Wetten) unwiderruflich. Spielgeld hat keinen Geldwert.</p>
+        {!confirmDel
+          ? <button className="set-del" onClick={()=>setConfirmDel(true)}>Konto löschen…</button>
+          : <div className="set-confirm">
+              <span>Wirklich endgültig löschen?</span>
+              <div className="set-confirm-row">
+                <button className="set-del" disabled={busy==="del"} onClick={doDelete}>{busy==="del"?"Lösche…":"Ja, endgültig löschen"}</button>
+                <button className="set-cancel" onClick={()=>setConfirmDel(false)}>Abbrechen</button>
+              </div>
+            </div>}
+      </div>
+    </> : <div className="set-sec"><p className="set-hint">Melde dich an, um Kontoeinstellungen zu sehen.</p></div>}
+  </div>;
+}
+
 function Legal(){
   return <div className="legal">
     <div className="rankhead"><h2>Rechtliches</h2>
@@ -2026,7 +2128,7 @@ function App(){
 
         <div className="menu-list">
           {user && <button className="menu-item" onClick={()=>{setTab("profile");setMenuOpen(false);}}><span className="mi-i">🎫</span>Meine Wetten</button>}
-          <button className="menu-item" onClick={()=>setToast("Einstellungen — bald verfügbar")}><span className="mi-i">⚙️</span>Einstellungen<span className="mi-soon">bald</span></button>
+          <button className="menu-item" onClick={()=>{setTab("settings");setMenuOpen(false);}}><span className="mi-i">⚙️</span>Einstellungen</button>
           <button className="menu-item" onClick={()=>{setTab("legal");setMenuOpen(false);}}><span className="mi-i">📄</span>Impressum &amp; Datenschutz</button>
           <button className="menu-item" onClick={()=>setToast("Über uns — bald verfügbar")}><span className="mi-i">ℹ️</span>Über uns<span className="mi-soon">bald</span></button>
           <button className="menu-item" onClick={()=>setToast("Fehler melden — bald verfügbar")}><span className="mi-i">🐞</span>Fehler melden<span className="mi-soon">bald</span></button>
@@ -2047,7 +2149,9 @@ function App(){
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
 
-    {tab==="legal" ? (
+    {tab==="settings" ? (
+      <Settings user={user} theme={theme} setTheme={setTheme} muted={muted} setMuted={setMuted} signOut={signOut} setToast={setToast}/>
+    ) : tab==="legal" ? (
       <Legal/>
     ) : tab==="profile" ? (
       <>
@@ -2094,7 +2198,14 @@ function App(){
       {(() => {
         const shown = liveMarkets
           .filter(m => {
-            if (phaseFilter==="gelandet")   return m.tab==="gelandet";
+            if (phaseFilter==="gelandet") {
+              if (m.tab!=="gelandet") return false;
+              // Hide pure noise: resolved flights whose result we never learned
+              // (k. A.) AND that nobody bet on. Keep known results and any flight
+              // with stakes.
+              if (m.delayUnknown && total(m)===0) return false;
+              return true;
+            }
             if (phaseFilter==="abgeflogen") return m.tab==="abgeflogen";
             return m.tab==="aktiv";
           })
