@@ -124,6 +124,24 @@ button{font-family:inherit}
              0 0 22px -2px color-mix(in srgb,var(--neon) 70%,transparent),
              0 0 52px -8px color-mix(in srgb,var(--neon) 60%,transparent);
 }
+/* One-time "betting just closed" animation: a neon pulse + a light sweep. */
+.card.closing{animation:cardClosePulse 1.8s ease-out 1; overflow:hidden}
+.card.closing::before{
+  content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,transparent 30%,color-mix(in srgb,var(--neon) 45%,transparent) 50%,transparent 70%);
+  transform:translateX(-120%);animation:cardCloseSweep 1.1s ease-out 1}
+@keyframes cardCloseSweep{to{transform:translateX(120%)}}
+@keyframes cardClosePulse{
+  0%{box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent)}
+  18%{box-shadow:0 0 0 2px var(--neon),0 0 26px -1px var(--neon),0 0 60px -6px color-mix(in srgb,var(--neon) 75%,transparent)}
+  100%{box-shadow:var(--shadow)}
+}
+[data-theme="dark"] .card.closing{animation:cardClosePulseDark 1.8s ease-out 1}
+@keyframes cardClosePulseDark{
+  0%{box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent)}
+  18%{box-shadow:0 0 0 2px var(--neon),0 0 30px 0 var(--neon),0 0 70px -4px color-mix(in srgb,var(--neon) 80%,transparent)}
+  100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent),0 0 16px -3px color-mix(in srgb,var(--neon) 55%,transparent),0 0 38px -12px color-mix(in srgb,var(--neon) 50%,transparent)}
+}
 
 .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .codeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -691,8 +709,22 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
   }
   const isFlight=m.type==="flight";
   const open=openBet===m.id;
+  // Play a one-time "betting just closed" animation when this card transitions
+  // from bettable → not bettable while on screen. Skips the first render and
+  // already-closed cards, and never repeats.
+  const [closing,setClosing]=useState(false);
+  const wasBettable=useRef(m.bettable);
+  useEffect(()=>{
+    if(wasBettable.current===true && m.bettable===false){
+      setClosing(true);
+      const t=setTimeout(()=>setClosing(false),1800);
+      wasBettable.current=m.bettable;
+      return ()=>clearTimeout(t);
+    }
+    wasBettable.current=m.bettable;
+  },[m.bettable]);
   return (
-    <div className={"card click neon"} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
+    <div className={"card click neon"+(closing?" closing":"")} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
