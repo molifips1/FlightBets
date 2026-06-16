@@ -980,14 +980,14 @@ function Detail({m,total,back,...bet}){
                   {on && <span className="bk-sel">GEWÄHLT</span>}
                 </div>
                 <div className="bk-mid">
-                  <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<RollingNumber value={pct} format={v=>Math.round(v)+"%"}/>:"—"}</div>
+                  <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<><RollingNumber value={pct} format={v=>Math.round(v)+"%"}/> des Pools</>:"—"}</div>
                   <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
                 </div>
                 <div className="bk-odds">{o.pool>0?<RollingNumber value={mult} format={v=>v.toFixed(2)+"×"}/>:"—"}</div>
               </button>;
             })}
           </div>
-          <div className="oddsnote">× = mögliche Quote beim aktuellen Pool. Sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (90 Min vor Abflug).</div>
+          <div className="oddsnote"><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (90 Min vor Abflug).</div>
         </div>
 
         {/* Market rules */}
