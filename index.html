@@ -1997,6 +1997,30 @@ function App(){
   const [celebrate,setCelebrate]=useState(null);
   const [muted,setMuted]=useState(Sound.muted);
   const [menuOpen,setMenuOpen]=useState(false);
+  // --- Browser back/forward support (no URL change) ----------------------
+  // Mirror the navigation state (tab / view / menu) into the History API so the
+  // browser's back button reverses the last in-app navigation. We push an entry
+  // on each change and restore state on popstate, guarding against loops.
+  const histInit=useRef(false);
+  const fromPop=useRef(false);
+  useEffect(()=>{
+    const snap={tab,view,menuOpen};
+    if(!histInit.current){ histInit.current=true; try{history.replaceState(snap,"");}catch(_){}; return; }
+    if(fromPop.current){ fromPop.current=false; return; }
+    try{ history.pushState(snap,""); }catch(_){}
+  },[tab,view.page,view.id,menuOpen]);
+  useEffect(()=>{
+    const onPop=(e)=>{
+      const s=e.state||{tab:"flights",view:{page:"home"},menuOpen:false};
+      fromPop.current=true;
+      setTab(s.tab||"flights");
+      setView(s.view||{page:"home"});
+      setMenuOpen(!!s.menuOpen);
+      setOpenBet(null);
+    };
+    window.addEventListener("popstate",onPop);
+    return ()=>window.removeEventListener("popstate",onPop);
+  },[]);
   const [streakWelcome,setStreakWelcome]=useState(null);
   const [results,setResults]=useState(null);
   const streak = serverWallet.streak || 0;
