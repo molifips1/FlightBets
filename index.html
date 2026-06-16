@@ -203,6 +203,13 @@ button{font-family:inherit}
 .res-more{text-align:center;font-size:12px;color:var(--muted);padding:6px}
 .oddsnote{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .oddsnote b{color:var(--ink);font-weight:600}
+.rstats{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:14px}
+.rstats-h{font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.rstats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rstat{text-align:center}
+.rstat-v{font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.rstat-l{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600}
+.rstats-empty{font-size:13px;color:var(--muted);line-height:1.55}
 .prof-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
 .prof-av{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#7c3aed);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800}
 .prof-name{font-size:20px;font-weight:800;color:var(--ink)}
@@ -935,6 +942,30 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
   </div>;
 }
 
+// Route reliability panel (BER → dest), shown on the detail page. Honest empty
+// state while the history is still filling up.
+function RouteStats({ dest, destName }){
+  const stats = useRouteStats(dest);
+  const MIN_FLIGHTS = 5; // below this, the average isn't meaningful yet
+  return <div className="rstats">
+    <div className="rstats-h">📊 Strecken-Statistik · BER → {destName||dest}</div>
+    {stats===null ? (
+      <div className="rstats-empty">Lade Verlauf…</div>
+    ) : (stats.flights||0) < MIN_FLIGHTS ? (
+      <div className="rstats-empty">
+        Noch zu wenig Daten für diese Strecke ({stats.flights||0} {stats.flights===1?"Flug":"Flüge"} erfasst).
+        Die Statistik baut sich über die nächsten Tage auf.
+      </div>
+    ) : (
+      <div className="rstats-grid">
+        <div className="rstat"><div className="rstat-v" style={{color: stats.avgDelay>=15?"var(--warn)":"var(--good)"}}>+{stats.avgDelay}m</div><div className="rstat-l">Ø Verspätung</div></div>
+        <div className="rstat"><div className="rstat-v" style={{color:"var(--good)"}}>{stats.onTimePct}%</div><div className="rstat-l">Pünktlich</div></div>
+        <div className="rstat"><div className="rstat-v">{stats.flights}</div><div className="rstat-l">Erfasste Flüge</div></div>
+      </div>
+    )}
+  </div>;
+}
+
 function Detail({m,total,back,...bet}){
   const isFlight = m.type==="flight";
   const [pick,setPick] = [bet.pick, bet.setPick];
@@ -1014,6 +1045,9 @@ function Detail({m,total,back,...bet}){
           </div>
           <div className="oddsnote"><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (90 Min vor Abflug).</div>
         </div>
+
+        {/* Route reliability — only meaningful for real flights (departures from BER) */}
+        {isFlight && m.otherCode && <RouteStats dest={m.otherCode} destName={m.to?.name}/>}
 
         {/* Market rules */}
         <div className="panelbox">
@@ -1367,6 +1401,24 @@ function usePools(bump){
     return ()=>{ dead=true; clearInterval(h); };
   },[bump]);
   return { pools, settled };
+}
+
+// Historical reliability for a route (BER → dest), fetched when a detail page opens.
+function useRouteStats(dest){
+  const [stats,setStats]=useState(null);
+  useEffect(()=>{
+    if(!dest || !CONFIG.API_BASE){ setStats(null); return; }
+    let dead=false;
+    (async()=>{
+      try{
+        const r=await fetch(`${CONFIG.API_BASE}/api/route-stats?dest=${encodeURIComponent(dest)}`);
+        const d=await r.json();
+        if(!dead) setStats(d && !d.error ? d : null);
+      }catch(e){ if(!dead) setStats(null); }
+    })();
+    return ()=>{ dead=true; };
+  },[dest]);
+  return stats;
 }
 
 // Leaderboard — fetched when the Rangliste tab is open (and refreshed on bump).
