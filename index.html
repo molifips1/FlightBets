@@ -110,6 +110,20 @@ button{font-family:inherit}
   padding:17px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease}
 .card.click{cursor:pointer}
 .card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
+/* Neon edge — only in dark mode, where the glow reads. Colour comes from the
+   card's --neon (set by flight status: green on-time, red late, etc.). */
+[data-theme="dark"] .card.neon{
+  border-color:color-mix(in srgb,var(--neon) 65%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent),
+             0 0 16px -3px color-mix(in srgb,var(--neon) 55%,transparent),
+             0 0 38px -12px color-mix(in srgb,var(--neon) 50%,transparent);
+}
+[data-theme="dark"] .card.neon.click:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 55%,transparent),
+             0 0 22px -2px color-mix(in srgb,var(--neon) 70%,transparent),
+             0 0 52px -8px color-mix(in srgb,var(--neon) 60%,transparent);
+}
 
 .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .codeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -678,7 +692,7 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
   const isFlight=m.type==="flight";
   const open=openBet===m.id;
   return (
-    <div className={"card click"} onClick={()=>onOpen(m.id)}>
+    <div className={"card click neon"} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
