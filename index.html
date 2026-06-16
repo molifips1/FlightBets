@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-sheet-v5 -->
+<!-- build: v2026-06-16-nohero-v6 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2326,12 +2326,6 @@ function App(){
       <div className="ticker"><div className="ticker-track">
         {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}€</span><b>{t[0]}</b> auf {t[1]}</span>)}
       </div></div>
-
-      <div className="berhero">
-        <div className="berhero-k">FLUGHAFEN BER · BERLIN BRANDENBURG</div>
-        <div className="berhero-t">Der ganze Flughafen. Jeder Flug. Live.</div>
-        <div className="berhero-s">{dataStatus==="live" ? `${boardFlights.length} Flüge live von der Anzeigetafel` : dataStatus==="connecting" ? <><span className="spin"/> Verbinde mit der Live-Tafel…</> : dataStatus==="offline" ? "Live-Tafel nicht erreichbar" : "Worker nicht verbunden — Demo-Modus"}</div>
-      </div>
 
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Wettbar</button>
