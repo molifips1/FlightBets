@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-nohero-v6 -->
+<!-- build: v2026-06-16-nofoot-v7 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2383,11 +2383,6 @@ function App(){
     ) : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
-
-    <div className="pagefoot">
-      <span className="pf-money">🎲 Spielgeld · keine echten Einsätze</span>
-      <button className="pf-link" onClick={()=>setTab("legal")}>Impressum &amp; Datenschutz</button>
-    </div>
 
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flüge</button>
