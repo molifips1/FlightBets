@@ -730,8 +730,6 @@ function MarketCard({m,total,onOpen,openBet,setOpenBet,pick,setPick,stake,setSta
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       <div className="cfoot" onClick={e=>e.stopPropagation()}>
-        <button className="ico" title="Share">↗</button>
-        <button className="ico boost" title="Boost">⚡</button>
         {m.bettable
           ? <button className={"betbtn"+(open?" ghost":"")} onClick={()=>{setOpenBet(open?null:m.id);setPick(null)}}>{open?"Schließen":"Wetten"}</button>
           : <button className="betbtn locked" disabled>{m.phase==="cancelled"?"Annulliert":m.phase==="landed"?"Gelandet":m.phase==="enroute"?"Abgeflogen":"Geschlossen"}</button>}
@@ -915,7 +913,6 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
   const proj=(o,s)=>{const np=o.pool+s,nt=total+s;return (s/np)*nt*(1-RAKE)};
   const s=Math.min(stake,wallet);
   return <div className="betpanel">
-    {m.type==="flight" && m.fromLL && <FlightMap m={m}/>}
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
         <div className="ol">{o.label}</div>
@@ -1019,6 +1016,7 @@ function Detail({m,total,back,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
+          <PoolCurve outcomes={m.outcomes} total={total}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
