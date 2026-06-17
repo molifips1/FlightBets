@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v38 -->
+<!-- build: v2026-06-16-v39 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2586,7 +2586,7 @@ function App(){
           {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 {streak}</button>}
           <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 Rang</button>
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
-          <button className="chip" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 Meine Wetten</button>
+          <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 Meine Wetten</button>
           <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
         </> : (
           <>
