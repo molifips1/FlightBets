@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v42 -->
+<!-- build: v2026-06-16-v43 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -47,7 +47,7 @@
   --mapsky1:#0B1E3A; --mapsky2:#10325C; --mapsky3:#16447A; --mapgrid:rgba(120,170,255,.14); --mapland:rgba(120,170,255,.05);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink)}
+html,body{margin:0;background:var(--bg);color:var(--ink);overflow-x:clip}
 body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
   background:linear-gradient(180deg,#E9F0F8 0%,var(--bg) 420px) fixed}
 [data-theme="dark"] body{background:linear-gradient(180deg,#0C1626 0%,var(--bg) 420px) fixed}
@@ -59,7 +59,7 @@ button{font-family:inherit}
 /* top bar */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 84%, transparent);
   backdrop-filter:saturate(1.4) blur(10px);display:flex;align-items:center;justify-content:space-between;
-  padding:16px 2px;border-bottom:1px solid var(--line)}
+  margin:0 calc(50% - 50vw);padding:16px calc(50vw - 50% + 2px);border-bottom:1px solid var(--line)}
 [data-theme="dark"] .top{background:color-mix(in srgb,#0C1626 86%, transparent);border-bottom-color:transparent}
 .wm{font-family:Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
 .wm .wmtxt{white-space:nowrap}
