@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v41 -->
+<!-- build: v2026-06-16-v42 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -60,7 +60,9 @@ button{font-family:inherit}
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 84%, transparent);
   backdrop-filter:saturate(1.4) blur(10px);display:flex;align-items:center;justify-content:space-between;
   padding:16px 2px;border-bottom:1px solid var(--line)}
-.wm{font-family:Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:7px;cursor:pointer}
+[data-theme="dark"] .top{background:color-mix(in srgb,#0C1626 86%, transparent);border-bottom-color:transparent}
+.wm{font-family:Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
+.wm .wmtxt{white-space:nowrap}
 .wm .pin{color:var(--hot)}
 .wm .plane{font-size:17px;transform:translateY(-1px);display:inline-block;transition:transform .35s cubic-bezier(.3,.7,.3,1)}
 .wm:hover .plane{transform:translate(4px,-5px) rotate(-12deg)}
@@ -2595,7 +2597,7 @@ function App(){
 
   return <div className="app">
     <div className="top">
-      <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span>flug<span className="pin">.</span>bet</div>
+      <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
       <div className="topr">
         {user ? <>
           {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 {streak}</button>}
