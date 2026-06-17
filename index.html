@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-aboutui-v17 -->
+<!-- build: v2026-06-16-planeload-v18 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -433,6 +433,14 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .berhero-t{font-family:Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
 .berhero-s{font-size:13px;opacity:.9;margin-top:6px}
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
+.plane-load-wrap{display:flex;align-items:center;justify-content:center;padding:70px 0;min-height:36vh}
+.plane-load{font-size:58px;line-height:1;display:inline-block;transform-origin:center;animation:planeLoad 1.8s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18))}
+@keyframes planeLoad{
+  0%   {transform:rotate(0deg)   scale(.85)}
+  50%  {transform:rotate(180deg) scale(1.35)}
+  100% {transform:rotate(360deg) scale(.85)}
+}
+@media(prefers-reduced-motion:reduce){.plane-load{animation-duration:3.2s}}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;vertical-align:-1px;margin-right:6px;animation:spinrot .7s linear infinite;opacity:.8}
 .spin-d{width:13px;height:13px}
 @keyframes spinrot{to{transform:rotate(360deg)}}
@@ -2551,10 +2559,11 @@ function App(){
         <button className={"subpill"+(phaseFilter==="geschlossen"?" on":"")} onClick={()=>setPhaseFilter("geschlossen")}>🔒 Geschlossen</button>
       </div>
 
-      {dataStatus!=="live" && <div className="emptyboard">
-        {dataStatus==="connecting"
-          ? <><span className="spin spin-d"/> Lade die Live-Tafel vom BER…</>
-          : dataStatus==="offline"
+      {dataStatus==="connecting" && (
+        <div className="plane-load-wrap"><span className="plane-load">✈</span></div>
+      )}
+      {(dataStatus==="offline" || dataStatus==="demo") && <div className="emptyboard">
+        {dataStatus==="offline"
           ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft."
           : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
       </div>}
