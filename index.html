@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v24 -->
+<!-- build: v2026-06-16-v25 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -683,7 +683,7 @@ const REDIRECT_URL = window.location.origin + window.location.pathname;
 
 // Human-visible build tag (shown on the login screen) so we can tell at a glance
 // which version is actually running after a cache/redirect — not just what's in git.
-const BUILD = "v24";
+const BUILD = "v25";
 
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
@@ -725,6 +725,7 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
 // logged out until a second sign-in. We parse it ourselves and establish the
 // session. `oauthReady` lets useAuth wait for this before reading the session.
 let oauthReady = Promise.resolve();
+let oauthDebug = "";   // surfaced on the login screen so we can see WHY a redirect login fails
 if (sb && window.location.hash.indexOf("access_token=") !== -1) {
   try {
     const p = new URLSearchParams(window.location.hash.replace(/^#+/, ""));
@@ -732,10 +733,16 @@ if (sb && window.location.hash.indexOf("access_token=") !== -1) {
     const refresh_token = p.get("refresh_token");
     if (access_token && refresh_token) {
       oauthReady = sb.auth.setSession({ access_token, refresh_token })
-        .catch(()=>{})
-        .finally(()=>{ try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch(_){} });
+        .then(({ data, error }) => {
+          if (error) oauthDebug = "Login-Fehler: " + error.message;
+          else if (!data || !data.session) oauthDebug = "Login-Fehler: keine Sitzung zurückgegeben";
+        })
+        .catch((e) => { oauthDebug = "Login-Ausnahme: " + ((e && e.message) || String(e)); })
+        .finally(() => { try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {} });
+    } else {
+      oauthDebug = "Token unvollständig empfangen (access/refresh fehlt)";
     }
-  } catch(_){}
+  } catch (e) { oauthDebug = "Hash-Fehler: " + ((e && e.message) || String(e)); }
 }
 
 const RAKE=0.05;
@@ -1858,6 +1865,7 @@ function AuthModal({ onClose }){
       </>}
       <button className="authclose" onClick={onClose}>Schließen</button>
       <div className="authver">Build {BUILD}</div>
+      {oauthDebug && <div className="authmsg bad" style={{marginTop:8}}>{oauthDebug}</div>}
     </div>
   </div>;
 }
