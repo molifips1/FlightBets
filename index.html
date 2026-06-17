@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v31 -->
+<!-- build: v2026-06-16-v32 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1869,6 +1869,56 @@ function AuthModal({ onClose }){
   </div>;
 }
 
+function FeedbackModal({ onClose, user, setToast }){
+  const [text,setText]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [done,setDone]=useState(false);
+  const [err,setErr]=useState(null);
+  async function submit(){
+    const message=text.trim();
+    if(!message){ setErr("Bitte beschreibe kurz das Problem."); return; }
+    if(!CONFIG.API_BASE){ setErr("Kein Server verbunden."); return; }
+    setBusy(true); setErr(null);
+    try{
+      const r=await fetch(`${CONFIG.API_BASE}/api/feedback`,{
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({
+          message,
+          email:(user&&user.email)||"",
+          page:(window.location.hash||window.location.pathname||""),
+          ua:(navigator.userAgent||"")
+        })
+      });
+      const d=await r.json().catch(()=>({}));
+      if(r.ok && d.ok) setDone(true);
+      else setErr(d.error==="empty"?"Bitte beschreibe kurz das Problem.":"Konnte nicht gesendet werden. Bitte später erneut versuchen.");
+    }catch(e){ setErr("Server nicht erreichbar. Bitte später erneut versuchen."); }
+    finally{ setBusy(false); }
+  }
+  return <div className="modal-bg" onClick={onClose}>
+    <div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h">🐞 Fehler melden</div>
+      {done ? <>
+        <div className="authmsg ok">Danke! Deine Meldung ist angekommen. 🙏</div>
+        <button className="authclose" onClick={onClose}>Schließen</button>
+      </> : <>
+        <p style={{fontSize:13,color:"var(--muted)",margin:"0 0 10px",lineHeight:1.5}}>
+          Was ist schiefgelaufen? Je genauer du es beschreibst, desto schneller können wir es beheben.
+        </p>
+        <textarea className="authinput" style={{minHeight:120,resize:"vertical",fontFamily:"inherit"}}
+          placeholder="z. B. Auf der Flug-Detailseite passiert nichts, wenn ich auf „Wetten“ tippe…"
+          value={text} onChange={e=>setText(e.target.value)} maxLength={4000}/>
+        {err && <div className="authmsg bad">{err}</div>}
+        <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!text.trim()} onClick={submit}>
+          {busy?"…":"Absenden"}
+        </button>
+        <button className="authclose" onClick={onClose}>Abbrechen</button>
+      </>}
+    </div>
+  </div>;
+}
+
 function Leaderboard({ players, me }){
   if(players===null) return <div className="lb-empty">Lade Rangliste…</div>;
   if(!players.length) return <div className="lb-empty">
@@ -2384,6 +2434,7 @@ function App(){
   const wallet = serverWallet.balance;
   const leaderboard = useLeaderboard(tab==="rank", bump);
   const [authOpen,setAuthOpen]=useState(false);
+  const [feedbackOpen,setFeedbackOpen]=useState(false);
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
   const [pick,setPick]=useState(null);
@@ -2552,7 +2603,7 @@ function App(){
           <button className="menu-item" onClick={()=>{setTab("settings");setMenuOpen(false);}}><span className="mi-i">⚙️</span>Einstellungen</button>
           <button className="menu-item" onClick={()=>{setTab("legal");setMenuOpen(false);}}><span className="mi-i">📄</span>Impressum &amp; Datenschutz</button>
           <button className="menu-item" onClick={()=>{setTab("about");setMenuOpen(false);}}><span className="mi-i">ℹ️</span>Über uns</button>
-          <button className="menu-item" onClick={()=>setToast("Fehler melden — bald verfügbar")}><span className="mi-i">🐞</span>Fehler melden<span className="mi-soon">bald</span></button>
+          <button className="menu-item" onClick={()=>{setMenuOpen(false);setFeedbackOpen(true);}}><span className="mi-i">🐞</span>Fehler melden</button>
           <button className="menu-item" onClick={()=>setToast("Weitere Sprachen — bald verfügbar")}><span className="mi-i">🌐</span>Sprache<span className="mi-soon">DE</span></button>
 
           <div className="menu-div"/>
@@ -2569,6 +2620,7 @@ function App(){
     </>}
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
+    {feedbackOpen && <FeedbackModal onClose={()=>setFeedbackOpen(false)} user={user} setToast={setToast}/>}
 
     {tab==="settings" ? (
       <Settings user={user} theme={theme} setTheme={setTheme} muted={muted} setMuted={setMuted} signOut={signOut} setToast={setToast}/>
