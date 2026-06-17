@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-googlelogin-v21 -->
+<!-- build: v2026-06-16-googlelogin-v22 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1737,7 +1737,27 @@ function useAuth(){
   useEffect(()=>{
     if(!sb) return;
     let dead=false;
-    sb.auth.getSession().then(({data})=>{ if(!dead){ setUser(data?.session?.user||null); setReady(true); } });
+    async function init(){
+      // Establish the session from the OAuth redirect hash ourselves. On some
+      // mobile browsers Supabase's automatic detection silently no-ops, leaving
+      // the #access_token sitting in the URL and the user logged out until a
+      // second sign-in. Parsing it here makes the very first tap work.
+      try{
+        const h = window.location.hash || "";
+        if(h.indexOf("access_token=")!==-1){
+          const p = new URLSearchParams(h.replace(/^#+/,""));
+          const access_token = p.get("access_token");
+          const refresh_token = p.get("refresh_token");
+          if(access_token && refresh_token){
+            await sb.auth.setSession({ access_token, refresh_token });
+            try{ history.replaceState(null,"", window.location.pathname + window.location.search); }catch(_){}
+          }
+        }
+      }catch(e){}
+      const { data } = await sb.auth.getSession();
+      if(!dead){ setUser(data?.session?.user||null); setReady(true); }
+    }
+    init();
     const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(!dead) setUser(session?.user||null); });
     return ()=>{ dead=true; sub?.subscription?.unsubscribe?.(); };
   },[]);
