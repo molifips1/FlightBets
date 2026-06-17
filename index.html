@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-nofab-v20 -->
+<!-- build: v2026-06-16-googlelogin-v21 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -699,8 +699,19 @@ if (window.location.hash.startsWith("##")) {
 }
 
 // Supabase client (null if not configured yet — app still works for browsing).
+// flowType:"implicit" returns the token directly in the URL hash on redirect —
+// this avoids the PKCE code-verifier getting lost across mobile browser
+// contexts, which made Google sign-in require two taps. detectSessionInUrl lets
+// the client establish the session automatically when the redirect lands.
 const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes("YOUR-PROJECT"))
-  ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+      auth: {
+        flowType: "implicit",
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
   : null;
 
 const RAKE=0.05;
@@ -1812,7 +1823,7 @@ function AuthModal({ onClose }){
         {mode!=="reset" && <>
           <div className="author"><span>oder</span></div>
           <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:REDIRECT_URL}})}>
-            <span style={{fontWeight:700}}>G</span> Mit Google anmelden
+            Mit Google anmelden
           </button>
         </>}
       </>}
