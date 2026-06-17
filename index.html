@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v27 -->
+<!-- build: v2026-06-16-v28 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -683,7 +683,7 @@ const REDIRECT_URL = window.location.origin + window.location.pathname;
 
 // Human-visible build tag (shown on the login screen) so we can tell at a glance
 // which version is actually running after a cache/redirect — not just what's in git.
-const BUILD = "v27";
+const BUILD = "v28";
 
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
@@ -704,15 +704,16 @@ if (window.location.hash.startsWith("##")) {
 }
 
 // Supabase client (null if not configured yet — app still works for browsing).
-// flowType:"implicit" returns the token directly in the URL hash on redirect —
-// this avoids the PKCE code-verifier getting lost across mobile browser
-// contexts, which made Google sign-in require two taps. detectSessionInUrl lets
-// the client establish the session automatically when the redirect lands.
+// flowType:"implicit" returns the token directly in the URL hash on redirect.
+// detectSessionInUrl is OFF on purpose: Supabase's auto-detection was grabbing
+// the token from the URL before our own handler could, then silently failing to
+// establish the session — leaving the user logged out. We process the hash
+// ourselves (just below) so it's deterministic.
 const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes("YOUR-PROJECT"))
   ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
       auth: {
         flowType: "implicit",
-        detectSessionInUrl: true,
+        detectSessionInUrl: false,
         persistSession: true,
         autoRefreshToken: true,
       },
