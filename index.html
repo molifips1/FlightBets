@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v26 -->
+<!-- build: v2026-06-16-v27 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -683,7 +683,7 @@ const REDIRECT_URL = window.location.origin + window.location.pathname;
 
 // Human-visible build tag (shown on the login screen) so we can tell at a glance
 // which version is actually running after a cache/redirect — not just what's in git.
-const BUILD = "v26";
+const BUILD = "v27";
 
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
@@ -726,7 +726,11 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
 // session. `oauthReady` lets useAuth wait for this before reading the session.
 let oauthReady = Promise.resolve();
 window.__oauthDebug = "";
-function _setODbg(s){ window.__oauthDebug = s; try{ window.dispatchEvent(new Event("oauthdebug")); }catch(_){} }
+function _setODbg(s){
+  window.__oauthDebug = s;
+  try{ localStorage.setItem("fb_oauth_dbg", s + " · " + new Date().toLocaleTimeString()); }catch(_){}
+  try{ window.dispatchEvent(new Event("oauthdebug")); }catch(_){}
+}
 if (sb && window.location.hash.indexOf("access_token=") !== -1) {
   try {
     const p = new URLSearchParams(window.location.hash.replace(/^#+/, ""));
@@ -1806,12 +1810,13 @@ function useWallet(bump, user){
 
 function AuthModal({ onClose }){
   const [mode,setMode]=useState("login"); // login | signup
-  const [oauthMsg,setOauthMsg]=useState(window.__oauthDebug||"");
+  const [oauthMsg,setOauthMsg]=useState(window.__oauthDebug || (()=>{ try{ return localStorage.getItem("fb_oauth_dbg")||""; }catch(_){ return ""; } })());
   useEffect(()=>{
-    const h=()=>setOauthMsg(window.__oauthDebug||"");
-    window.addEventListener("oauthdebug",h);
-    setOauthMsg(window.__oauthDebug||"");
-    return ()=>window.removeEventListener("oauthdebug",h);
+    const read=()=>{ let v=window.__oauthDebug; if(!v){ try{ v=localStorage.getItem("fb_oauth_dbg")||""; }catch(_){ v=""; } } setOauthMsg(v); };
+    window.addEventListener("oauthdebug",read);
+    window.addEventListener("storage",read);   // catches the token landing in another tab
+    read();
+    return ()=>{ window.removeEventListener("oauthdebug",read); window.removeEventListener("storage",read); };
   },[]);
   const [email,setEmail]=useState("");
   const [pass,setPass]=useState("");
