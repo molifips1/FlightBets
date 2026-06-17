@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v33 -->
+<!-- build: v2026-06-16-v34 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2693,13 +2693,15 @@ function App(){
           </div>;
         }
 
-        // "Aktiv": bettable flights as cards from the live board.
+        // "Aktiv": bettable flights as cards from the live board — soonest
+        // departure first (chronological), bigger pool only as a tiebreaker.
         const shown = liveMarkets
           .filter(m => m.tab==="aktiv")
           .sort((a,b)=>{
-            const va = total(a), vb = total(b);
-            if (vb !== va) return vb - va;
-            return new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime();
+            const ta = new Date(a.depISO || 0).getTime();
+            const tb = new Date(b.depISO || 0).getTime();
+            if (ta !== tb) return ta - tb;
+            return total(b) - total(a);
           });
         if (dataStatus==="live" && shown.length===0) {
           return <div className="empty"><div className="e1">🕐</div><div className="e2">Gerade keine wettbaren Flüge</div><div className="e3">Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.</div></div>;
