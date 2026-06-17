@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-about-v16 -->
+<!-- build: v2026-06-16-aboutui-v17 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -610,6 +610,37 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ctable-input:focus{border-color:var(--brand)}
 .ct-none{text-align:center;color:var(--muted);padding:22px 14px;font-style:italic}
 .about-tag{font-family:Archivo;font-weight:800;font-size:18px;color:var(--brand);margin:0 0 14px}
+/* ---- About page ---- */
+.about{max-width:760px;margin:0 auto}
+.about-hero{position:relative;overflow:hidden;border-radius:20px;padding:30px 24px;color:#fff;margin-top:6px;
+  background:linear-gradient(120deg,#C8102E,#7A0A1C)}
+[data-theme="dark"] .about-hero{background:linear-gradient(120deg,#A50D26,#4E0712)}
+.about-hero::after{content:"✈";position:absolute;right:-8px;top:-16px;font-size:128px;opacity:.10;transform:rotate(-18deg)}
+.about-hero-k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:2px;opacity:.85}
+.about-hero-t{font-family:Archivo;font-weight:800;font-size:27px;line-height:1.14;letter-spacing:-.5px;margin:10px 0 16px;max-width:20ch;position:relative}
+.about-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:7px 14px;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;letter-spacing:.5px}
+.about-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+@media(max-width:520px){.about-stats{grid-template-columns:repeat(2,1fr)}}
+.about-stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 10px;text-align:center}
+.as-v{display:block;font-family:Archivo;font-weight:800;font-size:23px;color:var(--brand);line-height:1}
+.as-star{font-size:14px}
+.as-l{display:block;font-size:11px;color:var(--muted);margin-top:6px}
+.about-body{margin:20px 2px}
+.about-body p{font-size:15.5px;line-height:1.62;color:var(--ink);margin:0 0 15px}
+.about-body p:first-child{font-size:16.5px}
+.about-quote{margin:22px 0;padding:6px 0 6px 18px;border-left:3px solid var(--brand);
+  font-family:Archivo;font-weight:800;font-size:20px;line-height:1.35;color:var(--ink)}
+.about-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:14px 0}
+.about-card-icon{font-size:26px;margin-bottom:8px;line-height:1}
+.about-card h3{font-family:Archivo;font-weight:800;font-size:19px;margin:0 0 9px;color:var(--ink)}
+.about-card p{font-size:14.5px;line-height:1.6;color:var(--muted);margin:0}
+.about-sources{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.about-src{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink);
+  background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px 11px}
+.about-foot{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted);margin:24px 0 6px}
 </style>
 </head>
 <body>
@@ -2133,29 +2164,45 @@ function Legal(){
 // brackets to pick, an honest payout estimate, and a big place button. Slides
 // up from the bottom on mobile; centers on desktop.
 function About(){
-  return <div className="legal">
-    <div className="rankhead">
-      <h2>Über flug.bet</h2>
-      <p>Wir verwandeln kollektives Leid in fiktive Gewinne.</p>
+  return <div className="about">
+    <div className="about-hero">
+      <div className="about-hero-k">ÜBER FLUG.BET · DAS FRUSTVENTIL</div>
+      <h1 className="about-hero-t">Wir verwandeln kollektives Leid in fiktive Gewinne.</h1>
+      <div className="about-hero-badge">★ 1,3 Sterne · 100 % Frust</div>
     </div>
 
-    <section className="legal-sec">
-      <p className="about-tag">1,3 Sterne. 100 % Frust.</p>
+    <div className="about-stats">
+      <div className="about-stat"><span className="as-v">1,3<span className="as-star">★</span></span><span className="as-l">Trustpilot BER</span></div>
+      <div className="about-stat"><span className="as-v">DACH</span><span className="as-l">Fokus-Region</span></div>
+      <div className="about-stat"><span className="as-v">0 €</span><span className="as-l">echtes Geld</span></div>
+      <div className="about-stat"><span className="as-v">2</span><span className="as-l">Live-Datenquellen</span></div>
+    </div>
+
+    <div className="about-body">
       <p>Mein Leben spielt sich aktuell zwischen meinem Studium im sonnigen Barcelona und meiner Heimat Berlin ab. Wer viel fliegt, kennt das Problem, aber wer ab Berlin fliegt, kennt den „Pannenflughafen".</p>
-      <p>Alles begann nach meiner wiederholten Rekordverspätung am BER. Während ich geschlagene vier Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich abzuheben, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf wetten. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut. Mein persönliches Frustventil.</p>
+      <p>Alles begann nach meiner wiederholten Rekordverspätung am BER. Während ich geschlagene vier Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich abzuheben, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf wetten. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut.</p>
+      <blockquote className="about-quote">Mein persönliches Frustventil.</blockquote>
       <p>Der offizielle Name lautet Flughafen Berlin Brandenburg „Willy Brandt". Doch nach jahrelangen Verzögerungen und massiven Baumängeln startete er als „Bauruine" und Treppenwitz der Nation. Er hat Legenden wie Tegel und Tempelhof abgelöst, nur um sich stolze 1,3 Sterne auf Trustpilot zu verdienen. Schon paradox: Jetzt baut ein einzelner Student aus der Ferne mit zwei APIs ein schonungsloseres Verspätungstracking als der Hauptstadtflughafen mit seinen Millionenbudgets.</p>
       <p>Die Flugdaten und Verspätungen in dieser App stammen knallhart aus der Realität. Dein Kontostand hingegen ist pure Fantasie. Ein legales Wettbüro aufzuziehen, erfordert massiv Bürokratie. Deshalb starten wir dieses Projekt als reines Sozialexperiment mit striktem Spielgeld. Lade deine Freunde ein und schließe Wetten darauf ab, ob der Flieger pünktlich abhebt oder dem Namen „Pannenflughafen" wieder alle Ehre macht. Letzteres ist wahrscheinlicher, aber so macht das Warten wenigstens Spaß.</p>
-    </section>
+    </div>
 
-    <section className="legal-sec">
+    <div className="about-card">
+      <div className="about-card-icon">📡</div>
       <h3>Eiskalte Radarfakten</h3>
-      <p>Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radardaten und Flughafendaten über AeroDataBox und FlightAware ab. Wenn du deinen Einsatz auf eine bestimmte Maschine von Berlin nach Frankfurt setzt, tracken wir exakt diesen Flugverkehr. Unser Fokus liegt dabei auf der DACH Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.</p>
-    </section>
+      <p>Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radardaten und Flughafendaten ab. Wenn du deinen Einsatz auf eine bestimmte Maschine von Berlin nach Frankfurt setzt, tracken wir exakt diesen Flugverkehr. Unser Fokus liegt dabei auf der DACH-Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.</p>
+      <div className="about-sources">
+        <span className="about-src">AeroDataBox</span>
+        <span className="about-src">FlightAware</span>
+      </div>
+    </div>
 
-    <section className="legal-sec">
+    <div className="about-card">
+      <div className="about-card-icon">💸</div>
       <h3>Frust als Währung</h3>
       <p>Wir verpacken den Flughafenwahnsinn im Gewand einer Wettplattform, um die ständigen Ausfälle sichtbarer zu machen. Auf flug.bet fließen keine echten Euros. Du spielst ausschließlich mit fiktivem Guthaben, kannst nichts einzahlen und dir nichts auszahlen lassen. Es geht einfach darum, dem Frust ein Ventil zu geben und das Warten am Gate zu gamifizieren. Wer echten Nervenkitzel mit finanziellem Risiko sucht, bucht am besten einfach ein reguläres Ticket ab Berlin.</p>
-    </section>
+    </div>
+
+    <div className="about-foot">flug.bet · Spielgeld · keine echten Einsätze</div>
   </div>;
 }
 
