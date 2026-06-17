@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-googlelogin-v23 -->
+<!-- build: v2026-06-16-v24 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -618,6 +618,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ctable-input:focus{border-color:var(--brand)}
 .ct-none{text-align:center;color:var(--muted);padding:22px 14px;font-style:italic}
 .about-tag{font-family:Archivo;font-weight:800;font-size:18px;color:var(--brand);margin:0 0 14px}
+.authver{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);margin-top:10px;opacity:.7}
 /* ---- About page ---- */
 .about{max-width:760px;margin:0 auto}
 .about-hero{position:relative;overflow:hidden;border-radius:20px;padding:30px 24px;color:#fff;margin-top:6px;
@@ -679,6 +680,10 @@ const CONFIG = {
 // Clean app URL with NO hash/query — used as the OAuth/redirect target so
 // Supabase appends a single "#access_token=…" instead of doubling to "##".
 const REDIRECT_URL = window.location.origin + window.location.pathname;
+
+// Human-visible build tag (shown on the login screen) so we can tell at a glance
+// which version is actually running after a cache/redirect — not just what's in git.
+const BUILD = "v24";
 
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
@@ -1852,6 +1857,7 @@ function AuthModal({ onClose }){
         </>}
       </>}
       <button className="authclose" onClick={onClose}>Schließen</button>
+      <div className="authver">Build {BUILD}</div>
     </div>
   </div>;
 }
