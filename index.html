@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v28 -->
+<!-- build: v2026-06-16-v29 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -683,7 +683,7 @@ const REDIRECT_URL = window.location.origin + window.location.pathname;
 
 // Human-visible build tag (shown on the login screen) so we can tell at a glance
 // which version is actually running after a cache/redirect — not just what's in git.
-const BUILD = "v28";
+const BUILD = "v29";
 
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
@@ -732,23 +732,33 @@ function _setODbg(s){
   try{ localStorage.setItem("fb_oauth_dbg", s + " · " + new Date().toLocaleTimeString()); }catch(_){}
   try{ window.dispatchEvent(new Event("oauthdebug")); }catch(_){}
 }
-if (sb && window.location.hash.indexOf("access_token=") !== -1) {
+if (sb) {
   try {
-    const p = new URLSearchParams(window.location.hash.replace(/^#+/, ""));
-    const access_token = p.get("access_token");
-    const refresh_token = p.get("refresh_token");
-    if (access_token && refresh_token) {
-      _setODbg("Token erkannt — melde an…");
-      oauthReady = sb.auth.setSession({ access_token, refresh_token })
-        .then(({ data, error }) => {
-          if (error) _setODbg("Login-Fehler: " + error.message);
-          else if (!data || !data.session) _setODbg("Login-Fehler: keine Sitzung zurückgegeben");
-          else _setODbg("Angemeldet ✓");
-        })
-        .catch((e) => { _setODbg("Login-Ausnahme: " + ((e && e.message) || String(e))); })
-        .finally(() => { try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {} });
+    const h = window.location.hash || "";
+    const q = window.location.search || "";
+    if (h.indexOf("access_token=") !== -1) {
+      const p = new URLSearchParams(h.replace(/^#+/, ""));
+      const access_token = p.get("access_token");
+      const refresh_token = p.get("refresh_token");
+      if (access_token && refresh_token) {
+        _setODbg("Token erkannt — melde an…");
+        oauthReady = sb.auth.setSession({ access_token, refresh_token })
+          .then(({ data, error }) => {
+            if (error) _setODbg("Login-Fehler: " + error.message);
+            else if (!data || !data.session) _setODbg("Login-Fehler: keine Sitzung zurückgegeben");
+            else _setODbg("Angemeldet ✓");
+          })
+          .catch((e) => { _setODbg("Login-Ausnahme: " + ((e && e.message) || String(e))); })
+          .finally(() => { try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {} });
+      } else {
+        _setODbg("Token unvollständig empfangen");
+      }
+    } else if (q.indexOf("code=") !== -1) {
+      _setODbg("Link enthält ?code= statt Token (PKCE) — diag");
     } else {
-      _setODbg("Token unvollständig empfangen (access/refresh fehlt)");
+      // No token in this context. Record it so we can tell on mobile whether the
+      // redirect token reached the tab the user is actually looking at.
+      _setODbg("Kein Token im Link beim Laden (hash " + (h ? h.length + " Zeichen" : "leer") + ")");
     }
   } catch (e) { _setODbg("Hash-Fehler: " + ((e && e.message) || String(e))); }
 }
