@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v40 -->
+<!-- build: v2026-06-16-v41 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -801,6 +801,10 @@ function displayOdds(outcomes, o, seed){
 const fmt=n=>Math.round(n).toLocaleString("en-US");
 const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
 const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
+const STATUS_EN={good:"On time",mid:"Slightly late",warn:"Delayed",bad:"Heavily delayed"};
+const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
+// Outcome bracket labels are mostly universal (+15m…); only "Pünktlich" differs.
+const outLabel=s=> (s==="Pünktlich") ? t("Pünktlich","On time") : s;
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
 
@@ -889,7 +893,7 @@ function Breakdown({m,total}){
   // Show the live odds (×) per bracket — what you'd win per € — since the bar
   // above already encodes the % share. Odds answer "what's my payout".
   return <div className="brk">{m.outcomes.map(o=>
-    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{o.label} · <b>{o.pool>0?<RollingNumber value={t/o.pool} format={v=>v.toFixed(1)+"×"}/>:"—"}</b></span>)}</div>;
+    <span className="bk" key={o.id}><span className="d" style={{background:TONE[o.tone]}}/>{outLabel(o.label)} · <b>{o.pool>0?<RollingNumber value={t/o.pool} format={v=>v.toFixed(1)+"×"}/>:"—"}</b></span>)}</div>;
 }
 
 const SEED=[
@@ -938,7 +942,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       <div className="metaline"><span>{m.yesterday}</span></div>
       <div className="metaline"><span>⏳ Schließt in <b style={{color:"var(--ink)"}}>{m.closes}</b></span><span className="bonus">⚡ {m.bonus}</span></div>
       {m.outcomes.map(o=><div className="ans" key={o.id} onClick={()=>{setOpenBet(m.id);setPick(o.id)}}>
-        <span className="al">{o.tone==="good"?"🔥":"❄️"} {o.label}</span><span className="ap">{t>0?Math.round(o.pool/t*100)+"%":"—"}</span></div>)}
+        <span className="al">{o.tone==="good"?"🔥":"❄️"} {outLabel(o.label)}</span><span className="ap">{t>0?Math.round(o.pool/t*100)+"%":"—"}</span></div>)}
       {openBet===m.id && <BetPanel m={m} total={t} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet} ops={ops} onSettle={onSettle}/>}
     </div>;
   }
@@ -996,7 +1000,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       )}
 
       <div className="statusline">
-        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
+        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.status)):t("Laufende Quote","Live odds")}</span>
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
 
@@ -1012,12 +1016,12 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
               const odds = displayOdds(m.outcomes, o, m.seed);
               return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
                 <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
-                <span className="cbk-name">{o.label}</span>
+                <span className="cbk-name">{outLabel(o.label)}</span>
                 <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
               </button>;
             })}
           </div>
-        : <div className="cfoot"><button className="betbtn locked" disabled>{m.phase==="cancelled"?"Annulliert":m.phase==="landed"?"Gelandet":m.phase==="enroute"?"Abgeflogen":"Geschlossen"}</button></div>}
+        : <div className="cfoot"><button className="betbtn locked" disabled>{m.phase==="cancelled"?t("Annulliert","Cancelled"):m.phase==="landed"?t("Gelandet","Landed"):m.phase==="enroute"?t("Abgeflogen","Departed"):t("Geschlossen","Closed")}</button></div>}
     </div>
   );
 }
@@ -1181,7 +1185,7 @@ function BetCountdown({ closeISO }){
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
   if(!closeISO) return null;
   const diff = Math.floor((new Date(closeISO).getTime()-now)/1000);
-  if(diff<=0) return <span className="betcd closed">🔒 Wetten geschlossen</span>;
+  if(diff<=0) return <span className="betcd closed">🔒 {t("Wetten geschlossen","Betting closed")}</span>;
   const hh=Math.floor(diff/3600), mm=Math.floor((diff%3600)/60), ss=diff%60;
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 15*60; // last 15 min → urgent
@@ -1197,7 +1201,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
   return <div className="betpanel">
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
-        <div className="ol">{o.label}</div>
+        <div className="ol">{outLabel(o.label)}</div>
         <div className="ox"><span className="om"><RollingNumber value={mult(o)} format={v=>v.toFixed(2)+"×"}/></span><span className="op"><RollingNumber value={o.pool}/> €</span></div>
       </button>)}
     </div>
@@ -1210,7 +1214,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,flexWrap:"wrap"}}>
         <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>VORAUSSICHTLICHER GEWINN</div>
           <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>nach {RAKE*100}% Gebühr</span></div></div>
-        <button className="betbtn" disabled={stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{stake>wallet?"Nicht genug":"Wette platzieren"}</button>
+        <button className="betbtn" disabled={stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{stake>wallet?t("Nicht genug","Too low"):t("Wette platzieren","Place bet")}</button>
       </div>
     </div>}
     <div className="note">Abrechnung über: {m.settles}.</div>
@@ -1298,7 +1302,7 @@ function Detail({m,total,back,initialPick,...bet}){
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
-            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?"Status unbekannt":STATUS[m.status]):"Laufende Quote"}</span>
+            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
           <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
@@ -1315,11 +1319,11 @@ function Detail({m,total,back,initialPick,...bet}){
               const on = pick===o.id;
               return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>{setPick(o.id);Sound.select();}}>
                 <div className="bk-l">
-                  <span className="bk-name">{o.label}</span>
+                  <span className="bk-name">{outLabel(o.label)}</span>
                   {on && <span className="bk-sel">GEWÄHLT</span>}
                 </div>
                 <div className="bk-mid">
-                  <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<><RollingNumber value={pct} format={v=>Math.round(v)+"%"}/> des Pools</>:"—"}</div>
+                  <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<><RollingNumber value={pct} format={v=>Math.round(v)+"%"}/> {t("des Pools","of pool")}</>:"—"}</div>
                   <div className="bk-bar"><span style={{width:(share*100)+"%"}}/></div>
                 </div>
                 <div className="bk-odds">{mult!=null?<RollingNumber value={mult} format={v=>v.toFixed(2)+"×"}/>:"—"}</div>
@@ -1347,7 +1351,7 @@ function Detail({m,total,back,initialPick,...bet}){
       {/* RIGHT: stake panel + discussion */}
       <div>
         <div className="panelbox">
-          <div className="sectlbl">{m.settled ? "Abgerechnet · Wetten geschlossen" : "Live · Jetzt wetten"}</div>
+          <div className="sectlbl">{m.settled ? t("Abgerechnet · Wetten geschlossen","Settled · betting closed") : t("Live · Jetzt wetten","Live · bet now")}</div>
           {m.settled ? <div className="closedbox">
             <div className="closed-em">{m.phase==="cancelled"?"✕":"✓"}</div>
             <div className="closed-t">{m.phase==="cancelled"?"Flug annulliert":"Flug abgeflogen"}</div>
@@ -1355,7 +1359,7 @@ function Detail({m,total,back,initialPick,...bet}){
           </div> : <>
           {!pick && <div className="pickhint">Wähle links eine Verspätungs-Option, um zu wetten.</div>}
           {pick && <div className="stakebox">
-            <div className="stakerow"><span className="stakelbl">DEIN TIPP</span><span className="stakeval">{sel.label}</span></div>
+            <div className="stakerow"><span className="stakelbl">{t("DEIN TIPP","YOUR PICK")}</span><span className="stakeval">{outLabel(sel.label)}</span></div>
             <div className="stakerow"><span className="stakelbl">EINSATZ</span><span className="stakeval">{fmt(s)} €</span></div>
             <input type="range" min={10} max={Math.max(10,bet.wallet)} step={10} value={s} onChange={e=>bet.setStake(+e.target.value)}/>
             <div className="quickadd">
@@ -1367,7 +1371,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <b>{fmt(proj(sel,s))} €</b>
             </div>
             <div className="paynote">Parimutuel: Gewinner teilen den Pool (abzgl. {RAKE*100}% Gebühr) anteilig zum Einsatz. Schätzung aus dem aktuellen Pool — verschiebt sich mit neuen Wetten.</div>
-            <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{bet.stake>bet.wallet?"Nicht genug Guthaben":"Wette platzieren"}</button>
+            <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{bet.stake>bet.wallet?t("Nicht genug Guthaben","Not enough balance"):t("Wette platzieren","Place bet")}</button>
           </div>}
           </>}
           {bet.ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
@@ -2048,7 +2052,7 @@ function BetCelebration({ data, onDone }){
     <div className="celebrate-card">
       <div className="celebrate-check">✓</div>
       <div className="celebrate-t">{data.big?"Erste Wette platziert! 🎉":"Wette platziert!"}</div>
-      <div className="celebrate-s">{fmt(data.stake)} € auf „{data.label}"</div>
+      <div className="celebrate-s">{fmt(data.stake)} € {t("auf","on")} „{outLabel(data.label)}"</div>
     </div>
     {bits.map((b,i)=><span key={i} className="confetti" style={{
       left:b.left+"%", background:b.col,
@@ -2359,7 +2363,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
         <button className="sheet-x" onClick={onClose} aria-label="Schließen">✕</button>
       </div>
 
-      <div className="sheet-lbl">Einsatz wählen</div>
+      <div className="sheet-lbl">{t("Einsatz wählen","Choose stake")}</div>
       <div className="chips-row">
         {CHIPS.map(c=><button key={c} disabled={c>wallet}
           className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
@@ -2372,7 +2376,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
           const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
           return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
             <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
-            <span className="sheet-bk-name">{x.label}</span>
+            <span className="sheet-bk-name">{outLabel(x.label)}</span>
             <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
           </button>;
         })}
@@ -2383,7 +2387,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
         <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
       </div>
       <button className="sheet-place" disabled={tooMuch||stake<=0} onClick={place}>
-        {tooMuch ? "Nicht genug Guthaben" : `Wette platzieren — ${stake}€ auf ${o.label}`}
+        {tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
       </button>
     </div>
   </div>;
@@ -2407,7 +2411,7 @@ function ClosedTable({ rows }){
     try { return new Date(iso).toLocaleTimeString("de-DE",{ timeZone:"Europe/Berlin", hour:"2-digit", minute:"2-digit", hour12:false }); }
     catch(e){ return "—"; }
   };
-  const bucketLabel = d => d>=60?"+60m" : d>=30?"+30m" : d>=15?"+15m" : "Pünktlich";
+  const bucketLabel = d => d>=60?"+60m" : d>=30?"+30m" : d>=15?"+15m" : t("Pünktlich","On time");
   const query = q.trim().toLowerCase();
   const filtered = query
     ? rows.filter(r => (r.dest||"").toLowerCase().includes(query) || (r.ident||"").toLowerCase().includes(query))
@@ -2419,14 +2423,14 @@ function ClosedTable({ rows }){
     <div className="ctable-wrap">
       <table className="ctable">
         <thead>
-          <tr><th>Flug</th><th>Abflug</th><th>Ankunft</th><th>Datum</th><th>Uhrzeit</th><th>Ergebnis</th><th>Gewinner</th><th className="ta-r">Wetten</th><th className="ta-r">Pool</th></tr>
+          <tr><th>{t("Flug","Flight")}</th><th>{t("Abflug","Dep")}</th><th>{t("Ankunft","Arr")}</th><th>{t("Datum","Date")}</th><th>{t("Uhrzeit","Time")}</th><th>{t("Ergebnis","Result")}</th><th>{t("Gewinner","Winner")}</th><th className="ta-r">{t("Wetten","Bets")}</th><th className="ta-r">{t("Pool","Pool")}</th></tr>
         </thead>
         <tbody>
           {filtered.map((r,i)=>{
             const cancelled = r.cancelled===1 || r.cancelled===true;
             const d = r.delayMin;
             const status = cancelled ? "bad" : d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
-            const label  = cancelled ? "Annulliert" : d==null ? "k. A." : (d>=0?"+":"")+d+"m";
+            const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
             const settled = r.poolTotal!=null;
             return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
@@ -2571,7 +2575,7 @@ function App(){
       });
       const d = await r.json();
       if(d.error){
-        setToast(d.error==="insufficient_funds"?"Nicht genug Guthaben":d.error==="market_settled"?"Markt bereits abgerechnet":d.error==="betting_closed"?"Wetten für diesen Flug sind geschlossen":d.error==="unauthorized"?"Bitte neu anmelden":"Wette fehlgeschlagen");
+        setToast(d.error==="insufficient_funds"?t("Nicht genug Guthaben","Not enough balance"):d.error==="market_settled"?t("Markt bereits abgerechnet","Market already settled"):d.error==="betting_closed"?t("Wetten für diesen Flug sind geschlossen","Betting is closed for this flight"):d.error==="unauthorized"?t("Bitte neu anmelden","Please sign in again"):t("Wette fehlgeschlagen","Bet failed"));
         return;
       }
       // Success — celebrate. First-ever bet (no prior settled/placed) gets extra flair.
@@ -2700,10 +2704,10 @@ function App(){
         // live board window).
         if (phaseFilter==="ergebnisse") {
           if (closedFlights.loading && closedFlights.rows.length===0) {
-            return <div className="emptyboard"><span className="spin spin-d"/> Lade Ergebnisse…</div>;
+            return <div className="emptyboard"><span className="spin spin-d"/> {t("Lade Ergebnisse…","Loading results…")}</div>;
           }
           if (closedFlights.rows.length===0) {
-            return <div className="empty"><div className="e1">🏁</div><div className="e2">Noch keine Ergebnisse</div><div className="e3">Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.</div></div>;
+            return <div className="empty"><div className="e1">🏁</div><div className="e2">{t("Noch keine Ergebnisse","No results yet")}</div><div className="e3">{t("Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.","Once flights have landed and been recorded, they show up here — with the result and (if bets were placed) the pool.")}</div></div>;
           }
           return <ClosedTable rows={closedFlights.rows}/>;
         }
@@ -2716,7 +2720,7 @@ function App(){
             .filter(m => m.tab==="abgeflogen")
             .sort((a,b)=> new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime());
           if (dataStatus==="live" && running.length===0) {
-            return <div className="empty"><div className="e1">🛫</div><div className="e2">Gerade kein Flug unterwegs</div><div className="e3">Hier erscheinen Flüge, deren Wetten geschlossen sind und die gerade unterwegs sind — das Ergebnis steht noch aus.</div></div>;
+            return <div className="empty"><div className="e1">🛫</div><div className="e2">{t("Gerade kein Flug unterwegs","No flight under way right now")}</div><div className="e3">{t("Hier erscheinen Flüge, deren Wetten geschlossen sind und die gerade unterwegs sind — das Ergebnis steht noch aus.","Flights whose betting has closed and that are currently in the air show up here — the result is still pending.")}</div></div>;
           }
           return <div className="grid">
             {running.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
@@ -2734,7 +2738,7 @@ function App(){
             return total(b) - total(a);
           });
         if (dataStatus==="live" && shown.length===0) {
-          return <div className="empty"><div className="e1">🕐</div><div className="e2">Gerade keine wettbaren Flüge</div><div className="e3">Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.</div></div>;
+          return <div className="empty"><div className="e1">🕐</div><div className="e2">{t("Gerade keine wettbaren Flüge","No bettable flights right now")}</div><div className="e3">{t("Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.","Betting closes 90 minutes before departure. No flight is in the open window right now — often in the evening when BER operations wind down. Check back later.")}</div></div>;
         }
         return <div className="grid">
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
