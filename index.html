@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v32 -->
+<!-- build: v2026-06-16-v33 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2498,7 +2498,7 @@ function App(){
       }catch(_){}
     })();
   },[user]);
-  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | geschlossen
+  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | laeuft | ergebnisse
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
@@ -2652,7 +2652,8 @@ function App(){
 
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Aktiv</button>
-        <button className={"subpill"+(phaseFilter==="geschlossen"?" on":"")} onClick={()=>setPhaseFilter("geschlossen")}>🔒 Geschlossen</button>
+        <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 Läuft</button>
+        <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 Ergebnisse</button>
       </div>
 
       {dataStatus==="connecting" && (
@@ -2665,16 +2666,31 @@ function App(){
       </div>}
 
       {(() => {
-        // "Geschlossen": full chronicle from the database (independent of the
+        // "Ergebnisse": full chronicle from the database (independent of the
         // live board window).
-        if (phaseFilter==="geschlossen") {
+        if (phaseFilter==="ergebnisse") {
           if (closedFlights.loading && closedFlights.rows.length===0) {
-            return <div className="emptyboard"><span className="spin spin-d"/> Lade geschlossene Flüge…</div>;
+            return <div className="emptyboard"><span className="spin spin-d"/> Lade Ergebnisse…</div>;
           }
           if (closedFlights.rows.length===0) {
-            return <div className="empty"><div className="e1">🔒</div><div className="e2">Noch keine geschlossenen Flüge</div><div className="e3">Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.</div></div>;
+            return <div className="empty"><div className="e1">🏁</div><div className="e2">Noch keine Ergebnisse</div><div className="e3">Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.</div></div>;
           }
           return <ClosedTable rows={closedFlights.rows}/>;
+        }
+
+        // "Läuft": betting closed, flight under way, result still pending — the
+        // suspense phase. Cards render locked (no bet button). Soonest-to-resolve
+        // (earliest departure) first.
+        if (phaseFilter==="laeuft") {
+          const running = liveMarkets
+            .filter(m => m.tab==="abgeflogen")
+            .sort((a,b)=> new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime());
+          if (dataStatus==="live" && running.length===0) {
+            return <div className="empty"><div className="e1">🛫</div><div className="e2">Gerade kein Flug unterwegs</div><div className="e3">Hier erscheinen Flüge, deren Wetten geschlossen sind und die gerade unterwegs sind — das Ergebnis steht noch aus.</div></div>;
+          }
+          return <div className="grid">
+            {running.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
+          </div>;
         }
 
         // "Aktiv": bettable flights as cards from the live board.
