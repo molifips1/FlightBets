@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v30 -->
+<!-- build: v2026-06-16-v31 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -618,7 +618,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ctable-input:focus{border-color:var(--brand)}
 .ct-none{text-align:center;color:var(--muted);padding:22px 14px;font-style:italic}
 .about-tag{font-family:Archivo;font-weight:800;font-size:18px;color:var(--brand);margin:0 0 14px}
-.authver{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);margin-top:10px;opacity:.7}
 /* ---- About page ---- */
 .about{max-width:760px;margin:0 auto}
 .about-hero{position:relative;overflow:hidden;border-radius:20px;padding:30px 24px;color:#fff;margin-top:6px;
@@ -681,10 +680,6 @@ const CONFIG = {
 // Supabase appends a single "#access_token=…" instead of doubling to "##".
 const REDIRECT_URL = window.location.origin + window.location.pathname;
 
-// Human-visible build tag (shown on the login screen) so we can tell at a glance
-// which version is actually running after a cache/redirect — not just what's in git.
-const BUILD = "v30";
-
 // XP → level helpers (mirror the worker). Cumulative XP to reach level L is
 // 50*(L-1)*L. Used for the level chip and the profile progress bar.
 function xpForLevel(L){ return 50 * (L - 1) * L; }
@@ -726,46 +721,29 @@ const sb = (window.supabase && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.inclu
 // logged out until a second sign-in. We parse it ourselves and establish the
 // session. `oauthReady` lets useAuth wait for this before reading the session.
 let oauthReady = Promise.resolve();
-window.__oauthDebug = "";
 let _oauthDone = false;
-function _setODbg(s){
-  window.__oauthDebug = s;
-  try{ localStorage.setItem("fb_oauth_dbg", s + " · " + new Date().toLocaleTimeString()); }catch(_){}
-  try{ window.dispatchEvent(new Event("oauthdebug")); }catch(_){}
-}
 // Look for the OAuth token in the URL hash and turn it into a session. Called on
 // load AND a bit later AND on pageshow/hashchange, because some mobile browsers
 // apply or restore the hash after the initial script run (bfcache etc.).
-function _processOAuthHash(reason){
+function _processOAuthHash(){
   if(!sb || _oauthDone) return false;
   const h = window.location.hash || "";
   if(h.indexOf("access_token=") === -1) return false;
   let at, rt;
   try{ const p = new URLSearchParams(h.replace(/^#+/, "")); at = p.get("access_token"); rt = p.get("refresh_token"); }catch(_){}
-  if(!at || !rt){ _setODbg("Token unvollständig ("+reason+")"); return false; }
+  if(!at || !rt) return false;
   _oauthDone = true;
-  _setODbg("Token erkannt ("+reason+") — melde an…");
   oauthReady = sb.auth.setSession({ access_token: at, refresh_token: rt })
-    .then(({ data, error }) => {
-      if (error) { _oauthDone=false; _setODbg("Login-Fehler: " + error.message); }
-      else if (!data || !data.session) { _oauthDone=false; _setODbg("Login-Fehler: keine Sitzung zurückgegeben"); }
-      else _setODbg("Angemeldet ✓");
-    })
-    .catch((e) => { _oauthDone=false; _setODbg("Login-Ausnahme: " + ((e && e.message) || String(e))); })
+    .then(({ data, error }) => { if (error || !data || !data.session) _oauthDone = false; })
+    .catch(() => { _oauthDone = false; })
     .finally(() => { try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {} });
   return true;
 }
-if (sb) {
-  const found = _processOAuthHash("load");
-  if (!found) {
-    const h = window.location.hash || "", q = window.location.search || "";
-    if (q.indexOf("code=") !== -1) _setODbg("Link enthält ?code= statt Token (PKCE) — diag");
-    else _setODbg("Kein Token im Link beim Laden (hash " + (h ? h.length + " Zeichen" : "leer") + ")");
-    // Retry for mobile: late hash, or restored from back/forward cache.
-    setTimeout(()=>_processOAuthHash("verzögert"), 500);
-    window.addEventListener("pageshow", ()=>_processOAuthHash("pageshow"));
-    window.addEventListener("hashchange", ()=>_processOAuthHash("hashchange"));
-  }
+if (sb && !_processOAuthHash()) {
+  // Retry for mobile: late hash, or restored from back/forward cache.
+  setTimeout(_processOAuthHash, 500);
+  window.addEventListener("pageshow", _processOAuthHash);
+  window.addEventListener("hashchange", _processOAuthHash);
 }
 
 const RAKE=0.05;
@@ -1826,14 +1804,6 @@ function useWallet(bump, user){
 
 function AuthModal({ onClose }){
   const [mode,setMode]=useState("login"); // login | signup
-  const [oauthMsg,setOauthMsg]=useState(window.__oauthDebug || (()=>{ try{ return localStorage.getItem("fb_oauth_dbg")||""; }catch(_){ return ""; } })());
-  useEffect(()=>{
-    const read=()=>{ let v=window.__oauthDebug; if(!v){ try{ v=localStorage.getItem("fb_oauth_dbg")||""; }catch(_){ v=""; } } setOauthMsg(v); };
-    window.addEventListener("oauthdebug",read);
-    window.addEventListener("storage",read);   // catches the token landing in another tab
-    read();
-    return ()=>{ window.removeEventListener("oauthdebug",read); window.removeEventListener("storage",read); };
-  },[]);
   const [email,setEmail]=useState("");
   const [pass,setPass]=useState("");
   const [name,setName]=useState("");
@@ -1895,8 +1865,6 @@ function AuthModal({ onClose }){
         </>}
       </>}
       <button className="authclose" onClick={onClose}>Schließen</button>
-      <div className="authver">Build {BUILD}</div>
-      {oauthMsg && <div className={"authmsg "+(/Fehler|Ausnahme/.test(oauthMsg)?"bad":"ok")} style={{marginTop:8}}>{oauthMsg}</div>}
     </div>
   </div>;
 }
