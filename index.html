@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v43 -->
+<!-- build: v2026-06-16-v44 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -775,6 +775,8 @@ const RAKE=0.05;
 const DEFAULT_SEED = { a:100, b:60, c:30, d:50 };
 const SEED_POOL = DEFAULT_SEED;          // back-compat alias
 const SEED_TOTAL = DEFAULT_SEED.a+DEFAULT_SEED.b+DEFAULT_SEED.c+DEFAULT_SEED.d; // 240
+const seedOf = m => (m && m.seed) || DEFAULT_SEED;
+const seedSum = sd => (sd.a||0)+(sd.b||0)+(sd.c||0)+(sd.d||0);
 const PRIOR_N = 12;                       // how many "virtual" samples the default line is worth
 const IDENT_MIN = 8;                      // min flight-number samples before we trust the per-number history over the route
 
@@ -1197,8 +1199,8 @@ function BetCountdown({ closeISO }){
 }
 
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
-  const mult=o=>total/(o.pool||1);
-  const proj=(o,s)=>{const np=o.pool+s,nt=total+s;return (s/np)*nt*(1-RAKE)};
+  const mult=o=>displayOdds(m.outcomes,o,m.seed)||1;
+  const proj=(o,s)=>{const sd=seedOf(m);const np=o.pool+(sd[o.id]||0)+s,nt=total+seedSum(sd)+s;return (s/np)*nt*(1-RAKE)};
   const s=Math.min(stake,wallet);
   return <div className="betpanel">
     <div className="chips">
@@ -1266,7 +1268,7 @@ function Detail({m,total,back,initialPick,...bet}){
   const sel = m.outcomes.find(o=>o.id===pick);
   const s = Math.min(bet.stake, bet.wallet);
   // parimutuel payout estimate for the selected bracket at stake s
-  const proj = (o,st)=>{ if(!o) return 0; const np=o.pool+st, nt=total+st; return (st/np)*nt*(1-RAKE); };
+  const proj = (o,st)=>{ if(!o) return 0; const sd=seedOf(m); const np=o.pool+(sd[o.id]||0)+st, nt=total+seedSum(sd)+st; return (st/np)*nt*(1-RAKE); };
   const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
 
   return <div>
@@ -2350,8 +2352,8 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
   const [stake,setStake]=useState(wallet>=50?50:firstAffordable);
   const o = market.outcomes.find(x=>x.id===oid) || market.outcomes[0];
   const total = market.outcomes.reduce((s,x)=>s+x.pool,0);
-  // Honest payout estimate on the REAL pools (the seed only feeds the × display).
-  const proj = (oo,st)=>{ if(!oo) return 0; const np=(oo.pool||0)+st, nt=total+st; return (st/np)*nt*(1-RAKE); };
+  // Seed is real opening liquidity, included in both odds and payout so they match.
+  const proj = (oo,st)=>{ if(!oo) return 0; const sd=seedOf(market); const np=(oo.pool||0)+(sd[oo.id]||0)+st, nt=total+seedSum(sd)+st; return (st/np)*nt*(1-RAKE); };
   const tooMuch = stake>wallet;
   const place=()=>{ if(tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
@@ -2556,7 +2558,7 @@ function App(){
   };
   const morningLine = useMorningLine();
   const closedFlights = useSettled(bump);
-  const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: blendSeed(morningLine, m.code, m.otherCode) }));
+  const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
 
