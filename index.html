@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v36 -->
+<!-- build: v2026-06-16-v37 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -54,7 +54,7 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing
 .mono{font-family:'IBM Plex Mono',monospace}
 .disp{font-family:Archivo,system-ui,sans-serif}
 button{font-family:inherit}
-.app{max-width:1240px;margin:0 auto;padding:0 18px 120px}
+.app{max-width:1240px;margin:0 auto;padding:0 18px 44px}
 
 /* top bar */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 84%, transparent);
@@ -424,10 +424,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* bottom nav */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:45;background:color-mix(in srgb,var(--card) 95%, transparent);backdrop-filter:saturate(1.15) blur(8px);border-top:1px solid var(--line);
-  display:flex;align-items:stretch;justify-content:center;gap:4px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(14,42,71,.05)}
+  display:none;align-items:stretch;justify-content:center;gap:4px;padding:7px 10px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 20px rgba(14,42,71,.05)}
 .navi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:11px;font-weight:700;background:none;border:none;cursor:pointer;flex:1;max-width:132px;padding:7px 4px;border-radius:15px;font-family:inherit;transition:background .12s,color .12s}
 .navi.on{color:var(--brand);background:color-mix(in srgb,var(--brand) 12%, transparent)}
 .navi .ni{font-size:22px;line-height:1}
+@media(max-width:760px){ .nav{display:flex} .app{padding-bottom:120px} .rank-chip{display:none} }
 .fab{width:56px;height:56px;border-radius:50%;background:var(--brand);color:#fff;border:none;display:grid;place-items:center;
   font-size:22px;margin-top:-26px;box-shadow:0 8px 22px color-mix(in srgb,var(--brand) 50%,transparent);cursor:pointer;flex:0 0 auto}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;
@@ -2582,6 +2583,7 @@ function App(){
       <div className="topr">
         {user ? <>
           {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 {streak}</button>}
+          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 Rang</button>
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <button className="chip" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 Meine Wetten</button>
           <button className="avatar" onClick={()=>setMenuOpen(o=>!o)}/>
@@ -2737,7 +2739,7 @@ function App(){
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">✈️</span>Flüge</button>
       <button className={"navi"+(tab==="profile"?" on":"")} onClick={()=>{ if(user){setTab("profile");setView({page:"home"});} else {setAuthOpen(true);} }}><span className="ni">🎫</span>Wetten</button>
       <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setView({page:"home"})}}><span className="ni">🏆</span>Rang</button>
-      <button className={"navi"+(tab==="settings"?" on":"")} onClick={()=>{setTab("settings");setView({page:"home"})}}><span className="ni">👤</span>Profil</button>
+      <button className={"navi"+(menuOpen?" on":"")} onClick={()=>{setMenuOpen(true)}}><span className="ni">👤</span>Profil</button>
     </div>
 
     {toast && <div className="toast">{toast}</div>}
