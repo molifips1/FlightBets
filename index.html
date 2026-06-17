@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v39 -->
+<!-- build: v2026-06-16-v40 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -803,6 +803,14 @@ const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--ba
 const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
+
+// --- i18n -----------------------------------------------------------------
+// Lightweight translation: write t("Deutsch","English") at each text site.
+// German stays inline (readable); English is the 2nd arg. LANG is updated
+// synchronously inside <App> on every render, so all children read the current
+// language when they call t() during that same render.
+let LANG = (function(){ try{ return store.get("fb_lang","de"); }catch(e){ return "de"; } })();
+function t(de, en){ return (LANG === "en" && en != null) ? en : de; }
 
 // Anonymous player id — one per browser, persisted. Keys the server-side wallet
 // and bets. No login; play money, so a browser identity is enough.
@@ -2442,6 +2450,8 @@ function ClosedTable({ rows }){
 
 function App(){
   const [theme,setTheme]=useState(()=>store.get("fb_theme","light"));
+  const [lang,setLang]=useState(()=>store.get("fb_lang","de"));
+  LANG = lang; // keep the module-level language in sync before children render
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
   const [bump,setBump]=useState(0); // increment to refetch pools+wallet after a bet
   const [tab,setTab]=useState("flights");
@@ -2518,6 +2528,7 @@ function App(){
   const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | laeuft | ergebnisse
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
+  useEffect(()=>{store.set("fb_lang",lang);try{document.documentElement.setAttribute("lang",lang)}catch(_){}},[lang]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
 
   const total=m=>m.outcomes.reduce((s,o)=>s+o.pool,0);
@@ -2584,13 +2595,13 @@ function App(){
       <div className="topr">
         {user ? <>
           {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 {streak}</button>}
-          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 Rang</button>
+          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 {t("Rang","Rank")}</button>
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
-          <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 Meine Wetten</button>
+          <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 {t("Meine Wetten","My bets")}</button>
           <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
         </> : (
           <>
-            <button className="chip" style={{cursor:"pointer",background:"var(--brand)",color:"#fff",borderColor:"var(--brand)",fontWeight:700}} onClick={()=>setAuthOpen(true)}>Anmelden</button>
+            <button className="chip" style={{cursor:"pointer",background:"var(--brand)",color:"#fff",borderColor:"var(--brand)",fontWeight:700}} onClick={()=>setAuthOpen(true)}>{t("Anmelden","Sign in")}</button>
             <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
           </>
         )}
@@ -2605,33 +2616,33 @@ function App(){
             <div className="menu-av">{(displayName||"?")[0].toUpperCase()}</div>
             <div className="menu-id">
               <div className="menu-name">{displayName}</div>
-              <div className="menu-role">FLUGGAST</div>
+              <div className="menu-role">{t("FLUGGAST","PASSENGER")}</div>
             </div>
           </div>
         ) : (
-          <div className="menu-head"><div className="menu-id"><div className="menu-name">Nicht angemeldet</div><div className="menu-role">Gast</div></div></div>
+          <div className="menu-head"><div className="menu-id"><div className="menu-name">{t("Nicht angemeldet","Not signed in")}</div><div className="menu-role">{t("Gast","Guest")}</div></div></div>
         )}
         {user && <div className="menu-pills">
-          <div className="menu-pill"><span className="mp-v">€ {fmt(wallet)}</span><span className="mp-l">Guthaben</span></div>
+          <div className="menu-pill"><span className="mp-v">€ {fmt(wallet)}</span><span className="mp-l">{t("Guthaben","Balance")}</span></div>
           <div className="menu-pill"><span className="mp-v">Lvl {serverWallet.level||levelForXp(serverWallet.xp||0)}</span><span className="mp-l">{serverWallet.xp||0} XP</span></div>
         </div>}
 
         <div className="menu-list">
-          {user && <button className="menu-item" onClick={()=>{setTab("profile");setMenuOpen(false);}}><span className="mi-i">🎫</span>Meine Wetten</button>}
-          {user && <button className="menu-item" onClick={()=>{setTab("daily");setView({page:"daily"});setMenuOpen(false);}}><span className="mi-i">📅</span>Täglicher Bonus</button>}
-          <button className="menu-item" onClick={()=>{setTab("settings");setMenuOpen(false);}}><span className="mi-i">⚙️</span>Einstellungen</button>
-          <button className="menu-item" onClick={()=>{setTab("legal");setMenuOpen(false);}}><span className="mi-i">📄</span>Impressum &amp; Datenschutz</button>
-          <button className="menu-item" onClick={()=>{setTab("about");setMenuOpen(false);}}><span className="mi-i">ℹ️</span>Über uns</button>
-          <button className="menu-item" onClick={()=>{setMenuOpen(false);setFeedbackOpen(true);}}><span className="mi-i">🐞</span>Fehler melden</button>
-          <button className="menu-item" onClick={()=>setToast("Weitere Sprachen — bald verfügbar")}><span className="mi-i">🌐</span>Sprache<span className="mi-soon">DE</span></button>
+          {user && <button className="menu-item" onClick={()=>{setTab("profile");setMenuOpen(false);}}><span className="mi-i">🎫</span>{t("Meine Wetten","My bets")}</button>}
+          {user && <button className="menu-item" onClick={()=>{setTab("daily");setView({page:"daily"});setMenuOpen(false);}}><span className="mi-i">📅</span>{t("Täglicher Bonus","Daily bonus")}</button>}
+          <button className="menu-item" onClick={()=>{setTab("settings");setMenuOpen(false);}}><span className="mi-i">⚙️</span>{t("Einstellungen","Settings")}</button>
+          <button className="menu-item" onClick={()=>{setTab("legal");setMenuOpen(false);}}><span className="mi-i">📄</span>{t("Impressum & Datenschutz","Legal & privacy")}</button>
+          <button className="menu-item" onClick={()=>{setTab("about");setMenuOpen(false);}}><span className="mi-i">ℹ️</span>{t("Über uns","About")}</button>
+          <button className="menu-item" onClick={()=>{setMenuOpen(false);setFeedbackOpen(true);}}><span className="mi-i">🐞</span>{t("Fehler melden","Report a bug")}</button>
+          <button className="menu-item" onClick={()=>setLang(l=>l==="de"?"en":"de")}><span className="mi-i">🌐</span>{t("Sprache","Language")}<span className="mi-state">{lang==="de"?"DE":"EN"}</span></button>
 
           <div className="menu-div"/>
-          <button className="menu-item" onClick={()=>setTheme(t=>t==="light"?"dark":"light")}><span className="mi-i">{theme==="light"?"🌙":"☀️"}</span>Dunkler Modus<span className="mi-state">{theme==="dark"?"an":"aus"}</span></button>
-          <button className="menu-item" onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}><span className="mi-i">{muted?"🔇":"🔊"}</span>Ton<span className="mi-state">{muted?"aus":"an"}</span></button>
+          <button className="menu-item" onClick={()=>setTheme(t=>t==="light"?"dark":"light")}><span className="mi-i">{theme==="light"?"🌙":"☀️"}</span>{t("Dunkler Modus","Dark mode")}<span className="mi-state">{theme==="dark"?t("an","on"):t("aus","off")}</span></button>
+          <button className="menu-item" onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}><span className="mi-i">{muted?"🔇":"🔊"}</span>{t("Ton","Sound")}<span className="mi-state">{muted?t("aus","off"):t("an","on")}</span></button>
 
           {user && <>
             <div className="menu-div"/>
-            <button className="menu-item danger" onClick={()=>{setMenuOpen(false);signOut();}}><span className="mi-i">↩</span>Abmelden</button>
+            <button className="menu-item danger" onClick={()=>{setMenuOpen(false);signOut();}}><span className="mi-i">↩</span>{t("Abmelden","Sign out")}</button>
           </>}
         </div>
         <div className="menu-foot">flug.bet · Spielgeld</div>
@@ -2670,9 +2681,9 @@ function App(){
       </div></div>
 
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● Aktiv</button>
-        <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 Läuft</button>
-        <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 Ergebnisse</button>
+        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
+        <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 {t("Läuft","In flight")}</button>
+        <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
       </div>
 
       {dataStatus==="connecting" && (
@@ -2737,10 +2748,10 @@ function App(){
     ) : null}
 
     <div className="nav">
-      <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">✈️</span>Flüge</button>
-      <button className={"navi"+(tab==="profile"?" on":"")} onClick={()=>{ if(user){setTab("profile");setView({page:"home"});} else {setAuthOpen(true);} }}><span className="ni">🎫</span>Wetten</button>
-      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setView({page:"home"})}}><span className="ni">🏆</span>Rang</button>
-      <button className={"navi"+(menuOpen?" on":"")} onClick={()=>{setMenuOpen(true)}}><span className="ni">👤</span>Profil</button>
+      <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">✈️</span>{t("Flüge","Flights")}</button>
+      <button className={"navi"+(tab==="profile"?" on":"")} onClick={()=>{ if(user){setTab("profile");setView({page:"home"});} else {setAuthOpen(true);} }}><span className="ni">🎫</span>{t("Wetten","Bets")}</button>
+      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setView({page:"home"})}}><span className="ni">🏆</span>{t("Rang","Rank")}</button>
+      <button className={"navi"+(menuOpen?" on":"")} onClick={()=>{setMenuOpen(true)}}><span className="ni">👤</span>{t("Profil","Profile")}</button>
     </div>
 
     {toast && <div className="toast">{toast}</div>}
