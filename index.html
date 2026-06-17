@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-planeload-v18 -->
+<!-- build: v2026-06-16-nofab-v20 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2466,10 +2466,6 @@ function App(){
     <div className="top">
       <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span>flug<span className="pin">.</span>bet</div>
       <div className="topr">
-        <span className="chip" title={lastUpdate?`Aktualisiert ${new Date(lastUpdate).toLocaleTimeString()}`:"Noch keine Daten"} style={{background:dataPill.bg,color:dataPill.fg,borderColor:dataPill.bg}}>
-          <span style={{width:6,height:6,borderRadius:"50%",background:dataPill.fg,display:"inline-block",opacity:.9}}/>
-          {dataPill.t}
-        </span>
         {user ? <>
           {streak>0 && <span className="chip streak" title={`${streak} Tage in Folge`}>🔥 {streak}</span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
@@ -2606,8 +2602,6 @@ function App(){
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">🛫</span>Flüge</button>
       <button className={"navi"+(tab==="daily"?" on":"")} onClick={()=>{setTab("daily");setView({page:"daily"})}}><span className="ni">📅</span>Täglich</button>
-      <button className="fab" onClick={()=>{setTab("flights");setView({page:"home"})}}>⚡</button>
-      <button className={"navi"+(tab==="live"?" on":"")} onClick={()=>{setTab("live");setView({page:"home"})}}><span className="ni">📡</span>Live</button>
       <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank")}}><span className="ni">🏆</span>Rangliste</button>
     </div>
 
