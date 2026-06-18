@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v49 -->
+<!-- build: v2026-06-16-v50 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -927,6 +927,14 @@ const TICKER=[
   ["@brandenburg","FR 8542","+100"],["@gatecrasher","LH 1957","+60"],["@verspätet","TÄGLICH","+100"],
   ["@willybrandt","EW 2087","+140"],["@schönefeld","LH 1925","+100"]];
 
+// Ticking clock so time-based UI (e.g. the betting hard stop) flips the instant the
+// close time passes, without waiting for the next board refresh.
+function useNow(intervalMs){
+  const [now,setNow]=useState(Date.now());
+  useEffect(()=>{ const id=setInterval(()=>setNow(Date.now()), intervalMs||1000); return ()=>clearInterval(id); },[intervalMs]);
+  return now;
+}
+
 function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
   if(m.type==="discussion"){
     const msgs=[["berliner_jung","2d","Wie sieht's heute mit den Verspätungen aus?"],["berliner_jung","2d","Morgen zusammen ☕"],
@@ -1202,6 +1210,8 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
   const mult=o=>displayOdds(m.outcomes,o,m.seed)||1;
   const proj=(o,s)=>{const sd=seedOf(m);const np=o.pool+(sd[o.id]||0)+s,nt=total+seedSum(sd)+s;return (s/np)*nt*(1-RAKE)};
   const s=Math.min(stake,wallet);
+  const now = useNow(1000);
+  const closed = m.betCloseISO && now >= new Date(m.betCloseISO).getTime();
   return <div className="betpanel">
     <div className="chips">
       {m.outcomes.map(o=><button key={o.id} className={"opt"+(pick===o.id?" sel":"")} onClick={()=>setPick(o.id)}>
@@ -1218,7 +1228,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,flexWrap:"wrap"}}>
         <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>VORAUSSICHTLICHER GEWINN</div>
           <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>nach {RAKE*100}% Gebühr</span></div></div>
-        <button className="betbtn" disabled={stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{stake>wallet?t("Nicht genug","Too low"):t("Wette platzieren","Place bet")}</button>
+        <button className="betbtn" disabled={closed||stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{closed?t("Wetten geschlossen","Betting closed"):stake>wallet?t("Nicht genug","Too low"):t("Wette platzieren","Place bet")}</button>
       </div>
     </div>}
     <div className="note">Abrechnung über: {m.settles}.</div>
@@ -1256,6 +1266,8 @@ function RouteStats({ dest, destName }){
 function Detail({m,total,back,initialPick,...bet}){
   const isFlight = m.type==="flight";
   const [pick,setPick] = [bet.pick, bet.setPick];
+  const now = useNow(1000);
+  const closed = m.betCloseISO && now >= new Date(m.betCloseISO).getTime();
   // Default: preselect the first bracket (Pünktlich) so the bet box is open,
   // unless the flight is already settled (landed/cancelled — betting closed).
   React.useEffect(()=>{
@@ -1375,7 +1387,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <b>{fmt(proj(sel,s))} €</b>
             </div>
             <div className="paynote">Parimutuel: Gewinner teilen den Pool (abzgl. {RAKE*100}% Gebühr) anteilig zum Einsatz. Schätzung aus dem aktuellen Pool — verschiebt sich mit neuen Wetten.</div>
-            <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{bet.stake>bet.wallet?t("Nicht genug Guthaben","Not enough balance"):t("Wette platzieren","Place bet")}</button>
+            <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={closed||bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{closed?t("Wetten geschlossen","Betting closed"):bet.stake>bet.wallet?t("Nicht genug Guthaben","Not enough balance"):t("Wette platzieren","Place bet")}</button>
           </div>}
           </>}
           {bet.ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
@@ -2368,7 +2380,9 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
   // Seed is real opening liquidity, included in both odds and payout so they match.
   const proj = (oo,st)=>{ if(!oo) return 0; const sd=seedOf(market); const np=(oo.pool||0)+(sd[oo.id]||0)+st, nt=total+seedSum(sd)+st; return (st/np)*nt*(1-RAKE); };
   const tooMuch = stake>wallet;
-  const place=()=>{ if(tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
+  const now = useNow(1000);
+  const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
+  const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
     <div className="sheet" onClick={e=>e.stopPropagation()}>
       <div className="sheet-grip"/>
@@ -2403,8 +2417,8 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
         <span>Bei Gewinn (geschätzt)</span>
         <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
       </div>
-      <button className="sheet-place" disabled={tooMuch||stake<=0} onClick={place}>
-        {tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
+      <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
+        {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
       </button>
     </div>
   </div>;
@@ -2586,6 +2600,13 @@ function App(){
     const s = (betStake!=null) ? betStake : stake;
     if(!user){ setAuthOpen(true); setToast("Zum Wetten bitte anmelden"); return; }
     if(s<=0||s>wallet)return;
+    // HARD STOP: once the close time has passed, no bet goes through — even if the
+    // card still looks open (it flips on the next refresh, which we trigger here).
+    if(m.betCloseISO && Date.now() >= new Date(m.betCloseISO).getTime()){
+      setToast(t("Wetten für diesen Flug sind geschlossen","Betting is closed for this flight"));
+      setBump(b=>b+1);
+      return;
+    }
     if(!CONFIG.API_BASE){ setToast("Kein Server verbunden"); return; }
     try{
       const r = await authedFetch(`${CONFIG.API_BASE}/api/bet`, {
