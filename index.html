@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v62 -->
+<!-- build: v2026-06-16-v64 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -153,6 +153,12 @@ button{font-family:inherit}
 .card.click{cursor:pointer}
 .card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
 /* Interactive bracket rows on the card front (replace the old Wetten button). */
+.close-urgent{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:1;
+  animation:closeUrgent var(--ud,0.8s) ease-in-out infinite}
+@keyframes closeUrgent{
+  0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--ucol) 35%,transparent),0 0 9px -3px var(--ucol)}
+  50%{box-shadow:0 0 0 2px var(--ucol),0 0 var(--ublur,20px) var(--uspread,6px) color-mix(in srgb,var(--ucol) 85%,transparent)}
+}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
 .cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
@@ -164,7 +170,7 @@ button{font-family:inherit}
 .cbk-main{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;text-align:left}
 .cbk-name{font-weight:700;line-height:1.2}
 .cbk-odds{margin-left:auto;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink);flex:none}
-.cbk-range{font-size:11px;color:color-mix(in srgb,var(--muted) 82%,transparent);font-variant-numeric:tabular-nums;line-height:1.15}
+.cbk-range{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.2}
 .bk-range{display:block;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
 .sheet-bk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
@@ -944,6 +950,37 @@ function useNow(intervalMs){
   return now;
 }
 
+// In the final 10 seconds before betting closes, an intensifying neon pulse over the
+// card. Only this tiny child re-renders; far-from-close cards sleep until the window.
+function CloseUrgency({ closeISO, neon }){
+  const [,tick] = useState(0);
+  useEffect(()=>{
+    if(!closeISO) return;
+    let id;
+    const loop=()=>{
+      const msLeft = new Date(closeISO).getTime() - Date.now();
+      tick(x=>x+1);
+      if(msLeft<=0) return;                     // closed → stop
+      id = setTimeout(loop, msLeft>10000 ? Math.min(msLeft-10000+50, 30000) : 200);
+    };
+    loop();
+    return ()=>clearTimeout(id);
+  },[closeISO]);
+  if(!closeISO) return null;
+  const msLeft = new Date(closeISO).getTime() - Date.now();
+  if(msLeft<=0 || msLeft>10000) return null;
+  const p = 1 - msLeft/10000;                   // 0 → 1 as it approaches close
+  const dur    = (1.15 - p*0.85).toFixed(2);    // 1.15s → 0.30s (faster)
+  const blur   = Math.round(10 + p*34);         // halo grows
+  const spread = Math.round(2 + p*16);
+  return <div className="close-urgent" style={{
+    "--ud": dur+"s",
+    "--ucol": neon || "var(--brand)",
+    "--ublur": blur+"px",
+    "--uspread": spread+"px",
+  }}/>;
+}
+
 function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
   if(m.type==="discussion"){
     const msgs=[["berliner_jung","2d","Wie sieht's heute mit den Verspätungen aus?"],["berliner_jung","2d","Morgen zusammen ☕"],
@@ -985,6 +1022,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
   },[m.betCloseISO, m.bettable]);
   return (
     <div className={"card click neon"+(closing?" closing":"")} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
+      {m.bettable && <CloseUrgency closeISO={m.betCloseISO} neon={TONE[m.status]}/>}
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
