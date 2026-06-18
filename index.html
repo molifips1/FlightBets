@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v51 -->
+<!-- build: v2026-06-16-v52 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -162,17 +162,17 @@ button{font-family:inherit}
 .cbk-dot{width:9px;height:9px;border-radius:50%;flex:none}
 .cbk-name{font-weight:600}
 .cbk-odds{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
-/* Neon edge — only in dark mode, where the glow reads. Colour comes from the
-   card's --neon (set by flight status: green on-time, red late, etc.). */
-[data-theme="dark"] .card.neon{
+/* Neon edge — applies in both light and dark. Colour comes from the card's --neon
+   (set by flight status: green on-time, red late, etc.). */
+.card.neon{
   border-color:color-mix(in srgb,var(--neon) 65%,transparent);
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent),
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 45%,transparent),
              0 0 16px -3px color-mix(in srgb,var(--neon) 55%,transparent),
              0 0 38px -12px color-mix(in srgb,var(--neon) 50%,transparent);
 }
-[data-theme="dark"] .card.neon.click:hover{
+.card.neon.click:hover{
   transform:translateY(-3px);
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 55%,transparent),
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 60%,transparent),
              0 0 22px -2px color-mix(in srgb,var(--neon) 70%,transparent),
              0 0 52px -8px color-mix(in srgb,var(--neon) 60%,transparent);
 }
