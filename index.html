@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v52 -->
+<!-- build: v2026-06-16-v53 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1241,23 +1241,23 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
 
 // Route reliability panel (BER → dest), shown on the detail page. Honest empty
 // state while the history is still filling up.
-function RouteStats({ dest, destName }){
-  const stats = useRouteStats(dest);
-  const MIN_FLIGHTS = 1; // TESTPHASE: ab 1 Flug anzeigen. VOR LAUNCH wieder auf ~5–10 setzen!
+function FlightStats({ ident }){
+  const stats = useFlightStats(ident);
+  const MIN_FLIGHTS = 1; // TESTPHASE: ab 1 Flug anzeigen. VOR LAUNCH ggf. auf ~3–5 setzen!
   return <div className="rstats">
-    <div className="rstats-h">📊 Strecken-Statistik · BER → {destName||dest}</div>
+    <div className="rstats-h">📊 {t("Flug-Statistik","Flight stats")} · {ident}</div>
     {stats===null ? (
-      <div className="rstats-empty">Lade Verlauf…</div>
+      <div className="rstats-empty">{t("Lade Verlauf…","Loading history…")}</div>
     ) : (stats.flights||0) < MIN_FLIGHTS ? (
       <div className="rstats-empty">
-        Noch zu wenig Daten für diese Strecke ({stats.flights||0} {stats.flights===1?"Flug":"Flüge"} erfasst).
-        Die Statistik baut sich über die nächsten Tage auf.
+        {t(`Noch zu wenig Daten für diesen Flug (${stats.flights||0} ${stats.flights===1?"Landung":"Landungen"} erfasst). Die Statistik baut sich über die nächsten Tage auf.`,
+           `Not enough data for this flight yet (${stats.flights||0} ${stats.flights===1?"landing":"landings"} recorded). Stats build up over the next few days.`)}
       </div>
     ) : (
       <div className="rstats-grid">
-        <div className="rstat"><div className="rstat-v" style={{color: stats.avgDelay>=15?"var(--warn)":"var(--good)"}}>+{stats.avgDelay}m</div><div className="rstat-l">Ø Verspätung</div></div>
-        <div className="rstat"><div className="rstat-v" style={{color:"var(--good)"}}>{stats.onTimePct}%</div><div className="rstat-l">Pünktlich</div></div>
-        <div className="rstat"><div className="rstat-v">{stats.flights}</div><div className="rstat-l">Erfasste Flüge</div></div>
+        <div className="rstat"><div className="rstat-v" style={{color: stats.avgDelay>=15?"var(--warn)":"var(--good)"}}>+{stats.avgDelay}m</div><div className="rstat-l">{t("Ø Verspätung","Avg delay")}</div></div>
+        <div className="rstat"><div className="rstat-v" style={{color:"var(--good)"}}>{stats.onTimePct}%</div><div className="rstat-l">{t("Pünktlich","On time")}</div></div>
+        <div className="rstat"><div className="rstat-v">{stats.flights}</div><div className="rstat-l">{t("Erfasste Landungen","Landings recorded")}</div></div>
       </div>
     )}
   </div>;
@@ -1350,7 +1350,7 @@ function Detail({m,total,back,initialPick,...bet}){
         </div>
 
         {/* Route reliability — only meaningful for real flights (departures from BER) */}
-        {isFlight && m.otherCode && <RouteStats dest={m.otherCode} destName={m.to?.name}/>}
+        {isFlight && m.code && <FlightStats ident={m.code}/>}
 
         {/* Market rules */}
         <div className="panelbox">
@@ -1782,20 +1782,20 @@ function useSettled(bump){
   return { rows, loading };
 }
 
-function useRouteStats(dest){
+function useFlightStats(ident){
   const [stats,setStats]=useState(null);
   useEffect(()=>{
-    if(!dest || !CONFIG.API_BASE){ setStats(null); return; }
+    if(!ident || !CONFIG.API_BASE){ setStats(null); return; }
     let dead=false;
     (async()=>{
       try{
-        const r=await fetch(`${CONFIG.API_BASE}/api/route-stats?dest=${encodeURIComponent(dest)}`);
+        const r=await fetch(`${CONFIG.API_BASE}/api/route-stats?ident=${encodeURIComponent(ident)}`);
         const d=await r.json();
         if(!dead) setStats(d && !d.error ? d : null);
       }catch(e){ if(!dead) setStats(null); }
     })();
     return ()=>{ dead=true; };
-  },[dest]);
+  },[ident]);
   return stats;
 }
 
