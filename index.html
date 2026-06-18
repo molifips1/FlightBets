@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v67 -->
+<!-- build: v2026-06-16-v69 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -159,17 +159,17 @@ button{font-family:inherit}
   0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--ucol) 35%,transparent),0 0 9px -3px var(--ucol)}
   50%{box-shadow:0 0 0 2px var(--ucol),0 0 var(--ublur,20px) var(--uspread,6px) color-mix(in srgb,var(--ucol) 85%,transparent)}
 }
-.flapboard{background:#0b1018;border:1px solid #1b2536;border-radius:14px;padding:14px 12px;overflow-x:auto}
+.flapboard{background:#0b1018;border:1px solid #1b2536;border-radius:16px;padding:20px 16px;overflow-x:auto}
 [data-theme="dark"] .flapboard{background:#070b12}
-.flapboard-h{display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d8aa3;letter-spacing:1.5px;padding:2px 0 12px;min-width:max-content}
-.flaprow{display:flex;gap:10px;align-items:center;padding:3px 0;min-width:max-content}
-.col-rank{width:38px;flex:none}
-.col-name{width:212px;flex:none}
-.col-hit{width:78px;flex:none}
-.col-bal{width:128px;flex:none}
-.flap{display:inline-flex;gap:2px}
-.flapc{display:inline-flex;align-items:center;justify-content:center;width:16px;height:23px;background:#171f2e;color:#f3e7c0;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;border-radius:3px;position:relative;overflow:hidden}
+.flapboard-h{display:flex;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#7d8aa3;letter-spacing:2px;padding:2px 0 16px;min-width:max-content}
+.flaprow{display:flex;gap:14px;align-items:center;padding:5px 0;min-width:max-content}
+.col-rank{width:56px;flex:none}
+.col-name{width:330px;flex:none}
+.col-hit{width:114px;flex:none}
+.col-bal{width:196px;flex:none}
+.flap{display:inline-flex;gap:3px}
+.flapc{display:inline-flex;align-items:center;justify-content:center;width:24px;height:34px;background:#171f2e;color:#f3e7c0;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:21px;border-radius:4px;position:relative;overflow:hidden}
 .flapc::after{content:"";position:absolute;left:1px;right:1px;top:50%;height:1px;background:rgba(0,0,0,.5)}
 .flapc-in{display:block;line-height:1;animation:flapIn .1s ease-out}
 @keyframes flapIn{0%{transform:translateY(-60%) scaleY(.55);opacity:.2}100%{transform:translateY(0) scaleY(1);opacity:1}}
@@ -177,7 +177,7 @@ button{font-family:inherit}
 .flaprow.top1 .flapc{color:#ffd86b}
 .flaprow.top2 .flapc{color:#d7dde8}
 .flaprow.top3 .flapc{color:#e0a06a}
-.flap-you{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6ea8ff;letter-spacing:1px;flex:none}
+.flap-you{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6ea8ff;letter-spacing:1px;flex:none}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
 .cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
@@ -2100,10 +2100,10 @@ function Flap({ text, width, align, delayBase=0, step=20, animate=true }){
 }
 
 function Leaderboard({ players, me }){
-  if(players===null) return <div className="lb-empty">Lade Rangliste…</div>;
+  if(players===null) return <div className="lb-empty">Lade Ranking…</div>;
   if(!players.length) return <div className="lb-empty">
     <div className="lb-emoji">🏆</div>
-    <div className="lb-et">Noch keine Rangliste</div>
+    <div className="lb-et">Noch kein Ranking</div>
     <div className="lb-es">Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.</div>
   </div>;
   const medal = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
@@ -2766,7 +2766,7 @@ function App(){
         {user ? <>
           {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 <RollingNumber value={streak} from0/></button>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
-          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 {t("Rang","Rank")}</button>
+          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Ranking">🏆 {t("Ranking","Ranking")}</button>
           <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 {t("Meine Wetten","My bets")}</button>
           <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
         </> : (
@@ -2840,7 +2840,7 @@ function App(){
     ) : tab==="rank" ? (
       <>
         <div className="rankhead">
-          <h2>🏆 Rangliste</h2>
+          <h2>🏆 Ranking</h2>
           <p>Beste Tipper nach Guthaben — wer aus den Start-925 € am meisten gemacht hat.</p>
         </div>
         <Leaderboard players={leaderboard} me={user?.id}/>
@@ -2920,7 +2920,7 @@ function App(){
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">✈️</span>{t("Flüge","Flights")}</button>
       <button className={"navi"+(tab==="profile"?" on":"")} onClick={()=>{ if(user){setTab("profile");setView({page:"home"});} else {setAuthOpen(true);} }}><span className="ni">🎫</span>{t("Wetten","Bets")}</button>
-      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setView({page:"home"})}}><span className="ni">🏆</span>{t("Rang","Rank")}</button>
+      <button className={"navi"+(tab==="rank"?" on":"")} onClick={()=>{setTab("rank");setView({page:"home"})}}><span className="ni">🏆</span>{t("Ranking","Ranking")}</button>
       <button className={"navi"+(menuOpen?" on":"")} onClick={()=>{setMenuOpen(true)}}><span className="ni">👤</span>{t("Profil","Profile")}</button>
     </div>
 
