@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v50 -->
+<!-- build: v2026-06-16-v51 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1475,6 +1475,10 @@ const CITY_LL = {
   PMI:[39.55,2.74], LIS:[38.77,-9.13], CPH:[55.62,12.65], WAW:[52.17,20.97],
   ATH:[37.94,23.95], MXP:[45.63,8.72], BRU:[50.90,4.48], OSL:[60.19,11.10],
   ARN:[59.65,17.92], HEL:[60.32,24.96], GVA:[46.24,6.11], NCE:[43.66,7.21],
+  // added destinations
+  IBZ:[38.87,1.37], HER:[35.34,25.18], RHO:[36.41,28.09], AYT:[36.90,30.79],
+  ORY:[48.72,2.38], SKP:[41.96,21.62], BEG:[44.82,20.31], BUD:[47.44,19.26],
+  OTP:[44.57,26.10], PRN:[42.57,21.04],
 };
 // Country of each airport code, used for geographic sorting.
 const CITY_COUNTRY = {
@@ -1492,6 +1496,14 @@ function geoRank(code){ const c = CITY_COUNTRY[code]; return c!=null ? (GEO_RANK
 function flagFor(code){
   const c = CITY_COUNTRY[code];
   return c==="DE"?"🇩🇪":c==="AT"?"🇦🇹":c==="CH"?"🇨🇭":"🛬";
+}
+// Generic ISO 3166-1 alpha-2 country code → flag emoji (regional indicator pairs).
+function flagFromCC(cc){
+  const u = (cc||"").toUpperCase();
+  if(!/^[A-Z]{2}$/.test(u)) return null;
+  const A = 0x1F1E6, base = 65;
+  try { return String.fromCodePoint(A + u.charCodeAt(0) - base, A + u.charCodeAt(1) - base); }
+  catch(e){ return null; }
 }
 function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0); }
 function poolsFor(ident, delayMin, cancelled){
@@ -1524,7 +1536,7 @@ function boardToMarket(f){
   const ll = CITY_LL[otherCode] || null;
   // Prefer ICAO-prefix country (covers every DACH airport), fall back to IATA map.
   const country = countryFromICAO(other?.code_icao) || CITY_COUNTRY[otherCode] || null;
-  const otherFlag = country==="DE"?"🇩🇪":country==="AT"?"🇦🇹":country==="CH"?"🇨🇭":flagFor(otherCode);
+  const otherFlag = country==="DE"?"🇩🇪":country==="AT"?"🇦🇹":country==="CH"?"🇨🇭":(flagFromCC(other?.cc)||flagFor(otherCode));
   const rank = country==="DE"?0:country==="AT"?1:country==="CH"?2:3;
   // Phase of the flight. Decide upcoming vs already-gone by the scheduled time
   // vs now (most reliable), refined by the status text. Do NOT use the presence
