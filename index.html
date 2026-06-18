@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v72 -->
+<!-- build: v2026-06-16-v73 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -171,18 +171,19 @@ button{font-family:inherit}
 .flapc{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
   width:26px;height:36px;border-radius:4px;color:#fff;
   font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22px;
-  background:linear-gradient(180deg,#34383e 0%,#24282e 50%,#1c1f25 50%,#131619 100%);
+  background:linear-gradient(180deg,#2b2f35 0%,#1d2127 50%,#15181d 50%,#0d0f12 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 1px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.6)}
 .flapc-in{display:block;line-height:1;position:relative;z-index:1;animation:flapIn .1s ease-out}
 .flapc-seam{position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-1px);z-index:2;pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.72) 0,rgba(0,0,0,.72) 50%,rgba(255,255,255,.07) 50%)}
 .flapc::before,.flapc::after{content:"";position:absolute;top:50%;transform:translateY(-50%);
-  width:3px;height:12px;background:#494d54;border-radius:2px;z-index:3;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+  width:3px;height:12px;background:#3f434a;border-radius:2px;z-index:3;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
 .flapc::before{left:1px}
 .flapc::after{right:1px}
 @keyframes flapIn{0%{transform:translateY(-62%) scaleY(.5);opacity:.15}100%{transform:translateY(0) scaleY(1);opacity:1}}
-.flaprow.mine .flapc{background:linear-gradient(180deg,#264066 0%,#1e3454 50%,#192c48 50%,#122038 100%)}
+.flaprow.mine .flapc{background:linear-gradient(180deg,#223a5d 0%,#1a3050 50%,#152843 50%,#0e1c33 100%)}
 .col-bets{width:120px;flex:none}
+.col-profit{width:208px;flex:none}
 .flaprow.top1 .flapc{color:#ffd86b}
 .flaprow.top2 .flapc{color:#dfe5ee}
 .flaprow.top3 .flapc{color:#e6a96b}
@@ -2116,21 +2117,25 @@ function Leaderboard({ players, me }){
     <div className="flapboard-h">
       <span className="col-rank">#</span>
       <span className="col-name">SPIELER</span>
-      <span className="col-hit">TREFFER</span>
       <span className="col-bets">WETTEN</span>
+      <span className="col-hit">TREFFER</span>
       <span className="col-bal">GUTHABEN</span>
+      <span className="col-profit">PROFIT</span>
     </div>
     {players.map((p,i)=>{
       const mine = me && p.userId===me;
       const animate = i < 30;                 // cap the live flip to the top rows (perf)
       const rd = i*42;                         // row-by-row settling wave
       const top = i===0?" top1":i===1?" top2":i===2?" top3":"";
+      const pr = p.profit||0;
+      const prTxt = (pr>0?"+":pr<0?"-":"")+fmt(Math.abs(pr));
       return <div className={"flaprow"+(mine?" mine":"")+top} key={p.userId}>
         <span className="col-rank"><Flap text={String(i+1)} width={2} align="right" delayBase={rd} animate={animate}/></span>
         <span className="col-name"><Flap text={p.name||"Anonym"} width={12} delayBase={rd} animate={animate}/></span>
-        <span className="col-hit"><Flap text={(p.hitRate||0)+"%"} width={4} align="right" delayBase={rd} animate={animate}/></span>
         <span className="col-bets"><Flap text={String(p.betsTotal||0)} width={4} align="right" delayBase={rd} animate={animate}/></span>
+        <span className="col-hit"><Flap text={(p.hitRate||0)+"%"} width={4} align="right" delayBase={rd} animate={animate}/></span>
         <span className="col-bal"><Flap text={fmt(p.balance)} width={7} align="right" delayBase={rd} animate={animate}/></span>
+        <span className="col-profit"><Flap text={prTxt} width={7} align="right" delayBase={rd} animate={animate}/></span>
         {mine && <span className="flap-you">◄ DU</span>}
       </div>;
     })}
