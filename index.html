@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v55 -->
+<!-- build: v2026-06-16-v56 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -772,7 +772,7 @@ const RAKE=0.05;
 // before real bets arrive. Real stakes add on top and shift the odds normally.
 // DEFAULT_SEED is the fallback line when we have no history for a flight yet;
 // blendSeed() personalises it per flight from collected history.
-const DEFAULT_SEED = { a:100, b:60, c:30, d:50 };
+const DEFAULT_SEED = { a:100, b:85, c:35, d:20 };
 const SEED_POOL = DEFAULT_SEED;          // back-compat alias
 const SEED_TOTAL = DEFAULT_SEED.a+DEFAULT_SEED.b+DEFAULT_SEED.c+DEFAULT_SEED.d; // 240
 const seedOf = m => (m && m.seed) || DEFAULT_SEED;
@@ -803,12 +803,12 @@ function displayOdds(outcomes, o, seed){
   return mine>0 ? tot/mine : null;
 }
 const fmt=n=>Math.round(n).toLocaleString("en-US");
-const TONE={good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
-const STATUS={good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark verspätet"};
-const STATUS_EN={good:"On time",mid:"Slightly late",warn:"Delayed",bad:"Heavily delayed"};
+const TONE={cool:"var(--brand)",good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
+const STATUS={cool:"Früh",good:"Pünktlich",mid:"Leicht verspätet",warn:"Etwas spät",bad:"Deutlich spät"};
+const STATUS_EN={cool:"Early",good:"On time",mid:"Slightly late",warn:"Slightly late",bad:"Very late"};
 const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
-// Outcome bracket labels are mostly universal (+15m…); only "Pünktlich" differs.
-const outLabel=s=> (s==="Pünktlich") ? t("Pünktlich","On time") : s;
+const OUT_EN={"Früh":"Early","Pünktlich":"On time","Etwas spät":"Slightly late","Deutlich spät":"Very late"};
+const outLabel=s=> t(s, OUT_EN[s]||s);
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
 
@@ -1268,12 +1268,12 @@ function Detail({m,total,back,initialPick,...bet}){
   const [pick,setPick] = [bet.pick, bet.setPick];
   const now = useNow(1000);
   const closed = m.betCloseISO && now >= new Date(m.betCloseISO).getTime();
-  // Default: preselect the first bracket (Pünktlich) so the bet box is open,
+  // Default: preselect "Pünktlich" so the bet box is open,
   // unless the flight is already settled (landed/cancelled — betting closed).
   React.useEffect(()=>{
     if(m.settled){ setPick(null); return; }
     if(m.outcomes && m.outcomes.length){
-      const want = (initialPick && m.outcomes.some(o=>o.id===initialPick)) ? initialPick : m.outcomes[0].id;
+      const want = (initialPick && m.outcomes.some(o=>o.id===initialPick)) ? initialPick : ((m.outcomes.find(o=>o.id==="b")||m.outcomes[0]).id);
       setPick(want);
     }
   }, [m.id, m.settled]);
@@ -1510,13 +1510,13 @@ function poolsFor(ident, delayMin, cancelled){
   // Deterministic per-flight pools, nudged by the live delay so odds feel real.
   const seed = hashStr(ident);
   const r = (n)=> (Math.abs((seed>>(n*3)) % 100));
-  let base = [40+r(1)%30, 18+r(2)%14, 10+r(3)%10, 6+r(4)%10]; // Pünktlich,+15,+30,+60
+  let base = [40+r(1)%26, 34+r(2)%20, 12+r(3)%10, 6+r(4)%8]; // Früh,Pünktlich,etwas,deutlich
   if (cancelled) base = [6,10,14,40];
   else if (delayMin!=null){
-    if (delayMin>=60) base=[8,14,20,40];
-    else if (delayMin>=30) base=[12,20,30,18];
-    else if (delayMin>=15) base=[20,34,18,10];
-    else base=[55,20,9,6];
+    if (delayMin>20) base=[6,12,22,40];
+    else if (delayMin>5) base=[14,22,34,16];
+    else if (delayMin<=-5) base=[46,30,12,8];
+    else base=[28,42,16,8];
   }
   const scale = 30 + (seed%70); // pool size varies per flight
   return base.map(b=>Math.max(20, Math.round(b*scale/10)));
@@ -1592,7 +1592,7 @@ function boardToMarket(f){
   const effDelay = f.cancelled ? null : f.arrDelayMin;
   const status = f.cancelled ? "bad"
     : effDelay==null ? "good"
-    : effDelay>=60 ? "bad" : effDelay>=30 ? "warn" : effDelay>=15 ? "mid" : "good";
+    : effDelay<=-5 ? "cool" : effDelay<=5 ? "good" : effDelay<=20 ? "warn" : "bad";
   const delayLabel = f.cancelled ? "ANNULLIERT"
     : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"m";
   const pools = poolsFor(f.ident, f.delayMin, f.cancelled);
@@ -1659,10 +1659,10 @@ function boardToMarket(f){
     marker: status==="bad"?9:status==="warn"?5:status==="mid"?3:1,
     axis:["0m","30m","60m","90m","120m"],
     outcomes:[
-      {id:"a",label:"Pünktlich",tone:"good",pool:pools[0]},
-      {id:"b",label:"+15m",tone:"mid",pool:pools[1]},
-      {id:"c",label:"+30m",tone:"warn",pool:pools[2]},
-      {id:"d",label:"+60m",tone:"bad",pool:pools[3]},
+      {id:"a",label:"Früh",tone:"cool",pool:pools[0]},
+      {id:"b",label:"Pünktlich",tone:"good",pool:pools[1]},
+      {id:"c",label:"Etwas spät",tone:"warn",pool:pools[2]},
+      {id:"d",label:"Deutlich spät",tone:"bad",pool:pools[3]},
     ],
     settles:"FlightAware · tatsächliche Ankunft am Gate",
   };
