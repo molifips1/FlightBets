@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v57 -->
+<!-- build: v2026-06-16-v60 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -153,16 +153,18 @@ button{font-family:inherit}
 .card.click{cursor:pointer}
 .card.click:hover{transform:translateY(-3px) rotate(-.25deg);box-shadow:0 6px 14px rgba(14,42,71,.09),0 22px 48px rgba(14,42,71,.09)}
 /* Interactive bracket rows on the card front (replace the old Wetten button). */
-.cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-.cbk{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border:1px solid var(--line);
+.cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
+.cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
+.cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
   background:var(--card2);border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);
   transition:border-color .15s,transform .1s,background .15s}
 .cbk:hover{border-color:var(--brand);background:var(--card)}
 .cbk:active{transform:scale(.99)}
-.cbk-dot{width:9px;height:9px;border-radius:50%;flex:none}
-.cbk-name{font-weight:600}
-.cbk-odds{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
-.cbk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
+.cbk-dot{width:11px;height:11px;border-radius:50%;flex:none}
+.cbk-main{flex:1;min-width:0;text-align:left;line-height:1.3}
+.cbk-name{font-weight:700}
+.cbk-odds{margin-left:auto;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink);flex:none}
+.cbk-range{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .bk-range{display:block;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
 .sheet-bk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
@@ -813,8 +815,8 @@ const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
 const OUT_EN={"Früh":"Early","Pünktlich":"On time","Etwas spät":"Slightly late","Deutlich spät":"Very late"};
 const outLabel=s=> t(s, OUT_EN[s]||s);
 // Minute span shown as a small sub-label next to each bracket (flight markets only).
-const OUT_RANGE_DE={a:"5+ Min früh",b:"−4…+5 Min",c:"+6…+20 Min",d:"+20 Min+"};
-const OUT_RANGE_EN={a:"5+ min early",b:"−4…+5 min",c:"+6…+20 min",d:"+20 min+"};
+const OUT_RANGE_DE={a:"≥ 5 Min früher",b:"−4 bis +5 Min",c:"+6 bis +20 Min",d:"über +20 Min"};
+const OUT_RANGE_EN={a:"≥ 5 min early",b:"−4 to +5 min",c:"+6 to +20 min",d:"over +20 min"};
 const rangeLabel=id=> OUT_RANGE_DE[id] ? t(OUT_RANGE_DE[id], OUT_RANGE_EN[id]) : "";
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
@@ -1030,17 +1032,22 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       {m.bettable
-        ? <div className="cbrackets" onClick={e=>e.stopPropagation()}>
-            {m.outcomes.map(o=>{
-              const odds = displayOdds(m.outcomes, o, m.seed);
-              return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
-                <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
-                <span className="cbk-name">{outLabel(o.label)}</span>
-                {rangeLabel(o.id) && <span className="cbk-range">{rangeLabel(o.id)}</span>}
-                <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
-              </button>;
-            })}
-          </div>
+        ? <>
+            <div className="cbk-head">{isFlight ? t("Tippe die Landung · Quote = Auszahlung je 1 €","Tap the landing · odds = payout per €1") : t("Quote = Auszahlung je 1 €","Odds = payout per €1")}</div>
+            <div className="cbrackets" onClick={e=>e.stopPropagation()}>
+              {m.outcomes.map(o=>{
+                const odds = displayOdds(m.outcomes, o, m.seed);
+                return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
+                  <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
+                  <span className="cbk-main">
+                    <span className="cbk-name">{outLabel(o.label)}</span>
+                    {rangeLabel(o.id) && <span className="cbk-range"> ({rangeLabel(o.id)})</span>}
+                  </span>
+                  <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
+                </button>;
+              })}
+            </div>
+          </>
         : <div className="cfoot"><button className="betbtn locked" disabled>{m.phase==="cancelled"?t("Annulliert","Cancelled"):m.phase==="landed"?t("Gelandet","Landed"):m.phase==="enroute"?t("Abgeflogen","Departed"):t("Geschlossen","Closed")}</button></div>}
     </div>
   );
