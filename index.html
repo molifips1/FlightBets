@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v64 -->
+<!-- build: v2026-06-16-v66 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2112,9 +2112,9 @@ const Sound = (()=>{
   };
 })();
 
-function RollingNumber({ value, className, format }){
-  const [shown,setShown]=useState(value);
-  const fromRef=useRef(value), rafRef=useRef(null);
+function RollingNumber({ value, className, format, from0 }){
+  const [shown,setShown]=useState(from0?0:value);
+  const fromRef=useRef(from0?0:value), rafRef=useRef(null);
   useEffect(()=>{
     const from=fromRef.current, to=value, dur=600, t0=performance.now();
     if(from===to) return;
@@ -2220,7 +2220,7 @@ function Profile({ wallet, user, streak, markets, onOpen }){
       <div className="prof-av">{name[0]?.toUpperCase()}</div>
       <div>
         <div className="prof-name">{name}</div>
-        <div className="prof-sub">{streak>0 && <span className="chip streak" style={{marginRight:6}}>🔥 {streak}</span>}<RollingNumber value={wallet.balance} format={v=>"€ "+fmt(Math.round(v))}/></div>
+        <div className="prof-sub">{streak>0 && <span className="chip streak" style={{marginRight:6}}>🔥 <RollingNumber value={streak} from0/></span>}<RollingNumber value={wallet.balance} format={v=>"€ "+fmt(Math.round(v))}/></div>
       </div>
     </div>
 
@@ -2710,9 +2710,9 @@ function App(){
       <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
       <div className="topr">
         {user ? <>
-          {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 {streak}</button>}
-          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 {t("Rang","Rank")}</button>
+          {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 <RollingNumber value={streak} from0/></button>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
+          <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Rangliste">🏆 {t("Rang","Rank")}</button>
           <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 {t("Meine Wetten","My bets")}</button>
           <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
         </> : (
