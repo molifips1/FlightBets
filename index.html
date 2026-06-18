@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v48 -->
+<!-- build: v2026-06-16-v49 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -990,13 +990,13 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
             <span className="flag">{m.from.flag}</span>
             <span className="sname">{m.from.name}</span>
-            <span className="rtime">{m.from.dep}</span>
+            <span className="rtime">{m.from.depRevised ? <><span className="old">{m.from.dep}</span><span className="new">{m.from.depRevised}</span></> : m.from.dep}</span>
           </div>
           {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
           <div className="stop">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
-            <span className="sname">{m.to.name}</span>
+            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
           </div>
         </div>
       ) : (
@@ -1297,12 +1297,12 @@ function Detail({m,total,back,initialPick,...bet}){
               <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
               <span className="flag">{m.from.flag}</span>
               <span className="sname">{m.from.name}</span>
-              <span className="rtime">{m.from.dep}</span>
+              <span className="rtime">{m.from.depRevised ? <><span className="old">{m.from.dep}</span><span className="new">{m.from.depRevised}</span></> : m.from.dep}</span>
             </div>
             <div className="stop">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span>
+              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
@@ -1595,6 +1595,9 @@ function boardToMarket(f){
     try { return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" }); } // YYYY-MM-DD
     catch(e){ return "x"; }
   })();
+  // Revised departure/arrival for the card: show only when they differ from the plan.
+  const _depRev = (f.scheduledDep && f.revisedDep && Math.abs(new Date(f.revisedDep) - new Date(f.scheduledDep)) >= 60000) ? fmtT(f.revisedDep) : null;
+  const _arrRev = (f.scheduledArr && f.revisedArr && Math.abs(new Date(f.revisedArr) - new Date(f.scheduledArr)) >= 60000) ? fmtT(f.revisedArr) : null;
   return {
     id: "bd_"+f.ident+"_"+idDate,
     type: "flight",
@@ -1613,8 +1616,8 @@ function boardToMarket(f){
     direction: f.direction,
     geoRank: rank,
     otherCode,
-    from: dirDep ? {cc:"DE",flag:"🇩🇪",name:"Berlin BER",dep:fmtT(f.scheduledDep)} : {cc:"",flag:otherFlag,name:other?.name||otherCode,dep:fmtT(f.scheduledDep)},
-    to:   dirDep ? {cc:"",flag:otherFlag,name:other?.name||otherCode} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER"},
+    from: dirDep ? {cc:"DE",flag:"🇩🇪",name:"Berlin BER",dep:fmtT(f.scheduledDep),depRevised:_depRev} : {cc:"",flag:otherFlag,name:other?.name||otherCode,dep:fmtT(f.scheduledDep),depRevised:_depRev},
+    to:   dirDep ? {cc:"",flag:otherFlag,name:other?.name||otherCode,arr:fmtT(f.scheduledArr),arrRevised:_arrRev} : {cc:"DE",flag:"🇩🇪",name:"Berlin BER",arr:fmtT(f.scheduledArr),arrRevised:_arrRev},
     fromLL: dirDep ? BER_LL : ll,
     toLL:   dirDep ? ll : BER_LL,
     schedArr: fmtT(f.scheduledArr),
