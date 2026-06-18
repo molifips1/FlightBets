@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v61 -->
+<!-- build: v2026-06-16-v62 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -161,10 +161,10 @@ button{font-family:inherit}
 .cbk:hover{border-color:var(--brand);background:var(--card)}
 .cbk:active{transform:scale(.99)}
 .cbk-dot{width:11px;height:11px;border-radius:50%;flex:none}
-.cbk-main{flex:1;min-width:0;text-align:left;line-height:1.3}
-.cbk-name{font-weight:700}
+.cbk-main{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;text-align:left}
+.cbk-name{font-weight:700;line-height:1.2}
 .cbk-odds{margin-left:auto;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink);flex:none}
-.cbk-range{font-size:11px;color:color-mix(in srgb,var(--muted) 75%,transparent);font-variant-numeric:tabular-nums}
+.cbk-range{font-size:11px;color:color-mix(in srgb,var(--muted) 82%,transparent);font-variant-numeric:tabular-nums;line-height:1.15}
 .bk-range{display:block;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
 .sheet-bk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
@@ -1041,7 +1041,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
                   <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
                   <span className="cbk-main">
                     <span className="cbk-name">{outLabel(o.label)}</span>
-                    {rangeLabel(o.id) && <span className="cbk-range"> ({rangeLabel(o.id)})</span>}
+                    {rangeLabel(o.id) && <span className="cbk-range">{rangeLabel(o.id)}</span>}
                   </span>
                   <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
                 </button>;
