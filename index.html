@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v66 -->
+<!-- build: v2026-06-16-v67 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -159,6 +159,25 @@ button{font-family:inherit}
   0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--ucol) 35%,transparent),0 0 9px -3px var(--ucol)}
   50%{box-shadow:0 0 0 2px var(--ucol),0 0 var(--ublur,20px) var(--uspread,6px) color-mix(in srgb,var(--ucol) 85%,transparent)}
 }
+.flapboard{background:#0b1018;border:1px solid #1b2536;border-radius:14px;padding:14px 12px;overflow-x:auto}
+[data-theme="dark"] .flapboard{background:#070b12}
+.flapboard-h{display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7d8aa3;letter-spacing:1.5px;padding:2px 0 12px;min-width:max-content}
+.flaprow{display:flex;gap:10px;align-items:center;padding:3px 0;min-width:max-content}
+.col-rank{width:38px;flex:none}
+.col-name{width:212px;flex:none}
+.col-hit{width:78px;flex:none}
+.col-bal{width:128px;flex:none}
+.flap{display:inline-flex;gap:2px}
+.flapc{display:inline-flex;align-items:center;justify-content:center;width:16px;height:23px;background:#171f2e;color:#f3e7c0;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;border-radius:3px;position:relative;overflow:hidden}
+.flapc::after{content:"";position:absolute;left:1px;right:1px;top:50%;height:1px;background:rgba(0,0,0,.5)}
+.flapc-in{display:block;line-height:1;animation:flapIn .1s ease-out}
+@keyframes flapIn{0%{transform:translateY(-60%) scaleY(.55);opacity:.2}100%{transform:translateY(0) scaleY(1);opacity:1}}
+.flaprow.mine .flapc{background:#243a63;color:#dcebff}
+.flaprow.top1 .flapc{color:#ffd86b}
+.flaprow.top2 .flapc{color:#d7dde8}
+.flaprow.top3 .flapc{color:#e0a06a}
+.flap-you{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6ea8ff;letter-spacing:1px;flex:none}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
 .cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
@@ -2049,6 +2068,37 @@ function FeedbackModal({ onClose, user, setToast }){
   </div>;
 }
 
+// Split-flap (Solari airport board) characters. Each cell rolls forward through the
+// charset and lands on its target, staggered across columns/rows for a settling wave.
+const FLAP_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ0123456789.,:%€#-/+";
+function FlapChar({ target, delay, animate=true }){
+  const tgt = (target==null?" ":String(target)).toUpperCase();
+  const [ch,setCh] = useState(animate ? " " : tgt);
+  const [n,setN] = useState(0);
+  useEffect(()=>{
+    if(!animate){ setCh(tgt); return; }
+    let stopped=false, id, st;
+    let idx = FLAP_CHARS.indexOf(tgt); if(idx<0) idx=0;
+    const rolls = 5 + (idx % 6);
+    let cur = (idx - rolls + FLAP_CHARS.length*3) % FLAP_CHARS.length;
+    st = setTimeout(()=>{
+      id = setInterval(()=>{
+        if(stopped) return;
+        if(cur===idx){ setCh(FLAP_CHARS[idx]); setN(x=>x+1); clearInterval(id); return; }
+        cur = (cur+1) % FLAP_CHARS.length; setCh(FLAP_CHARS[cur]); setN(x=>x+1);
+      }, 55);
+    }, delay);
+    return ()=>{ stopped=true; clearTimeout(st); clearInterval(id); };
+  },[tgt,delay,animate]);
+  return <span className="flapc"><b className="flapc-in" key={n}>{ch===" "?"\u00A0":ch}</b></span>;
+}
+function Flap({ text, width, align, delayBase=0, step=20, animate=true }){
+  let s = (text==null?"":String(text)).toUpperCase();
+  if(width){ s = align==="right" ? s.slice(-width).padStart(width," ") : s.slice(0,width).padEnd(width," "); }
+  return <span className="flap">{s.split("").map((c,i)=>
+    <FlapChar key={i} target={c} delay={delayBase + i*step} animate={animate}/>)}</span>;
+}
+
 function Leaderboard({ players, me }){
   if(players===null) return <div className="lb-empty">Lade Rangliste…</div>;
   if(!players.length) return <div className="lb-empty">
@@ -2057,20 +2107,24 @@ function Leaderboard({ players, me }){
     <div className="lb-es">Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.</div>
   </div>;
   const medal = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
-  return <div className="lb">
-    <div className="lb-h">
-      <span className="lb-rank">#</span>
-      <span className="lb-name">Spieler</span>
-      <span className="lb-stat">Treffer</span>
-      <span className="lb-bal">Guthaben</span>
+  return <div className="flapboard">
+    <div className="flapboard-h">
+      <span className="col-rank">#</span>
+      <span className="col-name">SPIELER</span>
+      <span className="col-hit">TREFFER</span>
+      <span className="col-bal">GUTHABEN</span>
     </div>
     {players.map((p,i)=>{
       const mine = me && p.userId===me;
-      return <div className={"lb-row"+(mine?" mine":"")} key={p.userId}>
-        <span className="lb-rank">{medal(i)}</span>
-        <span className="lb-name">{p.name||"Anonym"}{mine?" (du)":""}</span>
-        <span className="lb-stat">{p.hitRate}% <span className="lb-sub">· {p.betsWon}/{p.betsTotal}</span></span>
-        <span className="lb-bal">{fmt(p.balance)} €</span>
+      const animate = i < 30;                 // cap the live flip to the top rows (perf)
+      const rd = i*42;                         // row-by-row settling wave
+      const top = i===0?" top1":i===1?" top2":i===2?" top3":"";
+      return <div className={"flaprow"+(mine?" mine":"")+top} key={p.userId}>
+        <span className="col-rank"><Flap text={String(i+1)} width={2} align="right" delayBase={rd} animate={animate}/></span>
+        <span className="col-name"><Flap text={p.name||"Anonym"} width={12} delayBase={rd} animate={animate}/></span>
+        <span className="col-hit"><Flap text={(p.hitRate||0)+"%"} width={4} align="right" delayBase={rd} animate={animate}/></span>
+        <span className="col-bal"><Flap text={fmt(p.balance)} width={7} align="right" delayBase={rd} animate={animate}/></span>
+        {mine && <span className="flap-you">◄ DU</span>}
       </div>;
     })}
   </div>;
