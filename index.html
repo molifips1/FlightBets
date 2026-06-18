@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v45 -->
+<!-- build: v2026-06-16-v46 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2435,7 +2435,7 @@ function ClosedTable({ rows }){
     <div className="ctable-wrap">
       <table className="ctable">
         <thead>
-          <tr><th>{t("Flug","Flight")}</th><th>{t("Abflug","Dep")}</th><th>{t("Ankunft","Arr")}</th><th>{t("Datum","Date")}</th><th>{t("Uhrzeit","Time")}</th><th>{t("Ergebnis","Result")}</th><th>{t("Gewinner","Winner")}</th><th className="ta-r">{t("Wetten","Bets")}</th><th className="ta-r">{t("Pool","Pool")}</th></tr>
+          <tr><th>{t("Flug","Flight")}</th><th>{t("Ziel","Dest")}</th><th>{t("Datum","Date")}</th><th>{t("Plan Abflug","Sched dep")}</th><th>{t("Ist Abflug","Act dep")}</th><th>{t("Plan Landung","Sched arr")}</th><th>{t("Ist Landung","Act arr")}</th><th>{t("Ergebnis","Result")}</th><th>{t("Gewinner","Winner")}</th><th className="ta-r">{t("Wetten","Bets")}</th><th className="ta-r">{t("Pool","Pool")}</th></tr>
         </thead>
         <tbody>
           {filtered.map((r,i)=>{
@@ -2447,17 +2447,19 @@ function ClosedTable({ rows }){
             const settled = r.poolTotal!=null;
             return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
               <td className="ct-code">{r.ident}</td>
-              <td>🇩🇪 BER</td>
               <td>{flagFor(r.dest)} {r.dest}</td>
               <td>{fmtDate(r.date)}</td>
               <td>{fmtTime(r.schedDep)}</td>
+              <td>{fmtTime(r.actualDep)}</td>
+              <td>{fmtTime(r.schedArr)}</td>
+              <td>{fmtTime(r.actualArr)}</td>
               <td><span className="ct-res" style={{color:`var(--${status})`}}>{label}</span></td>
               <td><span style={{color:`var(--${status})`,fontWeight:700}}>{winner}</span></td>
               <td className="ta-r">{r.nBets||0}</td>
               <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
             </tr>;
           })}
-          {filtered.length===0 && <tr><td colSpan={9} className="ct-none">Keine Treffer.</td></tr>}
+          {filtered.length===0 && <tr><td colSpan={11} className="ct-none">Keine Treffer.</td></tr>}
         </tbody>
       </table>
     </div>
