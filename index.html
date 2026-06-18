@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v44 -->
+<!-- build: v2026-06-16-v45 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1314,7 +1314,7 @@ function Detail({m,total,back,initialPick,...bet}){
 
         {/* Bracket list — pick your bracket, pools visible */}
         <div className="panelbox">
-          <div className="sectlbl">Tippe die Verspätung · {m.outcomes.length} Optionen</div>
+          <div className="sectlbl">Tippe die Landeverspätung · {m.outcomes.length} Optionen</div>
           <div className="brackets">
             {m.outcomes.map(o=>{
               const mult = displayOdds(m.outcomes, o, m.seed);
@@ -1334,7 +1334,7 @@ function Detail({m,total,back,initialPick,...bet}){
               </button>;
             })}
           </div>
-          <div className="oddsnote"><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (90 Min vor Abflug).</div>
+          <div className="oddsnote"><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (beim Abheben).</div>
         </div>
 
         {/* Route reliability — only meaningful for real flights (departures from BER) */}
@@ -1344,7 +1344,7 @@ function Detail({m,total,back,initialPick,...bet}){
         <div className="panelbox">
           <div className="sectlbl">Marktregeln</div>
           <div className="rules">
-            <p>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die Verspätung dieses Fluges. Du setzt €-Spielgeld auf eine der vier Verspätungs-Optionen. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</p>
+            <p>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges am Zielflughafen. Du setzt €-Spielgeld auf eine der vier Optionen — Wetten schließen beim Abheben. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</p>
             <p><b>Abrechnung:</b> über die offizielle erfasste Ankunfts-/Abflugzeit. {m.settles?("Quelle: "+m.settles+"."):""}</p>
             <p><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze zurückerstattet.</p>
             <p className="rules-net">Spielgeld · keine echten Einsätze · DACH-Region</p>
@@ -1525,26 +1525,32 @@ function boardToMarket(f){
   // landed already — don't leave it "unterwegs" forever or claim it's on time.
   const st = (f.status||"").toLowerCase();
   const relSched = dirDep ? f.scheduledDep : f.scheduledArr;
-  const relTime = relSched ? new Date(relSched).getTime() : null;
+  const relTime = relSched ? new Date(relSched).getTime() : null; // scheduled DEPARTURE from BER
   const now = Date.now();
   const adbOnly = (f.dataSource||"adb")==="adb";
-  const longPast = relTime!=null && (now - relTime) > 90*60*1000; // >90 min after schedule
+  const schedArrTime = f.scheduledArr ? new Date(f.scheduledArr).getTime() : null;
+  const longPastArr = schedArrTime!=null && (now - schedArrTime) > 90*60*1000; // plan-only & past STA → assume landed
+
+  // Has the plane physically left BER? Betting closes at takeoff. With live data we use
+  // the actual off-block time; with only the plan we treat scheduled departure as cutoff.
+  const departed = !!f.actualDep || st.includes("departed") || st.includes("en route")
+                 || st.includes("enroute") || st.includes("airborne") || st.includes("active")
+                 || (adbOnly && relTime!=null && now >= relTime);
+  // Has it landed at the destination?
+  const landed = st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")
+               || f.arrDelayMin!=null || (adbOnly && longPastArr);
+
   let phase;
   if (f.cancelled || st.includes("cancel")) phase = "cancelled";
-  else if (relTime == null) phase = "upcoming";
-  else if (relTime > now) phase = "upcoming";
-  else if (st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")) phase = "landed";
-  else if (adbOnly && longPast) phase = "landed"; // aged-out: assume landed, delay unknown
-  else phase = "enroute"; // departed / in the air, not yet landed
+  else if (landed)   phase = "landed";
+  else if (departed) phase = "enroute"; // airborne — bets locked, landing-delay suspense
+  else               phase = "upcoming"; // still at the gate → bettable
   const settled = phase==="landed" || phase==="cancelled";
 
-  // Betting closes 90 min BEFORE scheduled departure — so every bet is a real
-  // prediction (the board hasn't yet revealed the delay) and a long, suspenseful
-  // watch-phase remains. After that, the market is locked even though the flight
-  // hasn't left yet.
-  const BET_LEAD_MS = 90*60*1000;
-  const betCloseTs = relTime!=null ? relTime - BET_LEAD_MS : null;
-  const bettable = phase==="upcoming" && betCloseTs!=null && now < betCloseTs;
+  // Betting closes when the plane takes off. While it's on the ground at BER you can
+  // bet; once airborne the market locks and the landing-delay watch begins.
+  const bettable = phase==="upcoming";
+  const betCloseTs = relTime; // countdown shows time until scheduled departure (~takeoff)
 
   // Three tabs: aktiv (still bettable) · abgeflogen (closed, not yet landed) ·
   // gelandet (landed or cancelled — resolved).
@@ -1554,8 +1560,10 @@ function boardToMarket(f){
 
   // If we only have the ADB plan for a flight that's already gone, we don't
   // actually know the delay — show "—" rather than a misleading +0m.
-  const delayUnknown = adbOnly && relTime!=null && relTime <= now && (f.delayMin==null || f.delayMin===0) && !st.includes("delay");
-  const effDelay = delayUnknown ? null : f.delayMin;
+  // The result we show & settle on is the LANDING delay at the destination. It's
+  // unknown until the flight has actually landed (or aged out with only a plan).
+  const delayUnknown = phase==="landed" && f.arrDelayMin==null && !f.cancelled;
+  const effDelay = f.cancelled ? null : f.arrDelayMin;
   const status = f.cancelled ? "bad"
     : effDelay==null ? "good"
     : effDelay>=60 ? "bad" : effDelay>=30 ? "warn" : effDelay>=15 ? "mid" : "good";
