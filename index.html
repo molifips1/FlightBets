@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v47 -->
+<!-- build: v2026-06-16-v48 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2754,7 +2754,7 @@ function App(){
             return total(b) - total(a);
           });
         if (dataStatus==="live" && shown.length===0) {
-          return <div className="empty"><div className="e1">🕐</div><div className="e2">{t("Gerade keine wettbaren Flüge","No bettable flights right now")}</div><div className="e3">{t("Wetten schließen 90 Minuten vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.","Betting closes 90 minutes before departure. No flight is in the open window right now — often in the evening when BER operations wind down. Check back later.")}</div></div>;
+          return <div className="empty"><div className="e1">🕐</div><div className="e2">{t("Gerade keine wettbaren Flüge","No bettable flights right now")}</div><div className="e3">{t("Wetten schließen 1 Stunde vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.","Betting closes 1 hour before departure. No flight is in the open window right now — often in the evening when BER operations wind down. Check back later.")}</div></div>;
         }
         return <div className="grid">
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
