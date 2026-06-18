@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v56 -->
+<!-- build: v2026-06-16-v57 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -162,6 +162,9 @@ button{font-family:inherit}
 .cbk-dot{width:9px;height:9px;border-radius:50%;flex:none}
 .cbk-name{font-weight:600}
 .cbk-odds{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cbk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
+.bk-range{display:block;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.sheet-bk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
    (set by flight status: green on-time, red late, etc.). */
 .card.neon{
@@ -809,6 +812,10 @@ const STATUS_EN={cool:"Early",good:"On time",mid:"Slightly late",warn:"Slightly 
 const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
 const OUT_EN={"Früh":"Early","Pünktlich":"On time","Etwas spät":"Slightly late","Deutlich spät":"Very late"};
 const outLabel=s=> t(s, OUT_EN[s]||s);
+// Minute span shown as a small sub-label next to each bracket (flight markets only).
+const OUT_RANGE_DE={a:"5+ Min früh",b:"−4…+5 Min",c:"+6…+20 Min",d:"+20 Min+"};
+const OUT_RANGE_EN={a:"5+ min early",b:"−4…+5 min",c:"+6…+20 min",d:"+20 min+"};
+const rangeLabel=id=> OUT_RANGE_DE[id] ? t(OUT_RANGE_DE[id], OUT_RANGE_EN[id]) : "";
 const store={get(k,fb){try{const v=localStorage.getItem(k);return v==null?fb:JSON.parse(v)}catch(e){return fb}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},clear(){try{localStorage.clear()}catch(e){}}};
 
@@ -1029,6 +1036,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
               return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
                 <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
                 <span className="cbk-name">{outLabel(o.label)}</span>
+                {rangeLabel(o.id) && <span className="cbk-range">{rangeLabel(o.id)}</span>}
                 <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
               </button>;
             })}
@@ -1336,6 +1344,7 @@ function Detail({m,total,back,initialPick,...bet}){
               return <button key={o.id} className={"bracket"+(on?" on":"")} onClick={()=>{setPick(o.id);Sound.select();}}>
                 <div className="bk-l">
                   <span className="bk-name">{outLabel(o.label)}</span>
+                  {rangeLabel(o.id) && <span className="bk-range">{rangeLabel(o.id)}</span>}
                   {on && <span className="bk-sel">GEWÄHLT</span>}
                 </div>
                 <div className="bk-mid">
@@ -2425,7 +2434,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
           const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
           return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
             <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
-            <span className="sheet-bk-name">{outLabel(x.label)}</span>
+            <span className="sheet-bk-name">{outLabel(x.label)}</span>{rangeLabel(x.id) && <span className="sheet-bk-range">{rangeLabel(x.id)}</span>}
             <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
           </button>;
         })}
