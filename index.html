@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v96 -->
+<!-- build: v2026-06-16-v97 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -192,6 +192,14 @@ button{font-family:inherit}
 .flaprow.top3 .flapc{color:#e6a96b}
 .flap-you{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6ea8ff;letter-spacing:1px;flex:none}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
+.pooldist{margin-top:12px}
+.pd-label{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.pd-bar{display:flex;gap:2px;height:16px;border-radius:8px;overflow:hidden}
+.pd-seg{height:100%;min-width:2px;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
+.pd-legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:10px}
+.pd-lg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink);font-weight:600}
+.pd-d{width:9px;height:9px;border-radius:50%;flex:none}
+.betbtn.wette{background:var(--bad);color:#fff;width:100%;margin-left:0;margin-top:14px;text-align:center}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
 .cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
   background:var(--card2);border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);
@@ -1209,6 +1217,35 @@ function CloseUrgency({ closeISO, neon }){
   }}/>;
 }
 
+function favOutcome(outcomes, seed){
+  const S=seed||DEFAULT_SEED; let best=outcomes[0], bv=-Infinity;
+  for(const o of outcomes){ const v=(o.pool||0)+(S[o.id]||0); if(v>bv){bv=v;best=o;} }
+  return best?best.id:undefined;
+}
+// Pool distribution: a colour bar (segment width = share) + a legend (name · %).
+function PoolDist({ outcomes, seed }){
+  const S = seed || DEFAULT_SEED;
+  const eff = o => (o.pool||0)+(S[o.id]||0);
+  const vals = outcomes.map(eff);
+  const tot = vals.reduce((a,b)=>a+b,0)||1;
+  return (
+    <div className="pooldist" onClick={e=>e.stopPropagation()}>
+      <div className="pd-label">Pool distribution</div>
+      <div className="pd-bar">
+        {outcomes.map((o,i)=><div key={o.id} className="pd-seg"
+          style={{width:(vals[i]/tot*100)+"%", background:TONE[o.tone]}}
+          title={outLabel(o.label)+" "+Math.round(vals[i]/tot*100)+"%"}/>)}
+      </div>
+      <div className="pd-legend">
+        {outcomes.map((o,i)=>
+          <span key={o.id} className="pd-lg">
+            <span className="pd-d" style={{background:TONE[o.tone]}}/>{outLabel(o.label)} · {Math.round(vals[i]/tot*100)}%
+          </span>)}
+      </div>
+    </div>
+  );
+}
+
 function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,positions}){
   if(m.type==="discussion"){
     const msgs=[["berliner_jung","2d","Wie sieht's heute mit den Verspätungen aus?"],["berliner_jung","2d","Morgen zusammen ☕"],
@@ -1291,19 +1328,8 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
 
       {m.bettable
         ? <>
-            <div className="cbrackets" onClick={e=>e.stopPropagation()}>
-              {m.outcomes.map(o=>{
-                const odds = displayOdds(m.outcomes, o, m.seed);
-                return <button key={o.id} className="cbk" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id,o.id);}}>
-                  <span className="cbk-dot" style={{background:TONE[o.tone]}}/>
-                  <span className="cbk-main">
-                    <span className="cbk-name">{outLabel(o.label)}</span>
-                    {rangeLabel(o.id) && <span className="cbk-range">{rangeLabel(o.id)}</span>}
-                  </span>
-                  <span className="cbk-odds">{odds!=null?odds.toFixed(2)+"×":"—"}</span>
-                </button>;
-              })}
-            </div>
+            <PoolDist outcomes={m.outcomes} seed={m.seed}/>
+            <button className="betbtn wette" onClick={(e)=>{e.stopPropagation(); onQuickBet(m.id, favOutcome(m.outcomes,m.seed));}}>{t("Wette","Bet")}</button>
           </>
         : <div className="cfoot"><button className="betbtn locked" disabled>{m.phase==="cancelled"?t("Annulliert","Cancelled"):m.phase==="landed"?t("Gelandet","Landed"):m.phase==="enroute"?t("Abgeflogen","Departed"):t("Geschlossen","Closed")}</button></div>}
     </div>
