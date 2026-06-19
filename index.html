@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v107 -->
+<!-- build: v2026-06-16-v108 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -197,7 +197,7 @@ button{font-family:inherit}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
 .pd-bar{display:flex;gap:2px;height:18px;border-radius:9px;overflow:hidden}
 .pd-seg{height:100%;min-width:2px;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
-.pd-legend{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:6px;margin-top:11px}
+.pd-legend{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:6px;margin:0 0 9px}
 .pd-lg{font-size:10px;font-weight:700;white-space:nowrap}
 .pd-d{width:9px;height:9px;border-radius:50%;flex:none}
 .betbtn.wette{background:var(--bad);color:#fff;width:100%;margin-left:0;margin-top:18px;text-align:center}
@@ -404,7 +404,7 @@ button{font-family:inherit}
 .dcurve-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .dcurve-peak{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--card);
   border:2.5px solid var(--pc);transform:translate(-50%,-50%);pointer-events:none}
-.dcurve-projline{position:absolute;top:0;bottom:0;border-left:2px dashed var(--pc);opacity:.85;pointer-events:none}
+.dcurve-projline{position:absolute;top:0;bottom:0;border-left:2px dashed var(--pc);opacity:.85;pointer-events:none;transform:translateX(-1px)}
 .dcurve-zero{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);pointer-events:none}
 .dcurve-axis span.zero{color:var(--ink);font-weight:700}
 .dcurve-diamond{position:absolute;bottom:0;width:9px;height:9px;background:var(--pc);
@@ -1136,8 +1136,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
           <path d={area} fill={`url(#${uid})`}/>
           <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
         </svg>
-        <span className="dcurve-zero" style={{left:(zeroX/W*100)+"%"}}/>
-        <span className="dcurve-peak" style={{left:(peakX/W*100)+"%", top:(peakY/plotH*100)+"%"}}/>
         {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
         {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
       </div>
@@ -1241,16 +1239,16 @@ function PoolDist({ outcomes, seed }){
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
-      <div className="pd-bar">
-        {outcomes.map((o,i)=><div key={o.id} className="pd-seg"
-          style={{width:(vals[i]/tot*100)+"%", background:TONE[o.tone]}}
-          title={outLabel(o.label)+" "+Math.round(vals[i]/tot*100)+"%"}/>)}
-      </div>
       <div className="pd-legend">
         {outcomes.map((o,i)=>
           <span key={o.id} className="pd-lg" style={{color:TONE[o.tone]}}>
             {outLabel(o.label)} {Math.round(vals[i]/tot*100)}%
           </span>)}
+      </div>
+      <div className="pd-bar">
+        {outcomes.map((o,i)=><div key={o.id} className="pd-seg"
+          style={{width:(vals[i]/tot*100)+"%", background:TONE[o.tone]}}
+          title={outLabel(o.label)+" "+Math.round(vals[i]/tot*100)+"%"}/>)}
       </div>
     </div>
   );
