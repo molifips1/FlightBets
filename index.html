@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v93 -->
+<!-- build: v2026-06-16-v94 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1109,7 +1109,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
       <div className="dcurve-head">
         <span className="dcurve-w">{wordTxt}</span>
         <span className="dcurve-v">
-          {(delayUnknown||proj==null) ? "—" : <>{(proj>=0?"+":"")+proj+"m"}{projArr&&projArr!=="—" && <span className="dcurve-at"> · an {projArr}</span>}</>}
+          {(delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m"}
         </span>
       </div>
       <div className="dcurve-plot">
@@ -1279,7 +1279,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
           <div className="stop">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
-            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arr}</span>
+            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
           </div>
         </div>
       ) : (
@@ -1585,7 +1585,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <div className="stop">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arr}</span>
+              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
