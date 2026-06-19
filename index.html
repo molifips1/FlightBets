@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v74 -->
+<!-- build: v2026-06-16-v75 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -35,6 +35,8 @@
   --line:#E3E8EF; --line2:#EEF2F6;
   --brand:#2E6BFF; --brandink:#fff; --hot:#FF5A3C;
   --good:#1FA971; --mid:#F2A310; --warn:#F2701A; --bad:#E8412B;
+  /* Dedicated bracket/neon colours (Früh→Deutlich spät), cool→hot, kept distinct */
+  --bk-cool:#159DF0; --bk-good:#12A56C; --bk-warn:#F2A516; --bk-bad:#E8412B;
   --shadow:0 1px 2px rgba(14,42,71,.05), 0 6px 24px rgba(14,42,71,.04);
   --mapsky1:#2E6BFF; --mapsky2:#5A8DFF; --mapsky3:#9DBEFF; --mapgrid:rgba(255,255,255,.16); --mapland:rgba(255,255,255,.06);
 }
@@ -43,6 +45,7 @@
   --line:#1F2D40; --line2:#18283b;
   --brand:#4F86FF; --hot:#FF6A4D;
   --good:#33C088; --mid:#F2A310; --warn:#FF8A3C; --bad:#FF5945;
+  --bk-cool:#36B5FF; --bk-good:#2FD699; --bk-warn:#FFB23E; --bk-bad:#FF5945;
   --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.35);
   --mapsky1:#0B1E3A; --mapsky2:#10325C; --mapsky3:#16447A; --mapgrid:rgba(120,170,255,.14); --mapland:rgba(120,170,255,.05);
 }
@@ -843,7 +846,7 @@ function displayOdds(outcomes, o, seed){
   return mine>0 ? tot/mine : null;
 }
 const fmt=n=>Math.round(n).toLocaleString("en-US");
-const TONE={cool:"var(--brand)",good:"var(--good)",mid:"var(--mid)",warn:"var(--warn)",bad:"var(--bad)",muted:"var(--muted)"};
+const TONE={cool:"var(--bk-cool)",good:"var(--bk-good)",mid:"var(--mid)",warn:"var(--bk-warn)",bad:"var(--bk-bad)",muted:"var(--muted)"};
 const STATUS={cool:"Früh",good:"Pünktlich",mid:"Leicht verspätet",warn:"Etwas spät",bad:"Deutlich spät"};
 const STATUS_EN={cool:"Early",good:"On time",mid:"Slightly late",warn:"Slightly late",bad:"Very late"};
 const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
