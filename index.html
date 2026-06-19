@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v110 -->
+<!-- build: v2026-06-16-v111 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -203,6 +203,8 @@ button{font-family:inherit}
 .pd-lg{font-size:11px;font-weight:700;white-space:nowrap}
 .pd-d{width:9px;height:9px;border-radius:50%;flex:none}
 .betbtn.wette{background:var(--bad);color:#fff;width:100%;margin-left:0;margin-top:18px;text-align:center}
+@keyframes cdPulse{0%,100%{opacity:1}50%{opacity:.45}}
+.phase-cd.cd-pulse{animation:cdPulse 1s ease-in-out infinite}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
 .cbk{display:flex;align-items:center;gap:11px;width:100%;padding:11px 13px;border:1px solid var(--line);
   background:var(--card2);border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;color:var(--ink);
@@ -268,6 +270,7 @@ button{font-family:inherit}
 .rdot{width:11px;height:11px;border-radius:50%;border:2.5px solid var(--ink);background:var(--card)}
 .rdot.end{border-color:var(--bad);background:var(--bad)}
 .rconn{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:2px;height:20px;background:var(--line)}
+.stop.arr .dotline{height:1.3em;justify-content:center}
 .flag{font-size:13px}
 .cc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-right:2px}
 .sname{font-weight:600}
@@ -1533,9 +1536,9 @@ function CloseBadge({ closeISO, tone }){
   if(diff<=0) return <span className="phase phase-cd" style={{background:"var(--card2)",color:"var(--muted)"}}>🔒 {t("Wetten geschlossen","Betting closed")}</span>;
   const hh=Math.floor(diff/3600), mm=Math.floor((diff%3600)/60), ss=diff%60;
   const pad=n=>String(n).padStart(2,"0");
-  const soon = diff < 10*60; // final 10 min → red
+  const soon = diff < 10*60; // final 10 min → red + pulse
   const col = soon ? "var(--bk-bad)" : base;
-  return <span className="phase phase-cd" style={tint(col)}>
+  return <span className={"phase phase-cd"+(soon?" cd-pulse":"")} style={tint(col)}>
     <span className="cd-w">{t("Wetten schliesst","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
   </span>;
 }
