@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v94 -->
+<!-- build: v2026-06-16-v95 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -259,8 +259,8 @@ button{font-family:inherit}
 .cc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-right:2px}
 .sname{font-weight:600}
 .rtime{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:14px;text-align:right}
-.rtime .old{color:var(--muted);text-decoration:line-through;font-size:12px;display:block}
-.rtime .new{color:var(--bad);font-weight:600}
+.rtime .old{color:var(--muted);text-decoration:line-through;display:block}
+.rtime .new{display:block;font-weight:700}
 .haltes{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
   border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 0}
 
@@ -1279,7 +1279,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
           <div className="stop">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
-            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
+            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
           </div>
         </div>
       ) : (
@@ -1585,7 +1585,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <div className="stop">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
+              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
