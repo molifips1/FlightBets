@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v89 -->
+<!-- build: v2026-06-16-v91 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -384,6 +384,22 @@ button{font-family:inherit}
 .betcd.closed{color:var(--muted);opacity:.8}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
+.dcurve{margin:8px 0 2px}
+.dcurve-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
+.dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
+.dcurve-plot{position:relative;height:64px}
+.dcurve-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.dcurve-peak{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--card);
+  border:2.5px solid var(--pc);transform:translate(-50%,-50%);pointer-events:none}
+.dcurve-projline{position:absolute;top:0;bottom:0;border-left:2px dashed var(--pc);opacity:.85;pointer-events:none}
+.dcurve-zero{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);pointer-events:none}
+.dcurve-axis span.zero{color:var(--ink);font-weight:700}
+.dcurve-diamond{position:absolute;bottom:0;width:9px;height:9px;background:var(--pc);
+  transform:translate(-50%,50%) rotate(45deg);pointer-events:none}
+.dcurve-axis{position:relative;height:14px;margin-top:4px}
+.dcurve-axis span{position:absolute;transform:translateX(-50%);font-size:9.5px;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;white-space:nowrap}
 .poolwrap{margin:8px 0 4px}
 .poolbar{display:flex;gap:2px;height:26px;border-radius:8px;overflow:hidden}
 .poolseg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;
@@ -1050,6 +1066,70 @@ function PoolBar({outcomes, total, seed}){
   );
 }
 
+// Delay distribution curve over minutes. The smooth hump is the crowd's money
+// (bracket shares + seed) mapped onto a minutes axis; the circle marks the most
+// likely zone; the dashed line + diamond is the data provider's PROJECTED delay.
+function DelayCurve({ outcomes, seed, status, projDelay, delayUnknown }){
+  const col = TONE[status] || "var(--brand)";
+  const S = seed || DEFAULT_SEED;
+  const eff = o => (o.pool||0) + (S[o.id]||0);
+  const totEff = outcomes.reduce((a,o)=>a+eff(o),0) || 1;
+  const share = id => { const o=outcomes.find(x=>x.id===id); return o?eff(o)/totEff:0; };
+
+  const CENTER={a:-9,b:1,c:13,d:30}, SPREAD={a:4,b:4.5,c:5.5,d:11};
+  const proj = (projDelay==null||delayUnknown) ? null : projDelay;
+  const Mmin = Math.min(-15, proj!=null ? Math.floor((proj-5)/5)*5 : -15);
+  const Mmax = Math.max(20, Math.ceil(((proj!=null?Math.max(proj,15):15)+5)/5)*5);
+  const span = Mmax - Mmin;
+
+  const W=300, plotH=64, padT=8;
+  const N=72, gauss=(x,mu,s)=>Math.exp(-0.5*((x-mu)/s)**2);
+  const ys=[]; let maxV=0;
+  for(let i=0;i<=N;i++){
+    const x=Mmin+(i/N)*span; let v=0;
+    for(const id of ["a","b","c","d"]) if(CENTER[id]!=null) v+=share(id)*gauss(x,CENTER[id],SPREAD[id]);
+    ys.push(v); if(v>maxV)maxV=v;
+  }
+  maxV=maxV||1;
+  const xPix=m=>((m-Mmin)/span)*W, yPix=v=>padT+(1-v/maxV)*(plotH-padT-4);
+  const pts=ys.map((v,i)=>[(i/N)*W, yPix(v)]);
+  const line=smooth(pts), area=line+` L ${W},${plotH} L 0,${plotH} Z`;
+  let pk=0; ys.forEach((v,i)=>{ if(v>ys[pk])pk=i; });
+  const peakX=pts[pk][0], peakY=pts[pk][1];
+  const projX = proj!=null ? Math.max(0,Math.min(W,xPix(proj))) : null;
+  const zeroX = xPix(0);
+  const ticks=[]; for(let mm=Math.ceil(Mmin/5)*5; mm<=Mmax; mm+=5) ticks.push(mm);
+  const uid="dc"+Math.random().toString(36).slice(2,7);
+  const valTxt = (delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m";
+  const wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status);
+
+  return (
+    <div className="dcurve" style={{"--pc": delayUnknown?"var(--muted)":col}}>
+      <div className="dcurve-head">
+        <span className="dcurve-w">{wordTxt}</span>
+        <span className="dcurve-v">{valTxt}</span>
+      </div>
+      <div className="dcurve-plot">
+        <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
+          <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor={col} stopOpacity="0.26"/>
+            <stop offset="1" stopColor={col} stopOpacity="0.02"/>
+          </linearGradient></defs>
+          <path d={area} fill={`url(#${uid})`}/>
+          <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+        </svg>
+        <span className="dcurve-zero" style={{left:(zeroX/W*100)+"%"}}/>
+        <span className="dcurve-peak" style={{left:(peakX/W*100)+"%", top:(peakY/plotH*100)+"%"}}/>
+        {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
+        {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
+      </div>
+      <div className="dcurve-axis">
+        {ticks.map(mm=> <span key={mm} className={mm===0?"zero":""} style={{left:(xPix(mm)/W*100)+"%"}}>{mm}m</span>)}
+      </div>
+    </div>
+  );
+}
+
 function RiskBar({outcomes,total}){
   const t = total>0 ? total : 0;
   return <div className="rbar">{outcomes.map(o=>
@@ -1208,7 +1288,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
       </div>
 
-      <PoolBar outcomes={m.outcomes} total={total} seed={m.seed}/>
+      <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown}/>
 
       {m.bettable
         ? <>
@@ -1514,7 +1594,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.neonTone||m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
           </div>
-          <PoolBar outcomes={m.outcomes} total={total} seed={m.seed}/>
+          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
@@ -1871,6 +1951,7 @@ function boardToMarket(f){
     neonTone,
     projArr: projArrISO ? fmtT(projArrISO) : "—",
     projArrEst,
+    projDelay: neonDelay,
     delay: delayLabel,
     risk: Math.round(pools.slice(1).reduce((a,b)=>a+b,0) / pools.reduce((a,b)=>a+b,0) * 100),
     dist: status==="bad"?[8,7,5,4,4,6,9,13,16,15,11,7,4,3,2]
