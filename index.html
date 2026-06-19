@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v75 -->
+<!-- build: v2026-06-16-v76 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1117,8 +1117,8 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
     return ()=>{ clearTimeout(t1); clearTimeout(t2); };
   },[m.betCloseISO, m.bettable]);
   return (
-    <div className={"card click neon"+(closing?" closing":"")} style={{"--neon": TONE[m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
-      {m.bettable && <CloseUrgency closeISO={m.betCloseISO} neon={TONE[m.status]}/>}
+    <div className={"card click neon"+(closing?" closing":"")} style={{"--neon": TONE[m.neonTone||m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
+      {m.bettable && <CloseUrgency closeISO={m.betCloseISO} neon={TONE[m.neonTone||m.status]}/>}
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
@@ -1745,6 +1745,24 @@ function boardToMarket(f){
     : effDelay<=-5 ? "cool" : effDelay<=5 ? "good" : effDelay<=20 ? "warn" : "bad";
   const delayLabel = f.cancelled ? "ANNULLIERT"
     : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"m";
+  // NEON colour = the PREDICTED landing delay (so the card glow says "läuft auf
+  // rot/grün hinaus" before it lands). Uses, in order: actual landing delay once
+  // known → estimated arrival (revisedArr − schedArr) → revised departure delay.
+  // The displayed delay number stays honest ("—" until landed); only the glow
+  // anticipates. No estimate at all → calm green.
+  const _ms = iso => iso ? new Date(iso).getTime() : null;
+  const _arrEst = (_ms(f.scheduledArr)!=null && _ms(f.revisedArr)!=null)
+    ? Math.round((_ms(f.revisedArr)-_ms(f.scheduledArr))/60000) : null;
+  const _depEst = (_ms(f.scheduledDep)!=null && _ms(f.revisedDep)!=null)
+    ? Math.round((_ms(f.revisedDep)-_ms(f.scheduledDep))/60000) : null;
+  const neonDelay = f.cancelled ? null
+    : f.arrDelayMin!=null ? f.arrDelayMin
+    : _arrEst!=null ? _arrEst
+    : _depEst!=null ? _depEst
+    : null;
+  const neonTone = f.cancelled ? "bad"
+    : neonDelay==null ? "good"
+    : neonDelay<=-5 ? "cool" : neonDelay<=5 ? "good" : neonDelay<=20 ? "warn" : "bad";
   const pools = poolsFor(f.ident, f.delayMin, f.cancelled);
   const fmtT = iso => {
     if (!iso) return "—";
@@ -1800,6 +1818,7 @@ function boardToMarket(f){
     arrISO: f.scheduledArr || null,
     stops: 0,
     status,
+    neonTone,
     delay: delayLabel,
     risk: Math.round(pools.slice(1).reduce((a,b)=>a+b,0) / pools.reduce((a,b)=>a+b,0) * 100),
     dist: status==="bad"?[8,7,5,4,4,6,9,13,16,15,11,7,4,3,2]
