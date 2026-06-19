@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v100 -->
+<!-- build: v2026-06-16-v101 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -619,12 +619,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ph-enroute,.ph-abgeflogen{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
 .ph-landed,.ph-gelandet{background:var(--card2);color:var(--muted)}
 .ph-cancelled{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
-/* Live close-countdown badge: white text on readable green, red in final 10 min. */
-.phase-cd{background:#11824e;color:#fff}
-[data-theme="dark"] .phase-cd{background:#149a5d}
-.phase-cd.soon{background:#cf3527}
-[data-theme="dark"] .phase-cd.soon{background:#e0473a}
-.phase-cd.closed{background:#6b7280}
+/* Live close-countdown badge: soft colour tint + matching text (set inline). */
 .phase-cd .cd-w{letter-spacing:-.1px}
 .phase-cd .cd-n{margin-left:.34em;letter-spacing:.2px;font-variant-numeric:tabular-nums}
 .seg{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);
@@ -1300,7 +1295,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <div className="codeline">
           <span className="code">{m.code}</span>
           {m.phase && (m.bettable
-            ? <CloseBadge closeISO={m.betCloseISO}/>
+            ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
             : <span className={"phase ph-"+(m.tab||m.phase)}>{
                 m.phase==="cancelled" ? "✕ annulliert" :
                 m.phase==="landed"    ? "✓ gelandet" :
@@ -1512,19 +1507,23 @@ function BetCountdown({ closeISO }){
   </span>;
 }
 
-// Self-styled phase badge for bettable flights: white text on a readable green,
-// turning red in the final 10 minutes. Word + number are split so the word can be
+// Phase badge for bettable flights, styled like the other phase pills (soft
+// colour tint + matching text). Normally tinted in the flight's status colour;
+// turns red in the final 10 minutes. Word + number split so the word can be
 // tightened while the gap to the number stays constant.
-function CloseBadge({ closeISO }){
+function CloseBadge({ closeISO, tone }){
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
-  if(!closeISO) return <span className="phase phase-cd">● bevorstehend</span>;
+  const base = tone || "var(--brand)";
+  const tint=col=>({background:`color-mix(in srgb, ${col} 18%, transparent)`, color:col});
+  if(!closeISO) return <span className="phase phase-cd" style={tint(base)}>● bevorstehend</span>;
   const diff = Math.floor((new Date(closeISO).getTime()-now)/1000);
-  if(diff<=0) return <span className="phase phase-cd closed">🔒 {t("Wetten geschlossen","Betting closed")}</span>;
+  if(diff<=0) return <span className="phase phase-cd" style={{background:"var(--card2)",color:"var(--muted)"}}>🔒 {t("Wetten geschlossen","Betting closed")}</span>;
   const hh=Math.floor(diff/3600), mm=Math.floor((diff%3600)/60), ss=diff%60;
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 10*60; // final 10 min → red
-  return <span className={"phase phase-cd"+(soon?" soon":"")}>
+  const col = soon ? "var(--bk-bad)" : base;
+  return <span className="phase phase-cd" style={tint(col)}>
     <span className="cd-w">{t("Wetten schliesst in","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
   </span>;
 }
@@ -1619,7 +1618,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span className="code">{m.code}</span>
               {m.subcode && <span className="subcode">{m.subcode}</span>}
               {isFlight && m.phase && (m.bettable
-                ? <CloseBadge closeISO={m.betCloseISO}/>
+                ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
                 : <span className={"phase ph-"+(m.tab||m.phase)}>{
                     m.phase==="cancelled" ? "✕ annulliert" :
                     m.phase==="landed"    ? "✓ gelandet" :
