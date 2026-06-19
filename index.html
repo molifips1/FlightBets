@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v84 -->
+<!-- build: v2026-06-16-v85 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1043,12 +1043,6 @@ function PoolBar({outcomes, total, seed}){
             </div>
           );
         })}
-      </div>
-      <div className="poollegend">
-        {outcomes.map(o=>
-          <span key={o.id} className="poollg">
-            <span className="poollg-d" style={{background:TONE[o.tone]}}/>{outLabel(o.label)}
-          </span>)}
       </div>
     </div>
   );
