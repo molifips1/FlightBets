@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v91 -->
+<!-- build: v2026-06-16-v93 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -385,7 +385,8 @@ button{font-family:inherit}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
 .dcurve{margin:8px 0 2px}
-.dcurve-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px}
+.dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
 .dcurve-plot{position:relative;height:64px}
@@ -1069,7 +1070,7 @@ function PoolBar({outcomes, total, seed}){
 // Delay distribution curve over minutes. The smooth hump is the crowd's money
 // (bracket shares + seed) mapped onto a minutes axis; the circle marks the most
 // likely zone; the dashed line + diamond is the data provider's PROJECTED delay.
-function DelayCurve({ outcomes, seed, status, projDelay, delayUnknown }){
+function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }){
   const col = TONE[status] || "var(--brand)";
   const S = seed || DEFAULT_SEED;
   const eff = o => (o.pool||0) + (S[o.id]||0);
@@ -1107,7 +1108,9 @@ function DelayCurve({ outcomes, seed, status, projDelay, delayUnknown }){
     <div className="dcurve" style={{"--pc": delayUnknown?"var(--muted)":col}}>
       <div className="dcurve-head">
         <span className="dcurve-w">{wordTxt}</span>
-        <span className="dcurve-v">{valTxt}</span>
+        <span className="dcurve-v">
+          {(delayUnknown||proj==null) ? "—" : <>{(proj>=0?"+":"")+proj+"m"}{projArr&&projArr!=="—" && <span className="dcurve-at"> · an {projArr}</span>}</>}
+        </span>
       </div>
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
@@ -1283,12 +1286,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
       )}
 
-      <div className="statusline">
-        <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.neonTone||m.status)):t("Laufende Quote","Live odds")}</span>
-        <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
-      </div>
-
-      <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown}/>
+      <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
 
       {m.bettable
         ? <>
@@ -1590,11 +1588,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
-          <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
-            <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.neonTone||m.status)):t("Laufende Quote","Live odds")}</span>
-            <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
-          </div>
-          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown}/>
+          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
