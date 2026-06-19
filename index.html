@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v86 -->
+<!-- build: v2026-06-16-v87 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -239,6 +239,8 @@ button{font-family:inherit}
 }
 
 .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.cheadr{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
+.cheadr .betcd{white-space:nowrap}
 .codeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .code{font-family:Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
 .subcode{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);font-weight:500}
@@ -1176,7 +1178,10 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             "🔒 geschlossen"
           }</span>}
         </div>
-        <span className="pool"><RollingNumber value={total}/> €</span>
+        <div className="cheadr">
+          <span className="pool"><RollingNumber value={total}/> €</span>
+          {m.bettable && <BetCountdown closeISO={m.betCloseISO}/>}
+        </div>
       </div>
 
       {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
@@ -1206,8 +1211,6 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       </div>
 
       <PoolBar outcomes={m.outcomes} total={total} seed={m.seed}/>
-
-      {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       {m.bettable
         ? <>
