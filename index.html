@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v81 -->
+<!-- build: v2026-06-16-v82 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1171,7 +1171,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
       </div>
 
-      <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
+      <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
 
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
@@ -1479,7 +1479,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.neonTone||m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
           </div>
-          <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
+          <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
