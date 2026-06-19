@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v109 -->
+<!-- build: v2026-06-16-v110 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -195,10 +195,12 @@ button{font-family:inherit}
 .pooldist{margin-top:18px}
 .cardspacer{flex:1 1 0;min-height:0}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
-.pd-bar{display:flex;gap:2px;height:18px;border-radius:9px;overflow:hidden}
-.pd-seg{height:100%;min-width:2px;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
-.pd-legend{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:6px;margin:0 0 9px}
-.pd-lg{font-size:10px;font-weight:700;white-space:nowrap}
+.pd-bar{display:flex;gap:2px;height:22px;border-radius:8px;overflow:hidden}
+.pd-seg{height:100%;min-width:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  color:#fff;font-size:10px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.4);
+  transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
+.pd-legend{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:6px;margin:9px 0 0}
+.pd-lg{font-size:11px;font-weight:700;white-space:nowrap}
 .pd-d{width:9px;height:9px;border-radius:50%;flex:none}
 .betbtn.wette{background:var(--bad);color:#fff;width:100%;margin-left:0;margin-top:18px;text-align:center}
 .cbrackets{display:flex;flex-direction:column;gap:6px;margin-top:0}
@@ -1241,16 +1243,17 @@ function PoolDist({ outcomes, seed }){
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
-      <div className="pd-legend">
-        {outcomes.map((o,i)=>
-          <span key={o.id} className="pd-lg" style={{color:TONE[o.tone]}}>
-            {outLabel(o.label)} {Math.round(vals[i]/tot*100)}%
-          </span>)}
-      </div>
       <div className="pd-bar">
-        {outcomes.map((o,i)=><div key={o.id} className="pd-seg"
-          style={{width:(vals[i]/tot*100)+"%", background:TONE[o.tone]}}
-          title={outLabel(o.label)+" "+Math.round(vals[i]/tot*100)+"%"}/>)}
+        {outcomes.map((o,i)=>{
+          const w=vals[i]/tot*100, pct=Math.round(w);
+          return <div key={o.id} className="pd-seg"
+            style={{width:w+"%", background:TONE[o.tone]}}
+            title={outLabel(o.label)+" "+pct+"%"}>{pct>=8?pct+"%":""}</div>;
+        })}
+      </div>
+      <div className="pd-legend">
+        {outcomes.map(o=>
+          <span key={o.id} className="pd-lg" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>)}
       </div>
     </div>
   );
