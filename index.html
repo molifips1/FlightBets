@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v87 -->
+<!-- build: v2026-06-16-v88 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1386,7 +1386,7 @@ function Countdown({ dep, fallback }){
 }
 
 // Live countdown to the betting deadline (90 min before departure). Drives the
-// urgency: "⏳ Wetten schließt in 23 Min". Turns red in the final 15 minutes.
+// urgency: "Wetten schließt in 23 Min". Turns red in the final 15 minutes.
 function BetCountdown({ closeISO }){
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
@@ -1397,7 +1397,7 @@ function BetCountdown({ closeISO }){
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 15*60; // last 15 min → urgent
   return <span className={"betcd"+(soon?" soon":"")}>
-    ⏳ Wetten schließt in <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
+    Wetten schließt in <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
   </span>;
 }
 
