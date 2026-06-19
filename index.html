@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v112 -->
+<!-- build: v2026-06-16-v113 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -195,10 +195,10 @@ button{font-family:inherit}
 .pooldist{margin-top:18px}
 .cardspacer{flex:1 1 0;min-height:0}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
-.pd-bar{display:flex;gap:2px;height:22px;border-radius:8px;overflow:hidden}
-.pd-seg{height:100%;min-width:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;
+.pd-bar{display:flex;gap:3px;height:22px;border-radius:8px;overflow:visible}
+.pd-seg{height:100%;min-width:2px;border-radius:5px;display:flex;align-items:center;justify-content:center;overflow:hidden;
   color:#fff;font-size:10px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.4);
-  transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
+  transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease,box-shadow .5s ease}
 .pd-legend{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:6px;margin:9px 0 0}
 .pd-lg{font-size:11px;font-weight:700;white-space:nowrap}
 .pd-d{width:9px;height:9px;border-radius:50%;flex:none}
@@ -1248,9 +1248,9 @@ function PoolDist({ outcomes, seed }){
       <div className="pd-label">Pool distribution</div>
       <div className="pd-bar">
         {outcomes.map((o,i)=>{
-          const w=vals[i]/tot*100, pct=Math.round(w);
+          const w=vals[i]/tot*100, pct=Math.round(w), c=TONE[o.tone];
           return <div key={o.id} className="pd-seg"
-            style={{width:w+"%", background:TONE[o.tone]}}
+            style={{width:w+"%", backgroundColor:c, boxShadow:`0 0 8px color-mix(in srgb, ${c} 60%, transparent)`}}
             title={outLabel(o.label)+" "+pct+"%"}>{pct>=8?pct+"%":""}</div>;
         })}
       </div>
