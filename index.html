@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v99 -->
+<!-- build: v2026-06-16-v100 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -619,6 +619,14 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .ph-enroute,.ph-abgeflogen{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
 .ph-landed,.ph-gelandet{background:var(--card2);color:var(--muted)}
 .ph-cancelled{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+/* Live close-countdown badge: white text on readable green, red in final 10 min. */
+.phase-cd{background:#11824e;color:#fff}
+[data-theme="dark"] .phase-cd{background:#149a5d}
+.phase-cd.soon{background:#cf3527}
+[data-theme="dark"] .phase-cd.soon{background:#e0473a}
+.phase-cd.closed{background:#6b7280}
+.phase-cd .cd-w{letter-spacing:-.1px}
+.phase-cd .cd-n{margin-left:.34em;letter-spacing:.2px;font-variant-numeric:tabular-nums}
 .seg{flex:1;border:none;background:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);
   padding:10px 12px;border-radius:9px;transition:background .15s,color .15s}
 .seg:hover{color:var(--ink)}
@@ -1291,13 +1299,14 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       <div className="chead">
         <div className="codeline">
           <span className="code">{m.code}</span>
-          {m.phase && <span className={"phase ph-"+(m.tab||m.phase)}>{
-            m.phase==="cancelled" ? "✕ annulliert" :
-            m.phase==="landed"    ? "✓ gelandet" :
-            m.phase==="enroute"   ? "✈ abgeflogen" :
-            m.bettable            ? <CloseInText closeISO={m.betCloseISO}/> :
-            "🔒 geschlossen"
-          }</span>}
+          {m.phase && (m.bettable
+            ? <CloseBadge closeISO={m.betCloseISO}/>
+            : <span className={"phase ph-"+(m.tab||m.phase)}>{
+                m.phase==="cancelled" ? "✕ annulliert" :
+                m.phase==="landed"    ? "✓ gelandet" :
+                m.phase==="enroute"   ? "✈ abgeflogen" :
+                "🔒 geschlossen"
+              }</span>)}
         </div>
         <span className="pool"><RollingNumber value={total}/> €</span>
       </div>
@@ -1503,18 +1512,23 @@ function BetCountdown({ closeISO }){
   </span>;
 }
 
-// Bare ticking text (no own styling) so it inherits the phase-badge size when
-// placed inside the badge. Shows "Wetten schließt in MM:SS".
-function CloseInText({ closeISO }){
+// Self-styled phase badge for bettable flights: white text on a readable green,
+// turning red in the final 10 minutes. Word + number are split so the word can be
+// tightened while the gap to the number stays constant.
+function CloseBadge({ closeISO }){
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
-  if(!closeISO) return "● bevorstehend";
+  if(!closeISO) return <span className="phase phase-cd">● bevorstehend</span>;
   const diff = Math.floor((new Date(closeISO).getTime()-now)/1000);
-  if(diff<=0) return t("Wetten geschlossen","Betting closed");
+  if(diff<=0) return <span className="phase phase-cd closed">🔒 {t("Wetten geschlossen","Betting closed")}</span>;
   const hh=Math.floor(diff/3600), mm=Math.floor((diff%3600)/60), ss=diff%60;
   const pad=n=>String(n).padStart(2,"0");
-  return t("Wetten schließt in ","Betting closes in ")+(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss);
+  const soon = diff < 10*60; // final 10 min → red
+  return <span className={"phase phase-cd"+(soon?" soon":"")}>
+    <span className="cd-w">{t("Wetten schliesst in","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
+  </span>;
 }
+
 
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
   const mult=o=>displayOdds(m.outcomes,o,m.seed)||1;
@@ -1604,13 +1618,14 @@ function Detail({m,total,back,initialPick,...bet}){
             <div className="codeline">
               <span className="code">{m.code}</span>
               {m.subcode && <span className="subcode">{m.subcode}</span>}
-              {isFlight && m.phase && <span className={"phase ph-"+(m.tab||m.phase)}>{
-                m.phase==="cancelled" ? "✕ annulliert" :
-                m.phase==="landed"    ? "✓ gelandet" :
-                m.phase==="enroute"   ? "✈ abgeflogen" :
-                m.bettable            ? <CloseInText closeISO={m.betCloseISO}/> :
-                "🔒 geschlossen"
-              }</span>}
+              {isFlight && m.phase && (m.bettable
+                ? <CloseBadge closeISO={m.betCloseISO}/>
+                : <span className={"phase ph-"+(m.tab||m.phase)}>{
+                    m.phase==="cancelled" ? "✕ annulliert" :
+                    m.phase==="landed"    ? "✓ gelandet" :
+                    m.phase==="enroute"   ? "✈ abgeflogen" :
+                    "🔒 geschlossen"
+                  }</span>)}
             </div>
             <span className="pool"><RollingNumber value={total}/> €</span>
           </div>
