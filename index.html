@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v104 -->
+<!-- build: v2026-06-16-v106 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1112,7 +1112,8 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
   const peakX=pts[pk][0], peakY=pts[pk][1];
   const projX = proj!=null ? Math.max(0,Math.min(W,xPix(proj))) : null;
   const zeroX = xPix(0);
-  const ticks=[]; for(let mm=Math.ceil(Mmin/5)*5; mm<=Mmax; mm+=5) ticks.push(mm);
+  const tickStep = span<=40 ? 5 : span<=80 ? 10 : span<=160 ? 20 : 30;
+  const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
   const valTxt = (delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m";
   const wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status);
@@ -1141,8 +1142,9 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
       </div>
       <div className="dcurve-axis">
         {ticks.map((mm,i)=>{
-          const tx = i===0 ? "translateX(0)" : i===ticks.length-1 ? "translateX(-100%)" : "translateX(-50%)";
-          return <span key={mm} className={mm===0?"zero":""} style={{left:(xPix(mm)/W*100)+"%", transform:tx}}>{mm}m</span>;
+          const lp = xPix(mm)/W*100;
+          const tx = lp<=4 ? "translateX(0)" : lp>=96 ? "translateX(-100%)" : "translateX(-50%)";
+          return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
         })}
       </div>
     </div>
@@ -1528,7 +1530,7 @@ function CloseBadge({ closeISO, tone }){
   const soon = diff < 10*60; // final 10 min → red
   const col = soon ? "var(--bk-bad)" : base;
   return <span className="phase phase-cd" style={tint(col)}>
-    <span className="cd-w">{t("Wetten schliesst in","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
+    <span className="cd-w">{t("Wetten schliesst","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
   </span>;
 }
 
