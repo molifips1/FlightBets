@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v108 -->
+<!-- build: v2026-06-16-v109 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -272,6 +272,8 @@ button{font-family:inherit}
 .rtime{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:14px;text-align:right}
 .rtime .old{color:var(--muted);text-decoration:line-through;display:block}
 .rtime .new{display:block;font-weight:700}
+.rtime .rt1{display:block}
+.rtime .rt2hidden{display:block;visibility:hidden}
 .haltes{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
   border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 0}
 
@@ -1325,7 +1327,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
           <div className="stop arr">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
-            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
+            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
           </div>
         </div>
       ) : (
