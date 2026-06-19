@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v95 -->
+<!-- build: v2026-06-16-v96 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -251,6 +251,7 @@ button{font-family:inherit}
 /* route */
 .route{margin:14px 0 6px}
 .stop{display:flex;align-items:center;gap:10px;font-size:14.5px}
+.stop.arr{align-items:flex-start}
 .dotline{display:flex;flex-direction:column;align-items:center;width:14px}
 .rdot{width:11px;height:11px;border-radius:50%;border:2.5px solid var(--ink);background:var(--card)}
 .rdot.end{border-color:var(--bad);background:var(--bad)}
@@ -1276,7 +1277,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             <span className="rtime">{m.from.dep}</span>
           </div>
           {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
-          <div className="stop">
+          <div className="stop arr">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
             <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
@@ -1582,7 +1583,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span className="sname">{m.from.name}</span>
               <span className="rtime">{m.from.dep}</span>
             </div>
-            <div className="stop">
+            <div className="stop arr">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
               <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
