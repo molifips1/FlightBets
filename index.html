@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v73 -->
+<!-- build: v2026-06-16-v74 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -931,6 +931,74 @@ function PoolCurve({outcomes,total,seed}){
   return <Curve dist={dist} tone={hasMoney?tone:"muted"} marker={hasMoney?leadIdx:null} axis={axis}/>;
 }
 
+// Per-outcome probability lines over time (Polymarket style). The worker returns
+// the raw bet events for this flight; we replay them on the SAME seed the card
+// uses for odds, so each line = that bracket's implied share through time. With
+// little/no volume the lines sit flat at their seed shares (honest, not faked).
+function OddsLines({ outcomes, seed, flightId }){
+  const ids = outcomes.map(o=>o.id);
+  const [events,setEvents] = useState(null);
+  useEffect(()=>{
+    let alive=true;
+    if(!flightId || !CONFIG.API_BASE){ setEvents([]); return; }
+    fetch(`${CONFIG.API_BASE}/api/odds-series?id=${encodeURIComponent(flightId)}`)
+      .then(r=>r.json()).then(d=>{ if(alive) setEvents(Array.isArray(d.events)?d.events:[]); })
+      .catch(()=>{ if(alive) setEvents([]); });
+    return ()=>{ alive=false; };
+  },[flightId]);
+
+  const W=320,H=80,padT=8,padB=8;
+  const S = seed || DEFAULT_SEED;
+  let sumSeed = ids.reduce((a,id)=>a+(S&&S[id]!=null?S[id]:0),0);
+  const useEqual = sumSeed<=0;                         // dailies (yes/no) etc.
+  const sd = id => useEqual ? 1 : (S&&S[id]!=null?S[id]:0);
+  sumSeed = useEqual ? ids.length : sumSeed;
+
+  const cum = {}; ids.forEach(id=>cum[id]=0);
+  const shareNow = () => {
+    let tot = sumSeed; ids.forEach(id=>tot+=cum[id]);
+    const o={}; ids.forEach(id=> o[id]=(sd(id)+cum[id])/(tot||1)); return o;
+  };
+
+  const evs = events||[];
+  const raw = {}; ids.forEach(id=>raw[id]=[]);
+  if(evs.length===0){
+    const sh=shareNow();
+    ids.forEach(id=>{ raw[id].push([0,sh[id]]); raw[id].push([W,sh[id]]); });
+  } else {
+    const t0=evs[0].t, t1=Math.max(Date.now(), evs[evs.length-1].t);
+    const span=Math.max(1,t1-t0), xFor=t=>((t-t0)/span)*W;
+    const sh0=shareNow(); ids.forEach(id=>raw[id].push([0,sh0[id]]));
+    for(const e of evs){
+      if(cum[e.o]!=null) cum[e.o]+=(e.s||0);
+      const sh=shareNow(), x=xFor(e.t);
+      ids.forEach(id=>raw[id].push([x,sh[id]]));
+    }
+    const shN=shareNow(); ids.forEach(id=>raw[id].push([W,shN[id]]));
+  }
+
+  // Auto-scale y to the share range so the lines fill the small chart and stay
+  // distinguishable (no y labels on the card, so the zoom is harmless).
+  let lo=Infinity,hi=-Infinity;
+  ids.forEach(id=>raw[id].forEach(([,sh])=>{ if(sh<lo)lo=sh; if(sh>hi)hi=sh; }));
+  if(!isFinite(lo)){lo=0;hi=1;}
+  if(hi-lo<0.02){ const m=(hi+lo)/2; lo=Math.max(0,m-0.06); hi=m+0.06; }
+  const pad=(hi-lo)*0.18, yMin=Math.max(0,lo-pad), yMax=hi+pad;
+  const yFor=sh=> padT+(1-(sh-yMin)/((yMax-yMin)||1))*(H-padT-padB);
+
+  const lines = outcomes.map(o=>({ id:o.id, col:TONE[o.tone]||"var(--brand)",
+    d: smooth(raw[o.id].map(([x,sh])=>[x,yFor(sh)])) }));
+
+  return (
+    <div className="curvewrap">
+      <svg className="curve" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+        {lines.map(l=> <path key={l.id} d={l.d} fill="none" stroke={l.col} strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round" opacity={events===null?0.45:0.95}/>)}
+      </svg>
+    </div>
+  );
+}
+
 function RiskBar({outcomes,total}){
   const t = total>0 ? total : 0;
   return <div className="rbar">{outcomes.map(o=>
@@ -1088,7 +1156,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
 
-      <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
+      <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
 
       {total>0 && <RiskBar outcomes={m.outcomes} total={total}/>}
 
@@ -1399,7 +1467,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
-          <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
+          <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
