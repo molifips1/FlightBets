@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v83 -->
+<!-- build: v2026-06-16-v84 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -382,10 +382,14 @@ button{font-family:inherit}
 .betcd.closed{color:var(--muted);opacity:.8}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
-.poolbar{display:flex;gap:2px;height:28px;border-radius:8px;overflow:hidden;margin:8px 0 4px}
+.poolwrap{margin:8px 0 4px}
+.poolbar{display:flex;gap:2px;height:26px;border-radius:8px;overflow:hidden}
 .poolseg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;
   transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
 .poolseg-t{font-size:11px;font-weight:700;white-space:nowrap;padding:0 4px;text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.poollegend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:7px}
+.poollg{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-weight:600}
+.poollg-d{width:8px;height:8px;border-radius:50%;flex:none}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
 .rbar span{height:100%;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
 .brk{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:4px;margin-top:9px;overflow:hidden}
@@ -1027,19 +1031,25 @@ function PoolBar({outcomes, total, seed}){
   const vals = outcomes.map(eff);
   const tot = vals.reduce((a,b)=>a+b,0) || 1;
   return (
-    <div className="poolbar">
-      {outcomes.map((o,i)=>{
-        const pct = vals[i]/tot, w = pct*100, pctTxt = Math.round(pct*100)+"%";
-        const ink = o.tone==="warn" ? "#1a1205" : "#fff";
-        return (
-          <div key={o.id} className="poolseg" style={{width:w+"%", background:TONE[o.tone]}}
-               title={outLabel(o.label)+" "+pctTxt}>
-            <span className="poolseg-t" style={{color:ink}}>
-              {w>=22 ? outLabel(o.label)+" "+pctTxt : w>=8 ? pctTxt : ""}
-            </span>
-          </div>
-        );
-      })}
+    <div className="poolwrap">
+      <div className="poolbar">
+        {outcomes.map((o,i)=>{
+          const pct = vals[i]/tot, w = pct*100, pctTxt = Math.round(pct*100)+"%";
+          const ink = o.tone==="warn" ? "#1a1205" : "#fff";
+          return (
+            <div key={o.id} className="poolseg" style={{width:w+"%", background:TONE[o.tone]}}
+                 title={outLabel(o.label)+" "+pctTxt}>
+              <span className="poolseg-t" style={{color:ink}}>{w>=7 ? pctTxt : ""}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="poollegend">
+        {outcomes.map(o=>
+          <span key={o.id} className="poollg">
+            <span className="poollg-d" style={{background:TONE[o.tone]}}/>{outLabel(o.label)}
+          </span>)}
+      </div>
     </div>
   );
 }
