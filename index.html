@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v88 -->
+<!-- build: v2026-06-16-v89 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -283,7 +283,7 @@ button{font-family:inherit}
 /* risk + breakdown */
 .riskt{font-size:12.5px;color:var(--muted);margin:12px 0 7px;font-weight:500}
 .riskt.nopool{margin:14px 0 4px;font-style:italic;opacity:.85}
-.cdrow{margin:10px 0 2px;text-align:right}
+.cdrow{margin:3px 0 4px;text-align:left}
 .fdate{font-size:11.5px;color:var(--muted);font-weight:500;margin:2px 0 8px;text-transform:capitalize}
 .rankhead{margin:18px 0 14px}
 .rankhead h2{font-size:24px;font-weight:800;color:var(--ink);margin:0 0 4px}
@@ -1178,13 +1178,11 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             "🔒 geschlossen"
           }</span>}
         </div>
-        <div className="cheadr">
-          <span className="pool"><RollingNumber value={total}/> €</span>
-          {m.bettable && <BetCountdown closeISO={m.betCloseISO}/>}
-        </div>
+        <span className="pool"><RollingNumber value={total}/> €</span>
       </div>
 
       {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
+      {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       {isFlight ? (
         <div className="route">
