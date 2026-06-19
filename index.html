@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v82 -->
+<!-- build: v2026-06-16-v83 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -382,6 +382,10 @@ button{font-family:inherit}
 .betcd.closed{color:var(--muted);opacity:.8}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
+.poolbar{display:flex;gap:2px;height:28px;border-radius:8px;overflow:hidden;margin:8px 0 4px}
+.poolseg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;
+  transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
+.poolseg-t{font-size:11px;font-weight:700;white-space:nowrap;padding:0 4px;text-shadow:0 1px 2px rgba(0,0,0,.22)}
 .rbar{display:flex;height:9px;border-radius:6px;overflow:hidden;background:var(--line)}
 .rbar span{height:100%;transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease}
 .brk{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:4px;margin-top:9px;overflow:hidden}
@@ -1014,6 +1018,32 @@ function OddsLines({ outcomes, seed, flightId }){
   );
 }
 
+// Live pool distribution as a segmented bar: each bracket's width = its share,
+// with the % (and label if it fits) inside. Uses the seed as opening so it shows
+// a sensible split immediately and shifts as bets come in.
+function PoolBar({outcomes, total, seed}){
+  const S = seed || DEFAULT_SEED;
+  const eff = o => (o.pool||0) + (S[o.id]||0);
+  const vals = outcomes.map(eff);
+  const tot = vals.reduce((a,b)=>a+b,0) || 1;
+  return (
+    <div className="poolbar">
+      {outcomes.map((o,i)=>{
+        const pct = vals[i]/tot, w = pct*100, pctTxt = Math.round(pct*100)+"%";
+        const ink = o.tone==="warn" ? "#1a1205" : "#fff";
+        return (
+          <div key={o.id} className="poolseg" style={{width:w+"%", background:TONE[o.tone]}}
+               title={outLabel(o.label)+" "+pctTxt}>
+            <span className="poolseg-t" style={{color:ink}}>
+              {w>=22 ? outLabel(o.label)+" "+pctTxt : w>=8 ? pctTxt : ""}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function RiskBar({outcomes,total}){
   const t = total>0 ? total : 0;
   return <div className="rbar">{outcomes.map(o=>
@@ -1171,7 +1201,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
       </div>
 
-      <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
+      <PoolBar outcomes={m.outcomes} total={total} seed={m.seed}/>
 
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
@@ -1479,7 +1509,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.neonTone||m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.neonTone||m.status]}}>{isFlight?(m.delayUnknown?"—":(m.projArrEst?"≈ ":"")+m.projArr):m.delay}</span>
           </div>
-          <PoolCurve outcomes={m.outcomes} total={total} seed={m.seed}/>
+          <PoolBar outcomes={m.outcomes} total={total} seed={m.seed}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
