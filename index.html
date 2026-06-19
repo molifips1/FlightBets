@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v79 -->
+<!-- build: v2026-06-16-v80 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1159,7 +1159,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
           <div className="stop">
             <div className="dotline"><span className="rdot end"/></div>
             <span className="flag">{m.to.flag}</span>
-            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
+            <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised || m.to.arr}</span>
           </div>
         </div>
       ) : (
@@ -1472,7 +1472,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <div className="stop">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new">{m.to.arrRevised}</span></> : m.to.arr}</span>
+              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised || m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <div className="statusline" style={{marginTop:14,borderTop:"1px solid var(--line)",paddingTop:14}}>
