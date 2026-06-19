@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v77 -->
+<!-- build: v2026-06-16-v78 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -272,7 +272,8 @@ button{font-family:inherit}
 .oll-plot{flex:1;min-width:0;position:relative;height:84px}
 .oll-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .oll-grid{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.8}
-.oll-now{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3;vector-effect:non-scaling-stroke;opacity:.55}
+.oll-dot{position:absolute;right:0;width:8px;height:8px;border-radius:50%;transform:translate(50%,-50%);
+  box-shadow:0 0 0 2px var(--card),0 0 8px 1px var(--dc);pointer-events:none}
 .oll-yax{width:26px;flex:none;display:flex;flex-direction:column;justify-content:space-between;
   font-family:'IBM Plex Mono',monospace;font-size:9px;line-height:1;color:var(--muted);text-align:right;padding:1px 0}
 .axis{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
@@ -945,7 +946,7 @@ function PoolCurve({outcomes,total,seed}){
 // the raw bet events for this flight; we replay them on the SAME seed the card
 // uses for odds, so each line = that bracket's implied share through time. With
 // little/no volume the lines sit flat at their seed shares (honest, not faked).
-function OddsLines({ outcomes, flightId, closeISO }){
+function OddsLines({ outcomes, seed, flightId }){
   const ids = outcomes.map(o=>o.id);
   const [events,setEvents] = useState(null);
   useEffect(()=>{
@@ -957,51 +958,42 @@ function OddsLines({ outcomes, flightId, closeISO }){
     return ()=>{ alive=false; };
   },[flightId]);
 
-  const W=300,H=100,padT=5,padB=5;
-  const yFor = sh => padT + (1-sh)*(H-padT-padB);     // fixed 0..1 = 0..100%
+  const W=300,H=100,padT=6,padB=6;
+  const yFor = sh => padT + (1-Math.max(0,Math.min(1,sh)))*(H-padT-padB);  // 0..1 = 0..100%
+
+  // Opening price = seed share. The line starts here and moves as money comes in
+  // (implied probability = (seed+pool)/(total seed+pool)). Polymarket-style.
+  const S = seed || DEFAULT_SEED;
+  let sumSeed = ids.reduce((a,id)=>a+(S&&S[id]!=null?S[id]:0),0);
+  const useEqual = sumSeed<=0;                          // dailies (yes/no) etc.
+  const sd = id => useEqual ? 1 : (S&&S[id]!=null?S[id]:0);
+  sumSeed = useEqual ? ids.length : sumSeed;
 
   const evs = events||[];
   const nowT = Date.now();
-  const closeT = closeISO ? new Date(closeISO).getTime() : null;
-  const firstT = evs.length ? evs[0].t : nowT;
-  const lastT  = evs.length ? evs[evs.length-1].t : nowT;
-  // Right edge = the bet's expiry (close). x-axis spans the betting life.
-  let t1 = (closeT && closeT > firstT) ? closeT : Math.max(nowT, lastT, firstT+60000);
-  const margin = Math.max(60000, (t1 - firstT)*0.06);  // a little 0% baseline before bet 1
-  let t0 = (evs.length ? firstT : (closeT ? Math.min(nowT, closeT-60000) : nowT)) - (evs.length?margin:0);
-  if(!(t1>t0)) t1 = t0 + 60000;
-  const xFor = t => Math.max(0, Math.min(W, ((t - t0)/(t1 - t0))*W));
+  // x = elapsed time, right edge = now. Left = first activity (− small margin so
+  // the opening price shows as a flat lead-in). No bets → flat opening line.
+  const firstT = evs.length ? evs[0].t : nowT - 3600000;
+  const t1 = Math.max(nowT, firstT+60000);
+  const t0 = evs.length ? firstT - Math.max(60000,(t1-firstT)*0.06) : (t1 - 3600000);
 
-  // Pure bet shares (NO seed): every line starts at 0% and moves only when money
-  // is placed. Shares sum to 100% once any bet exists.
-  const cum = {}; ids.forEach(id=>cum[id]=0);
-  const shares = () => { let tot=0; ids.forEach(id=>tot+=cum[id]);
-    const o={}; ids.forEach(id=> o[id]= tot>0 ? cum[id]/tot : 0); return o; };
-
-  const P = {}; ids.forEach(id=>P[id]=[]);
-  const s0 = shares(); ids.forEach(id=>P[id].push([xFor(t0), s0[id]]));   // 0% opening
-  for(const e of evs){
-    if(cum[e.o]!=null) cum[e.o]+=(e.s||0);
-    const sh=shares(), x=xFor(e.t);
-    ids.forEach(id=>P[id].push([x, sh[id]]));
+  // Sample the share function into time buckets, then smooth → calm curve.
+  const N=56;
+  const cum={}; ids.forEach(id=>cum[id]=0); let cumTot=0, p=0;
+  const raw={}; ids.forEach(id=>raw[id]=[]);
+  for(let i=0;i<=N;i++){
+    const tb = t0 + (i/N)*(t1-t0);
+    while(p<evs.length && evs[p].t<=tb){ const e=evs[p]; cumTot+=(e.s||0); if(cum[e.o]!=null) cum[e.o]+=(e.s||0); p++; }
+    const tot=sumSeed+cumTot, x=(i/N)*W;
+    ids.forEach(id=> raw[id].push([x, yFor((sd(id)+cum[id])/(tot||1))]));
   }
-  const sN=shares(), xNow=xFor(nowT);
-  ids.forEach(id=>P[id].push([xNow, sN[id]]));          // hold current share to "now"
 
-  // Step-after: a line holds its level until a bet, then steps — so each bet
-  // visibly shifts the line.
-  const stepPath = pts => {
-    if(!pts.length) return "";
-    let d=`M ${pts[0][0].toFixed(1)},${yFor(pts[0][1]).toFixed(1)}`;
-    for(let i=1;i<pts.length;i++){
-      const x=pts[i][0].toFixed(1);
-      d+=` L ${x},${yFor(pts[i-1][1]).toFixed(1)} L ${x},${yFor(pts[i][1]).toFixed(1)}`;
-    }
-    return d;
-  };
-  const lines = outcomes.map(o=>({id:o.id, col:TONE[o.tone]||"var(--brand)", d:stepPath(P[o.id])}));
+  const lines = outcomes.map(o=>{
+    const pts=raw[o.id];
+    return { id:o.id, col:TONE[o.tone]||"var(--brand)", d:smooth(pts),
+             lastY: pts.length?pts[pts.length-1][1]:H/2 };
+  });
   const grid=[0,.25,.5,.75,1];
-  const showNow = closeT && nowT < closeT && xNow < W-1 && xNow > 1;
 
   return (
     <div className="curvewrap">
@@ -1009,11 +1001,12 @@ function OddsLines({ outcomes, flightId, closeISO }){
         <div className="oll-plot">
           <svg className="oll-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
             {grid.map((g,i)=><line key={i} x1="0" x2={W} y1={yFor(g)} y2={yFor(g)} className="oll-grid"/>)}
-            {showNow && <line x1={xNow} x2={xNow} y1="0" y2={H} className="oll-now"/>}
-            {lines.map(l=> <path key={l.id} d={l.d} fill="none" stroke={l.col} strokeWidth="2"
+            {lines.map(l=> <path key={l.id} d={l.d} fill="none" stroke={l.col} strokeWidth="2.1"
               strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke"
               opacity={events===null?0.35:0.95}/>)}
           </svg>
+          {events!==null && lines.map(l=>
+            <span key={l.id} className="oll-dot" style={{top:(l.lastY/H*100)+"%", background:l.col, "--dc":l.col}}/>)}
         </div>
         <div className="oll-yax"><span>100</span><span>75</span><span>50</span><span>25</span><span>0%</span></div>
       </div>
@@ -1178,15 +1171,12 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
       </div>
 
-      <OddsLines outcomes={m.outcomes} flightId={m.id} closeISO={m.betCloseISO}/>
-
-      {total>0 && <RiskBar outcomes={m.outcomes} total={total}/>}
+      <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
 
       {m.bettable && <div className="cdrow"><BetCountdown closeISO={m.betCloseISO}/></div>}
 
       {m.bettable
         ? <>
-            <div className="cbk-head">{isFlight ? t("Tippe die Landung · Quote = Auszahlung je 1 €","Tap the landing · odds = payout per €1") : t("Quote = Auszahlung je 1 €","Odds = payout per €1")}</div>
             <div className="cbrackets" onClick={e=>e.stopPropagation()}>
               {m.outcomes.map(o=>{
                 const odds = displayOdds(m.outcomes, o, m.seed);
@@ -1489,7 +1479,7 @@ function Detail({m,total,back,initialPick,...bet}){
             <span className="statlbl" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{isFlight?(m.delayUnknown?t("Status unbekannt","Status unknown"):statusLabel(m.status)):t("Laufende Quote","Live odds")}</span>
             <span className="statdelay" style={{color:m.delayUnknown?"var(--muted)":TONE[m.status]}}>{m.delay}</span>
           </div>
-          <OddsLines outcomes={m.outcomes} flightId={m.id} closeISO={m.betCloseISO}/>
+          <OddsLines outcomes={m.outcomes} seed={m.seed} flightId={m.id}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
