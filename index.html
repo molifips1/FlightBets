@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v121 -->
+<!-- build: v2026-06-16-v122 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -199,19 +199,24 @@ button{font-family:inherit}
 .board-main{flex:1;min-width:0}
 .feed-side{width:250px;flex:none;position:sticky;top:14px}
 @media(max-width:1180px){.feed-side{display:none}.board-wrap{display:block}}
-.feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.feed-card{background:var(--card);border:1px solid color-mix(in srgb,var(--good) 35%,var(--line));border-radius:14px;padding:15px 15px 6px;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 20%,transparent),0 0 18px -6px color-mix(in srgb,var(--good) 38%,transparent),var(--shadow)}
 .feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .feed-live{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:feedPulse 1.7s ease-out infinite}
 @keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
-.feed-tab{display:inline-block;font-size:12px;font-weight:800;color:var(--ink);border-bottom:2px solid var(--brand);padding-bottom:6px;margin-bottom:6px}
-.feed-cols{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 2px 7px;border-bottom:1px solid var(--line)}
-.feed-rows{display:flex;flex-direction:column}
-.feed-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:none;border:none;border-bottom:1px solid var(--line);padding:9px 2px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
+.feed-tab{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--ink);
+  background:color-mix(in srgb,var(--brand) 13%,transparent);border:1px solid color-mix(in srgb,var(--brand) 32%,transparent);
+  border-radius:999px;padding:6px 13px;margin-bottom:10px}
+.feed-cols{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 2px 8px;border-bottom:1px solid var(--line)}
+.feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 210px);overflow-y:auto}
+.feed-rows::-webkit-scrollbar{width:6px}
+.feed-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.feed-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:none;border:none;border-bottom:1px solid var(--line);padding:11px 2px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
 .feed-l{display:flex;align-items:center;gap:6px;min-width:0}
 .feed-flag{font-size:14px;flex:none}
-.feed-code{font-weight:700;font-size:12px;color:var(--ink);white-space:nowrap}
+.feed-code{font-weight:800;font-size:12.5px;color:var(--ink);white-space:nowrap}
 .feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
 .feed-status{font-size:10px;font-weight:700;white-space:nowrap;text-align:right}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
@@ -1388,7 +1393,7 @@ function FlightFeed({ markets, onOpen }){
             <button key={m.id} className="feed-row" onClick={()=>onOpen(m.id)}>
               <span className="feed-l"><span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span><span className="feed-code">{m.code}</span></span>
               <span className="feed-route">BER → {m.otherCode||"?"}</span>
-              <span className="feed-status" style={{color:`var(--${s.c})`}}>{s.x}</span>
+              <span className="feed-status" style={{color:`color-mix(in srgb, var(--${s.c}) 78%, var(--muted))`}}>{s.x}</span>
             </button>
           );})}
           {rows.length===0 && <div className="feed-empty">{t("Keine Flüge","No flights")}</div>}
