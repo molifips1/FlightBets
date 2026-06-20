@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v126 -->
+<!-- build: v2026-06-16-v127 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -195,12 +195,10 @@ button{font-family:inherit}
 .cardspacer{flex:1 1 0;min-height:0}
 
 /* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
-.board-wrap{display:grid;grid-template-columns:230px minmax(0,1fr) 290px;gap:18px;align-items:start}
+.board-wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
 .board-main{min-width:0}
 .board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
 .feed-side{flex:none;position:sticky;top:14px}
-.bet-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px;align-self:start}
-@media(max-width:1380px){.board-wrap{grid-template-columns:230px minmax(0,1fr)}.bet-side{display:none}}
 @media(max-width:1180px){.board-wrap{grid-template-columns:1fr}.feed-side{display:none}}
 .feed-card{background:var(--card);border:1px solid color-mix(in srgb,var(--good) 35%,var(--line));border-radius:14px;padding:15px 15px 6px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 20%,transparent),0 0 18px -6px color-mix(in srgb,var(--good) 38%,transparent),var(--shadow)}
@@ -3185,15 +3183,8 @@ function App(){
   const [celebrate,setCelebrate]=useState(null);
   const [muted,setMuted]=useState(Sound.muted);
   const [menuOpen,setMenuOpen]=useState(false);
-  const [betSheet,setBetSheet]=useState(null); // {marketId, outcomeId} for the quick-bet sheet (narrow screens)
-  const [betCenterId,setBetCenterId]=useState(null); // flight shown in the always-open right Wett-Zentrale
-  const onQuickBet=(mid,oid)=>{
-    if(typeof window!=="undefined" && window.innerWidth < 1280){
-      setBetSheet({marketId:mid, outcomeId:oid});        // no room for the side panel → modal
-    } else {
-      setBetCenterId(mid); if(oid) setPick(oid);          // desktop → load into the Wett-Zentrale
-    }
-  };
+  const [betSheet,setBetSheet]=useState(null); // {marketId, outcomeId} for the quick-bet sheet
+  const onQuickBet=(mid,oid)=>{ setBetSheet({marketId:mid, outcomeId:oid}); };
   // --- Browser back/forward support (no URL change) ----------------------
   // Mirror the navigation state (tab / view / menu) into the History API so the
   // browser's back button reverses the last in-app navigation. We push an entry
@@ -3274,15 +3265,6 @@ function App(){
   const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
-
-  // Always-open Wett-Zentrale: show the chosen flight, else the first bettable one.
-  const betCenterMarket = liveMarkets.find(m=>m.id===betCenterId && m.bettable)
-                       || liveMarkets.find(m=>m.tab==="aktiv")
-                       || liveMarkets.find(m=>m.id===betCenterId)
-                       || null;
-  useEffect(()=>{
-    if(betCenterMarket && !betCenterMarket.outcomes.some(o=>o.id===pick)) setPick("b"); // default "Pünktlich"
-  },[betCenterMarket&&betCenterMarket.id]);
 
   const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
                  : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
@@ -3477,10 +3459,6 @@ function App(){
         </div>;
       })()}
         </div>
-        <aside className="bet-side">
-          <LiveFeedTicker/>
-          <WettZentrale m={betCenterMarket} total={betCenterMarket?total(betCenterMarket):0} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet}/>
-        </aside>
       </div>
     </> : view.page==="daily" ? (
       <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
