@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v136 -->
+<!-- build: v2026-06-16-v137 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1416,7 +1416,6 @@ function FlightFeed({ markets, onOpen }){
         <div className="feed-rows">
           {rows.map(m=>{ const s=statusFor(m); return (
             <button key={m.id} className="feed-row" onClick={()=>onOpen(m.id)}>
-              <span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span>
               <span className="feed-code">{m.code}</span>
               <span className="feed-dest">{m.otherCode||"?"}</span>
               <span className="feed-status" style={{color:TONE[s.tone]}}>{s.x}</span>
@@ -1543,7 +1542,6 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       <div className="fc-top">
         <div className="codeline">
           <span className="code">{m.code}</span>
-          {isFlight && m.to && m.to.flag && <span className="fc-flag">{m.to.flag}</span>}
           {m.phase && (m.bettable
             ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
             : <span className={"phase ph-"+(m.tab||m.phase)}>{
