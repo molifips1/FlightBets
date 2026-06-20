@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v146 -->
+<!-- build: v2026-06-16-v147 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -812,6 +812,20 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* ---- Wide 2-column bet modal (desktop); stacks/compacts on mobile ---- */
 .sheet-wide{position:relative}
+.sheet.neon{border:1.5px solid color-mix(in srgb,var(--neon) 60%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 40%,transparent),
+             0 0 24px -2px color-mix(in srgb,var(--neon) 45%,transparent),
+             0 0 64px -10px color-mix(in srgb,var(--neon) 45%,transparent),
+             0 18px 50px rgba(0,0,0,.35)}
+.sheet.neon.sheet-closing{animation:sheetNeonPulse 1.15s ease-in-out infinite}
+@keyframes sheetNeonPulse{
+  0%,100%{border-color:var(--neon);
+    box-shadow:0 0 0 1.5px var(--neon),0 0 28px -1px var(--neon),
+               0 0 80px -6px color-mix(in srgb,var(--neon) 70%,transparent),0 18px 50px rgba(0,0,0,.35)}
+  50%{border-color:color-mix(in srgb,var(--neon) 45%,transparent);
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--neon) 35%,transparent),
+               0 0 12px -2px color-mix(in srgb,var(--neon) 40%,transparent),0 18px 50px rgba(0,0,0,.35)}
+}
 .sheet-x-abs{position:absolute;top:14px;right:16px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;border-radius:50%;z-index:3}
 .sheet-x-abs:hover{color:var(--ink);background:var(--card2)}
 .sheet-grid{display:block}
@@ -3065,9 +3079,12 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
   const tooMuch = stake>wallet;
   const now = useNow(1000);
   const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
+  const closeMs = market.betCloseISO ? new Date(market.betCloseISO).getTime() : null;
+  const closingSoon = !!closeMs && !closed && (closeMs - now) <= 10*60*1000;
+  const neonCol = closingSoon ? TONE.bad : (TONE[market.neonTone||market.status] || "var(--brand)");
   const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
-    <div className="sheet sheet-wide" onClick={e=>e.stopPropagation()}>
+    <div className={"sheet sheet-wide neon"+(closingSoon?" sheet-closing":"")} style={{"--neon":neonCol}} onClick={e=>e.stopPropagation()}>
       <div className="sheet-grip"/>
       <button className="sheet-x sheet-x-abs" onClick={onClose} aria-label="Schließen">✕</button>
       <div className="sheet-grid">
