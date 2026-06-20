@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v142 -->
+<!-- build: v2026-06-16-v143 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -256,6 +256,7 @@ button{font-family:inherit}
 /* ---- Wide 2-column flight card ---------------------------------------- */
 .flightcard{padding:20px}
 .fc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.fc-head-l{display:flex;flex-direction:column;min-width:0}
 .fc-plane{color:var(--neon,var(--brand));font-size:17px;margin-right:1px}
 .fc-flag{font-size:16px;margin:0 2px}
 .myeinsatz{font-size:13px;color:var(--muted);white-space:nowrap}
@@ -272,12 +273,12 @@ button{font-family:inherit}
 .op-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:0 0 14px 0;padding:0}
 .op-list{display:flex;flex-direction:column;gap:12px}
 .op-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;white-space:nowrap}
-.op-left{display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden}
+.op-left{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
 .op-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .op-name{font-weight:800;font-size:13px}
 .op-range{font-size:11px;color:var(--muted)}
 .op-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);flex:none;text-align:right}
-.op-fin{margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;gap:10px;font-size:11.5px;font-weight:500;color:var(--muted)}
+.op-fin{margin-top:auto;padding-top:12px;display:flex;justify-content:flex-end;gap:10px;font-size:11.5px;font-weight:500;color:var(--muted)}
 .op-fin b{font-weight:700;color:var(--ink)}
 .op-bet.betbtn.wette{margin-top:8px}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
@@ -393,7 +394,7 @@ button{font-family:inherit}
 .riskt{font-size:12.5px;color:var(--muted);margin:12px 0 7px;font-weight:500}
 .riskt.nopool{margin:14px 0 4px;font-style:italic;opacity:.85}
 .cdrow{margin:3px 0 4px;text-align:left}
-.fdate{font-size:11.5px;color:var(--muted);font-weight:500;margin:5px 0 10px;text-transform:capitalize}
+.fdate{font-size:11.5px;color:var(--muted);font-weight:500;margin:5px 0 0;text-transform:capitalize}
 .rankhead{margin:18px 0 14px}
 .rankhead h2{font-size:24px;font-weight:800;color:var(--ink);margin:0 0 4px}
 .rankhead p{font-size:13px;color:var(--muted);margin:0;line-height:1.5}
@@ -1542,23 +1543,25 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       {m.bettable && <CloseUrgency closeISO={m.betCloseISO} neon={TONE[m.neonTone||m.status]}/>}
 
       <div className="fc-top">
-        <div className="codeline">
-          <span className="code">{m.code}</span>
-          {m.phase && (m.bettable
-            ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
-            : <span className={"phase ph-"+(m.tab||m.phase)}>{
-                m.phase==="cancelled" ? "✕ annulliert" :
-                m.phase==="landed"    ? "✓ gelandet" :
-                m.phase==="enroute"   ? "✈ abgeflogen" :
-                "🔒 geschlossen"
-              }</span>)}
+        <div className="fc-head-l">
+          <div className="codeline">
+            <span className="code">{m.code}</span>
+            {m.phase && (m.bettable
+              ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
+              : <span className={"phase ph-"+(m.tab||m.phase)}>{
+                  m.phase==="cancelled" ? "✕ annulliert" :
+                  m.phase==="landed"    ? "✓ gelandet" :
+                  m.phase==="enroute"   ? "✈ abgeflogen" :
+                  "🔒 geschlossen"
+                }</span>)}
+          </div>
+          {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
         </div>
         <span className="myeinsatz">{t("Total Pool","Total pool")}: <b><RollingNumber value={total}/> €</b></span>
       </div>
 
       <div className="fc-grid">
         <div className="fc-left">
-          {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
 
           {isFlight ? (
             <div className="route">
