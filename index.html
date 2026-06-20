@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v115 -->
+<!-- build: v2026-06-16-v116 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2872,7 +2872,10 @@ function ClosedTable({ rows }){
     try { return new Date(iso).toLocaleTimeString("de-DE",{ timeZone:"Europe/Berlin", hour:"2-digit", minute:"2-digit", hour12:false }); }
     catch(e){ return "—"; }
   };
-  const bucketLabel = d => d>=60?"+60m" : d>=30?"+30m" : d>=15?"+15m" : t("Pünktlich","On time");
+  // Winning bracket from the actual landing delay — SAME boundaries as the bets:
+  // ≤−5 Vorzeitig · −4..+5 Pünktlich · +6..+20 Verspätet · >+20 Stark Verspätet.
+  const winnerTone = d => d<=-5 ? "cool" : d<=5 ? "good" : d<=20 ? "warn" : "bad";
+  const bucketLabel = d => statusLabel(winnerTone(d));
   const query = q.trim().toLowerCase();
   const filtered = query
     ? rows.filter(r => (r.dest||"").toLowerCase().includes(query) || (r.ident||"").toLowerCase().includes(query))
@@ -2893,6 +2896,7 @@ function ClosedTable({ rows }){
             const status = cancelled ? "bad" : d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
             const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
+            const wColor = (cancelled || d==null) ? "var(--muted)" : TONE[winnerTone(d)];
             const settled = r.poolTotal!=null;
             return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
               <td className="ct-code">{r.ident}</td>
@@ -2903,7 +2907,7 @@ function ClosedTable({ rows }){
               <td>{fmtTime(r.schedArr)}</td>
               <td>{fmtTime(r.actualArr)}</td>
               <td><span className="ct-res" style={{color:`var(--${status})`}}>{label}</span></td>
-              <td><span style={{color:`var(--${status})`,fontWeight:700}}>{winner}</span></td>
+              <td><span style={{color:wColor,fontWeight:700}}>{winner}</span></td>
               <td className="ta-r">{r.nBets||0}</td>
               <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
             </tr>;
