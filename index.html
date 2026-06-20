@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v119 -->
+<!-- build: v2026-06-16-v120 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -209,15 +209,15 @@ button{font-family:inherit}
 .oddspanel{display:flex;flex-direction:column;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:16px}
 .op-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
 .op-list{display:flex;flex-direction:column;gap:13px}
-.op-row{display:flex;align-items:flex-start;gap:10px}
-.op-dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:4px}
-.op-main{flex:1;min-width:0}
-.op-l1{display:flex;align-items:baseline;gap:6px;white-space:nowrap}
-.op-name{font-weight:800;font-size:13px;white-space:nowrap}
+.op-row{display:flex;flex-direction:column;gap:1px}
+.op-l1{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.op-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.op-name{font-weight:800;font-size:13px}
 .op-sep{color:var(--muted);opacity:.45;font-weight:400}
 .op-pct{font-weight:800;font-size:13px;color:var(--ink)}
-.op-range{font-size:11px;color:var(--muted);margin-top:1px}
-.op-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);white-space:nowrap;flex:none}
+.op-grow{flex:1 1 auto;min-width:8px}
+.op-range{font-size:11px;color:var(--muted);margin-left:16px}
+.op-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);flex:none}
 .op-total{margin-top:auto;padding-top:16px;font-size:16px;font-weight:700;color:var(--ink)}
 .op-total b{font-weight:800}
 .op-bet{margin-top:12px}
@@ -1317,16 +1317,15 @@ function OddsPanel({ m, total, bettable, onQuickBet }){
           const pct = Math.round(eff(o)/totEff*100);
           return (
             <div key={o.id} className="op-row">
-              <span className="op-dot" style={{background:TONE[o.tone], boxShadow:`0 0 7px color-mix(in srgb, ${TONE[o.tone]} 60%, transparent)`}}/>
-              <div className="op-main">
-                <div className="op-l1">
-                  <span className="op-name" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
-                  <span className="op-sep">|</span>
-                  <span className="op-pct">{pct}%</span>
-                </div>
-                <div className="op-range">{rangeLabel(o.id)}</div>
+              <div className="op-l1">
+                <span className="op-dot" style={{background:TONE[o.tone], boxShadow:`0 0 7px color-mix(in srgb, ${TONE[o.tone]} 60%, transparent)`}}/>
+                <span className="op-name" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
+                <span className="op-sep">|</span>
+                <span className="op-pct">{pct}%</span>
+                <span className="op-grow"/>
+                <span className="op-odds">{odds!=null ? odds.toFixed(2)+"×" : "—"}</span>
               </div>
-              <span className="op-odds">{odds!=null ? "Est. "+odds.toFixed(2)+"×" : "—"}</span>
+              <div className="op-range">{rangeLabel(o.id)}</div>
             </div>
           );
         })}
