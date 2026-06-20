@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v120 -->
+<!-- build: v2026-06-16-v121 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -193,6 +193,28 @@ button{font-family:inherit}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .pooldist{margin-top:18px}
 .cardspacer{flex:1 1 0;min-height:0}
+
+/* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
+.board-wrap{display:flex;gap:18px;align-items:flex-start}
+.board-main{flex:1;min-width:0}
+.feed-side{width:250px;flex:none;position:sticky;top:14px}
+@media(max-width:1180px){.feed-side{display:none}.board-wrap{display:block}}
+.feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.feed-live{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:feedPulse 1.7s ease-out infinite}
+@keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+.feed-tab{display:inline-block;font-size:12px;font-weight:800;color:var(--ink);border-bottom:2px solid var(--brand);padding-bottom:6px;margin-bottom:6px}
+.feed-cols{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 2px 7px;border-bottom:1px solid var(--line)}
+.feed-rows{display:flex;flex-direction:column}
+.feed-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:none;border:none;border-bottom:1px solid var(--line);padding:9px 2px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
+.feed-row:hover{background:var(--card2)}
+.feed-row:last-child{border-bottom:none}
+.feed-l{display:flex;align-items:center;gap:6px;min-width:0}
+.feed-flag{font-size:14px;flex:none}
+.feed-code{font-weight:700;font-size:12px;color:var(--ink);white-space:nowrap}
+.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
+.feed-status{font-size:10px;font-weight:700;white-space:nowrap;text-align:right}
+.feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
 /* ---- Wide 2-column flight card ---------------------------------------- */
 .flightcard{padding:20px}
@@ -1336,6 +1358,43 @@ function OddsPanel({ m, total, bettable, onQuickBet }){
         {bettable ? t("Wetten","Bet") : t("Geschlossen","Closed")}
       </button>
     </div>
+  );
+}
+
+// Live airport feed shown to the LEFT of the card grid (desktop only). A compact
+// list of the current BER departures from the board, click → opens that flight.
+function FlightFeed({ markets, onOpen }){
+  const rows = (markets||[])
+    .slice()
+    .sort((a,b)=> new Date(a.depISO||0).getTime() - new Date(b.depISO||0).getTime())
+    .slice(0,16);
+  const statusFor = m => {
+    if(m.phase==="cancelled") return {x:t("annulliert","cancelled"), c:"bad"};
+    if(m.phase==="landed")    return {x:t("gelandet","landed"), c:"muted"};
+    if(m.phase==="enroute")   return {x:t("abgeflogen","departed"), c:"mid"};
+    if(m.bettable)            return {x:t("bevorstehend","upcoming"), c:"good"};
+    if(m.depISO){ const mins=Math.round((new Date(m.depISO).getTime()-Date.now())/60000);
+      if(mins>0 && mins<180) return {x:t("Abflug in "+mins+"m","Dep in "+mins+"m"), c:"warn"}; }
+    return {x:t("geschlossen","closed"), c:"muted"};
+  };
+  return (
+    <aside className="feed-side">
+      <div className="feed-card">
+        <div className="feed-title"><span className="feed-live"/>{t("Flughafen-Feed (Live)","Airport feed (live)")}</div>
+        <div className="feed-tab">{t("Abflüge BER","Departures BER")}</div>
+        <div className="feed-cols"><span>{t("Nächste Std.","Next hour")}</span><span>Route</span><span className="ta-r">Status</span></div>
+        <div className="feed-rows">
+          {rows.map(m=>{ const s=statusFor(m); return (
+            <button key={m.id} className="feed-row" onClick={()=>onOpen(m.id)}>
+              <span className="feed-l"><span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span><span className="feed-code">{m.code}</span></span>
+              <span className="feed-route">BER → {m.otherCode||"?"}</span>
+              <span className="feed-status" style={{color:`var(--${s.c})`}}>{s.x}</span>
+            </button>
+          );})}
+          {rows.length===0 && <div className="feed-empty">{t("Keine Flüge","No flights")}</div>}
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -3233,6 +3292,9 @@ function App(){
         {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}€</span><b>{t[0]}</b> auf {t[1]}</span>)}
       </div></div>
 
+      <div className="board-wrap">
+        <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
+        <div className="board-main">
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
         <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 {t("Läuft","In flight")}</button>
@@ -3293,6 +3355,8 @@ function App(){
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
         </div>;
       })()}
+        </div>
+      </div>
     </> : view.page==="daily" ? (
       <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
         openDetail={id=>setView({page:"detail",id})}/>
