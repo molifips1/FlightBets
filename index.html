@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v125 -->
+<!-- build: v2026-06-16-v126 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -195,12 +195,12 @@ button{font-family:inherit}
 .cardspacer{flex:1 1 0;min-height:0}
 
 /* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
-.board-wrap{display:grid;grid-template-columns:250px minmax(0,1fr) 340px;gap:18px;align-items:start}
+.board-wrap{display:grid;grid-template-columns:230px minmax(0,1fr) 290px;gap:18px;align-items:start}
 .board-main{min-width:0}
 .board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
 .feed-side{flex:none;position:sticky;top:14px}
 .bet-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px;align-self:start}
-@media(max-width:1380px){.board-wrap{grid-template-columns:250px minmax(0,1fr)}.bet-side{display:none}}
+@media(max-width:1380px){.board-wrap{grid-template-columns:230px minmax(0,1fr)}.bet-side{display:none}}
 @media(max-width:1180px){.board-wrap{grid-template-columns:1fr}.feed-side{display:none}}
 .feed-card{background:var(--card);border:1px solid color-mix(in srgb,var(--good) 35%,var(--line));border-radius:14px;padding:15px 15px 6px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 20%,transparent),0 0 18px -6px color-mix(in srgb,var(--good) 38%,transparent),var(--shadow)}
@@ -225,9 +225,9 @@ button{font-family:inherit}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
 /* ---- Right column: live ticker + always-open Wett-Zentrale ------------- */
-.lt-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.lt-card{background:none;border:none;box-shadow:none;padding:2px 2px 0}
 .lt-head{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
-.lt-rows{display:flex;flex-direction:column;gap:8px}
+.lt-rows{display:flex;flex-direction:column;gap:9px}
 .lt-row{display:flex;align-items:baseline;gap:6px;font-size:12px}
 .lt-user{font-weight:800;color:#e0bb3e;white-space:nowrap}
 .lt-mid{color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -241,12 +241,9 @@ button{font-family:inherit}
 .wz-code{font-family:Archivo;font-weight:800;font-size:18px;color:var(--ink)}
 .wz-closed{font-size:11px;color:var(--muted);font-weight:700}
 .wz-route{font-size:12.5px;color:var(--muted);margin-top:3px}
-.wz-brackets{display:flex;flex-direction:column;gap:7px;margin-bottom:13px}
-.wz-bk{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .12s,box-shadow .12s}
-.wz-bk-dot{width:9px;height:9px;border-radius:50%;flex:none}
-.wz-bk-name{font-weight:800;font-size:13px;white-space:nowrap}
-.wz-bk-pct{font-weight:700;font-size:12px;color:var(--ink);margin-left:auto}
-.wz-bk-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;color:var(--muted);min-width:46px;text-align:right}
+.wz-tip{font-size:15px;color:var(--muted);margin-bottom:15px}
+.wz-tip b{font-weight:800;font-size:16px}
+.wz-tip-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink)}
 .wz-stakebox{margin-bottom:13px}
 .wz-stakerow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
 .wz-stakelbl{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
@@ -1486,23 +1483,7 @@ function WettZentrale({ m, total, pick, setPick, stake, setStake, wallet, onBet 
         </div>
         <div className="wz-route">{m.from.name} ➔ {m.to.name}</div>
       </div>
-      <div className="wz-brackets">
-        {m.outcomes.map(o=>{
-          const od = displayOdds(m.outcomes,o,m.seed);
-          const pct = Math.round(eff(o)/totEff*100);
-          const on = sel && sel.id===o.id;
-          return (
-            <button key={o.id} className={"wz-bk"+(on?" on":"")}
-              style={on?{borderColor:TONE[o.tone], boxShadow:`0 0 0 1px ${TONE[o.tone]}, 0 0 14px -5px ${TONE[o.tone]}`}:null}
-              onClick={()=>{setPick(o.id);Sound.select();}}>
-              <span className="wz-bk-dot" style={{background:TONE[o.tone]}}/>
-              <span className="wz-bk-name" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
-              <span className="wz-bk-pct">{pct}%</span>
-              <span className="wz-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
-            </button>
-          );
-        })}
-      </div>
+      <div className="wz-tip">{t("Tipp","Tip")}: <b style={sel?{color:TONE[sel.tone]}:null}>{sel?outLabel(sel.label):"—"}</b> <span className="wz-tip-odds">({odds!=null?odds.toFixed(2)+"×":"—"})</span></div>
       <div className="wz-stakebox">
         <div className="wz-stakerow">
           <span className="wz-stakelbl">{t("Einsatz","Stake")}</span>
