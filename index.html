@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v148 -->
+<!-- build: v2026-06-16-v149 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -832,6 +832,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-col-l{display:block;margin-bottom:18px}
 .sheet-col-r{display:flex;flex-direction:column}
 .sheet-head2{margin-bottom:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:38px}
+.sheet-stats{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.sheet-stat{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}
+.sheet-stat b{color:var(--ink);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
 .sheet-col-l .pd-bar{height:38px;border-radius:10px}
 .sheet-col-l .pd-seg{font-size:12px}
 .sheet-col-l .dcurve,.sheet-col-l .pooldist{display:none}   /* hidden on mobile */
@@ -3083,7 +3086,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
   const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
   const closeMs = market.betCloseISO ? new Date(market.betCloseISO).getTime() : null;
   const closingSoon = !!closeMs && !closed && (closeMs - now) <= 10*60*1000;
-  const neonCol = closingSoon ? TONE.bad : (TONE[market.neonTone||market.status] || "var(--brand)");
+  const neonCol = TONE[market.neonTone||market.status] || "var(--brand)";
   const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
     <div className={"sheet sheet-wide neon"+(closingSoon?" sheet-closing":"")} style={{"--neon":neonCol}} onClick={e=>e.stopPropagation()}>
@@ -3100,7 +3103,6 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
               </div>
               {market.dateLabel && <div className="fdate">{market.dateLabel}</div>}
             </div>
-            <span className="myeinsatz">{t("Total Pool","Total pool")}: <b>{fmt(total)} €</b></span>
           </div>
 
           {market.from && market.to && (
@@ -3125,6 +3127,10 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown}/>
 
           <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
+          <div className="sheet-stats">
+            <div className="sheet-stat"><span>{t("Total Pool","Total pool")}</span><b>{fmt(total)} €</b></div>
+            <div className="sheet-stat"><span>{t("Dein Einsatz","Your stake")}</span><b>{fmt(Math.min(stake,wallet))} €</b></div>
+          </div>
         </div>
 
         <div className="sheet-col-r">
