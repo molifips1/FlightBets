@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v145 -->
+<!-- build: v2026-06-16-v146 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -809,6 +809,27 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
 .sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
 .sheet-place:disabled{background:var(--line);color:var(--muted);cursor:default}
+
+/* ---- Wide 2-column bet modal (desktop); stacks/compacts on mobile ---- */
+.sheet-wide{position:relative}
+.sheet-x-abs{position:absolute;top:14px;right:16px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;border-radius:50%;z-index:3}
+.sheet-x-abs:hover{color:var(--ink);background:var(--card2)}
+.sheet-grid{display:block}
+.sheet-col-l{display:block;margin-bottom:18px}
+.sheet-col-r{display:flex;flex-direction:column}
+.sheet-head2{margin-bottom:12px}
+.sheet-col-l .dcurve,.sheet-col-l .pooldist{display:none}   /* hidden on mobile */
+@media(min-width:760px){
+  .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
+  .sheet-wide .sheet-grip{display:none}
+  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch}
+  .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
+  .sheet-col-l .dcurve{display:block;margin:16px 0 6px}
+  .sheet-col-l .pooldist{display:block;margin-top:auto;padding-top:18px}
+  .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+  .sheet-route2{padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .sheet-col-r .sheet-pay{margin-top:auto}
+}
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
 .ctable{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -3046,42 +3067,74 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
   const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
   const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
-    <div className="sheet" onClick={e=>e.stopPropagation()}>
+    <div className="sheet sheet-wide" onClick={e=>e.stopPropagation()}>
       <div className="sheet-grip"/>
-      <div className="sheet-head">
-        <div>
-          <div className="sheet-code">{market.code}{market.subcode && <span className="subcode">{market.subcode}</span>}</div>
-          <div className="sheet-route">{market.from?.name} → {market.to?.name}</div>
+      <button className="sheet-x sheet-x-abs" onClick={onClose} aria-label="Schließen">✕</button>
+      <div className="sheet-grid">
+
+        <div className="sheet-col-l">
+          <div className="sheet-head2">
+            <div className="codeline">
+              <span className="code">{market.code}</span>
+              {market.betCloseISO && <CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/>}
+            </div>
+            {market.dateLabel && <div className="fdate">{market.dateLabel}</div>}
+          </div>
+
+          {market.from && market.to && (
+            <div className="route sheet-route2">
+              <div className="stop">
+                <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
+                <span className="flag">{market.from.flag}</span>
+                <span className="sname">{market.from.name}</span>
+                <span className="rtime">{market.from.dep}</span>
+              </div>
+              <div className="stop arr">
+                <div className="dotline"><span className="rdot end"/></div>
+                <span className="flag">{market.to.flag}</span>
+                <span className="sname">{market.to.name}</span>
+                <span className="rtime">{market.to.arrRevised
+                  ? <><span className="old">{market.to.arr}</span><span className="new" style={{color:TONE[market.neonTone||market.status]}}>{market.to.arrRevised}</span></>
+                  : market.to.arr}</span>
+              </div>
+            </div>
+          )}
+
+          <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown}/>
+
+          <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
         </div>
-        <button className="sheet-x" onClick={onClose} aria-label="Schließen">✕</button>
-      </div>
 
-      <div className="sheet-lbl">{t("Einsatz wählen","Choose stake")}</div>
-      <div className="chips-row">
-        {CHIPS.map(c=><button key={c} disabled={c>wallet}
-          className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
-          onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
-      </div>
+        <div className="sheet-col-r">
+          <div className="sheet-lbl">{t("Einsatz wählen","Choose stake")}</div>
+          <div className="chips-row">
+            {CHIPS.map(c=><button key={c} disabled={c>wallet}
+              className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
+              onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
+          </div>
 
-      <div className="sheet-lbl">Dein Tipp</div>
-      <div className="sheet-brackets">
-        {market.outcomes.map(x=>{
-          const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
-          return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
-            <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
-            <span className="sheet-bk-name">{outLabel(x.label)}</span>{rangeLabel(x.id) && <span className="sheet-bk-range">{rangeLabel(x.id)}</span>}
-            <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
-          </button>;
-        })}
-      </div>
+          <div className="sheet-lbl">{t("Dein Tipp","Your pick")}</div>
+          <div className="sheet-brackets">
+            {market.outcomes.map(x=>{
+              const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
+              return <button key={x.id} className={"sheet-bk"+(on?" on":"")} onClick={()=>setOid(x.id)}>
+                <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
+                <span className="sheet-bk-name">{outLabel(x.label)}</span>{rangeLabel(x.id) && <span className="sheet-bk-range">{rangeLabel(x.id)}</span>}
+                <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
+              </button>;
+            })}
+          </div>
 
-      <div className="sheet-pay">
-        <span>Bei Gewinn (geschätzt)</span>
-        <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
+          <div className="sheet-pay">
+            <span>{t("Bei Gewinn (geschätzt)","If you win (est.)")}</span>
+            <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
+          </div>
+          <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
+            {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
+          </button>
+        </div>
+
       </div>
-      <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
-        {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
-      </button>
     </div>
   </div>;
 }
