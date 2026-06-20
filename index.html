@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v152 -->
+<!-- build: v2026-06-16-v153 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -208,19 +208,17 @@ button{font-family:inherit}
 .feed-tab2{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer;transition:all .12s ease}
 .feed-tab2:hover{color:var(--ink)}
 .feed-tab2.on{color:var(--ink);background:color-mix(in srgb,var(--brand) 13%,transparent);border-color:color-mix(in srgb,var(--brand) 32%,transparent)}
-.feed-hrow,.feed-row{display:grid;grid-template-columns:50px 30px 38px 38px 1fr;gap:6px;align-items:center}
+.feed-hrow,.feed-row{display:grid;grid-template-columns:50px 30px 38px 38px auto;gap:6px;align-items:center}
 .feed-hrow{font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;padding:0 3px 7px;border-bottom:1px solid var(--line)}
-.feed-hst{text-align:right}
-.feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 250px);overflow-y:auto}
-.feed-rows::-webkit-scrollbar{width:6px}
-.feed-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 250px);overflow-y:auto;scrollbar-width:none;-ms-overflow-style:none}
+.feed-rows::-webkit-scrollbar{display:none;width:0;height:0}
 .feed-row{background:none;border:none;border-bottom:1px solid var(--line);padding:8px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
 .feed-code{font-weight:800;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-dest{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
 .feed-time{font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap;font-variant-numeric:tabular-nums}
-.feed-status{text-align:right;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-status{text-align:left;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
 /* ---- Right column: live ticker + always-open Wett-Zentrale ------------- */
