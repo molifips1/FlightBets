@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v134 -->
+<!-- build: v2026-06-16-v136 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -210,13 +210,12 @@ button{font-family:inherit}
 .feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 200px);overflow-y:auto}
 .feed-rows::-webkit-scrollbar{width:6px}
 .feed-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.feed-row{display:flex;flex-direction:column;gap:5px;background:none;border:none;border-bottom:1px solid var(--line);padding:12px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
+.feed-row{display:flex;align-items:center;gap:8px;background:none;border:none;border-bottom:1px solid var(--line);padding:9px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
-.feed-r1{display:flex;align-items:center;gap:9px}
-.feed-flag{font-size:13px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--line);border-radius:7px;flex:none}
-.feed-code{font-weight:800;font-size:13px;color:var(--ink);white-space:nowrap}
-.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;margin-left:35px}
+.feed-flag{font-size:14px;flex:none}
+.feed-code{font-weight:800;font-size:12.5px;color:var(--ink);white-space:nowrap}
+.feed-dest{font-size:11.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
 .feed-status{margin-left:auto;font-size:10.5px;font-weight:700;white-space:nowrap}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
@@ -260,7 +259,7 @@ button{font-family:inherit}
 .fc-plane{color:var(--neon,var(--brand));font-size:17px;margin-right:1px}
 .fc-flag{font-size:16px;margin:0 2px}
 .myeinsatz{font-size:13px;color:var(--muted);white-space:nowrap}
-.myeinsatz b{color:var(--ink);font-weight:800}
+.myeinsatz b{color:var(--ink);font-family:Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
 .fc-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:stretch;flex:1 1 auto}
 .fc-left{display:flex;flex-direction:column;min-width:0}
 .fc-right{display:flex;min-width:0}
@@ -1405,13 +1404,9 @@ function FlightFeed({ markets, onOpen }){
     .sort((a,b)=> new Date(a.depISO||0).getTime() - new Date(b.depISO||0).getTime())
     .slice(0,16);
   const statusFor = m => {
-    if(m.phase==="cancelled") return {x:t("annulliert","cancelled"), c:"bad"};
-    if(m.phase==="landed")    return {x:t("gelandet","landed"), c:"muted"};
-    if(m.phase==="enroute")   return {x:t("abgeflogen","departed"), c:"mid"};
-    if(m.bettable)            return {x:t("bevorstehend","upcoming"), c:"good"};
-    if(m.depISO){ const mins=Math.round((new Date(m.depISO).getTime()-Date.now())/60000);
-      if(mins>0 && mins<180) return {x:t("Abflug in "+mins+"m","Dep in "+mins+"m"), c:"warn"}; }
-    return {x:t("geschlossen","closed"), c:"muted"};
+    if(m.phase==="cancelled") return {x:t("Annulliert","Cancelled"), tone:"bad"};
+    const tone = m.neonTone || m.status || "good";
+    return {x:statusLabel(tone), tone};
   };
   return (
     <aside className="feed-side">
@@ -1421,12 +1416,10 @@ function FlightFeed({ markets, onOpen }){
         <div className="feed-rows">
           {rows.map(m=>{ const s=statusFor(m); return (
             <button key={m.id} className="feed-row" onClick={()=>onOpen(m.id)}>
-              <div className="feed-r1">
-                <span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span>
-                <span className="feed-code">{m.code}</span>
-                <span className="feed-status" style={{color:`color-mix(in srgb, var(--${s.c}) 80%, var(--muted))`}}>{s.x}</span>
-              </div>
-              <div className="feed-route">BER → {m.otherCode||"?"}</div>
+              <span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span>
+              <span className="feed-code">{m.code}</span>
+              <span className="feed-dest">{m.otherCode||"?"}</span>
+              <span className="feed-status" style={{color:TONE[s.tone]}}>{s.x}</span>
             </button>
           );})}
           {rows.length===0 && <div className="feed-empty">{t("Keine Flüge","No flights")}</div>}
