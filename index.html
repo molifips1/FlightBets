@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v124 -->
+<!-- build: v2026-06-16-v125 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3432,10 +3432,6 @@ function App(){
         <Leaderboard players={leaderboard} me={user?.id}/>
       </>
     ) : view.page==="home" ? <>
-      <div className="ticker"><div className="ticker-track">
-        {TICKER.concat(TICKER).map((t,i)=><span className="tk" key={i}><span className="win">+{t[2]}€</span><b>{t[0]}</b> auf {t[1]}</span>)}
-      </div></div>
-
       <div className="board-wrap">
         <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
         <div className="board-main">
