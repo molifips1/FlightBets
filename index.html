@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v127 -->
+<!-- build: v2026-06-16-v129 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -57,7 +57,7 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing
 .mono{font-family:'IBM Plex Mono',monospace}
 .disp{font-family:Archivo,system-ui,sans-serif}
 button{font-family:inherit}
-.app{max-width:1500px;margin:0 auto;padding:0 18px 44px}
+.app{max-width:1600px;margin:0 auto;padding:0 18px 44px}
 
 /* top bar */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 84%, transparent);
@@ -195,7 +195,7 @@ button{font-family:inherit}
 .cardspacer{flex:1 1 0;min-height:0}
 
 /* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
-.board-wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
+.board-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
 .board-main{min-width:0}
 .board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
 .feed-side{flex:none;position:sticky;top:14px}
@@ -207,19 +207,18 @@ button{font-family:inherit}
 @keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
 .feed-tab{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--ink);
   background:color-mix(in srgb,var(--brand) 13%,transparent);border:1px solid color-mix(in srgb,var(--brand) 32%,transparent);
-  border-radius:999px;padding:6px 13px;margin-bottom:10px}
-.feed-cols{display:grid;grid-template-columns:auto 1fr auto;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:0 2px 8px;border-bottom:1px solid var(--line)}
-.feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 210px);overflow-y:auto}
+  border-radius:999px;padding:6px 13px;margin-bottom:6px}
+.feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 200px);overflow-y:auto}
 .feed-rows::-webkit-scrollbar{width:6px}
 .feed-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.feed-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:none;border:none;border-bottom:1px solid var(--line);padding:11px 2px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
+.feed-row{display:flex;flex-direction:column;gap:4px;background:none;border:none;border-bottom:1px solid var(--line);padding:12px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
-.feed-l{display:flex;align-items:center;gap:6px;min-width:0}
-.feed-flag{font-size:14px;flex:none}
-.feed-code{font-weight:800;font-size:12.5px;color:var(--ink);white-space:nowrap}
-.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
-.feed-status{font-size:10px;font-weight:700;white-space:nowrap;text-align:right}
+.feed-r1{display:flex;align-items:center;gap:8px}
+.feed-flag{font-size:15px;flex:none}
+.feed-code{font-weight:800;font-size:13px;color:var(--ink);white-space:nowrap}
+.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.feed-status{margin-left:auto;font-size:10.5px;font-weight:700;white-space:nowrap}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
 /* ---- Right column: live ticker + always-open Wett-Zentrale ------------- */
@@ -1422,13 +1421,15 @@ function FlightFeed({ markets, onOpen }){
       <div className="feed-card">
         <div className="feed-title"><span className="feed-live"/>{t("Flughafen-Feed (Live)","Airport feed (live)")}</div>
         <div className="feed-tab">{t("Abflüge BER","Departures BER")}</div>
-        <div className="feed-cols"><span>{t("Nächste Std.","Next hour")}</span><span>Route</span><span className="ta-r">Status</span></div>
         <div className="feed-rows">
           {rows.map(m=>{ const s=statusFor(m); return (
             <button key={m.id} className="feed-row" onClick={()=>onOpen(m.id)}>
-              <span className="feed-l"><span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span><span className="feed-code">{m.code}</span></span>
-              <span className="feed-route">BER → {m.otherCode||"?"}</span>
-              <span className="feed-status" style={{color:`color-mix(in srgb, var(--${s.c}) 78%, var(--muted))`}}>{s.x}</span>
+              <div className="feed-r1">
+                <span className="feed-flag">{(m.to&&m.to.flag)||"✈"}</span>
+                <span className="feed-code">{m.code}</span>
+                <span className="feed-status" style={{color:`color-mix(in srgb, var(--${s.c}) 80%, var(--muted))`}}>{s.x}</span>
+              </div>
+              <div className="feed-route">BER → {m.otherCode||"?"}</div>
             </button>
           );})}
           {rows.length===0 && <div className="feed-empty">{t("Keine Flüge","No flights")}</div>}
@@ -1551,7 +1552,6 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
 
       <div className="fc-top">
         <div className="codeline">
-          {isFlight && <span className="fc-plane">✈</span>}
           <span className="code">{m.code}</span>
           {isFlight && m.to && m.to.flag && <span className="fc-flag">{m.to.flag}</span>}
           {m.phase && (m.bettable
