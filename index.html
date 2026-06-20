@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v156 -->
+<!-- build: v2026-06-16-v157 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -319,12 +319,12 @@ button{font-family:inherit}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
    (set by flight status: green on-time, red late, etc.). */
 .card.neon{
-  border-color:var(--line);
+  border-color:color-mix(in srgb,var(--neon) 38%,var(--line));
   box-shadow:var(--shadow);
 }
 .card.neon.click:hover{
   transform:translateY(-2px);
-  border-color:color-mix(in srgb,var(--neon) 45%,var(--line));
+  border-color:color-mix(in srgb,var(--neon) 62%,var(--line));
   box-shadow:0 8px 26px -10px rgba(0,0,0,.4);
 }
 /* One-time "betting just closed" animation: a neon pulse + a light sweep. */
