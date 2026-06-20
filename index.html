@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v123 -->
+<!-- build: v2026-06-16-v124 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -195,10 +195,13 @@ button{font-family:inherit}
 .cardspacer{flex:1 1 0;min-height:0}
 
 /* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
-.board-wrap{display:flex;gap:18px;align-items:flex-start}
-.board-main{flex:1;min-width:0}
-.feed-side{width:250px;flex:none;position:sticky;top:14px}
-@media(max-width:1180px){.feed-side{display:none}.board-wrap{display:block}}
+.board-wrap{display:grid;grid-template-columns:250px minmax(0,1fr) 340px;gap:18px;align-items:start}
+.board-main{min-width:0}
+.board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
+.feed-side{flex:none;position:sticky;top:14px}
+.bet-side{position:sticky;top:14px;display:flex;flex-direction:column;gap:16px;align-self:start}
+@media(max-width:1380px){.board-wrap{grid-template-columns:250px minmax(0,1fr)}.bet-side{display:none}}
+@media(max-width:1180px){.board-wrap{grid-template-columns:1fr}.feed-side{display:none}}
 .feed-card{background:var(--card);border:1px solid color-mix(in srgb,var(--good) 35%,var(--line));border-radius:14px;padding:15px 15px 6px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 20%,transparent),0 0 18px -6px color-mix(in srgb,var(--good) 38%,transparent),var(--shadow)}
 .feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
@@ -220,6 +223,43 @@ button{font-family:inherit}
 .feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace}
 .feed-status{font-size:10px;font-weight:700;white-space:nowrap;text-align:right}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
+
+/* ---- Right column: live ticker + always-open Wett-Zentrale ------------- */
+.lt-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.lt-head{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.lt-rows{display:flex;flex-direction:column;gap:8px}
+.lt-row{display:flex;align-items:baseline;gap:6px;font-size:12px}
+.lt-user{font-weight:800;color:#e0bb3e;white-space:nowrap}
+.lt-mid{color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lt-amt{font-weight:800;color:var(--good);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+
+.wz-card{background:var(--card);border:1px solid color-mix(in srgb,var(--brand) 35%,var(--line));border-radius:14px;padding:16px;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--brand) 18%,transparent),0 0 18px -6px color-mix(in srgb,var(--brand) 35%,transparent),var(--shadow)}
+.wz-title{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
+.wz-flight{margin-bottom:13px}
+.wz-fl-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wz-code{font-family:Archivo;font-weight:800;font-size:18px;color:var(--ink)}
+.wz-closed{font-size:11px;color:var(--muted);font-weight:700}
+.wz-route{font-size:12.5px;color:var(--muted);margin-top:3px}
+.wz-brackets{display:flex;flex-direction:column;gap:7px;margin-bottom:13px}
+.wz-bk{display:flex;align-items:center;gap:8px;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .12s,box-shadow .12s}
+.wz-bk-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.wz-bk-name{font-weight:800;font-size:13px;white-space:nowrap}
+.wz-bk-pct{font-weight:700;font-size:12px;color:var(--ink);margin-left:auto}
+.wz-bk-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;color:var(--muted);min-width:46px;text-align:right}
+.wz-stakebox{margin-bottom:13px}
+.wz-stakerow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.wz-stakelbl{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.wz-stakein{flex:1;min-width:0;background:none;border:none;outline:none;font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:18px;color:var(--ink);text-align:right}
+.wz-stakein::-webkit-outer-spin-button,.wz-stakein::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.wz-eur{font-weight:800;color:var(--ink)}
+.wz-chips{display:flex;gap:7px;margin-top:8px}
+.wz-chips button{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:8px 0;font-family:inherit;font-weight:700;font-size:12px;color:var(--ink);cursor:pointer;transition:border-color .12s}
+.wz-chips button:hover{border-color:var(--brand)}
+.wz-win{font-size:13px;color:var(--muted);margin-bottom:12px}
+.wz-win b{color:var(--good);font-size:16px;font-weight:800}
+.wz-confirm{width:100%;background:var(--brand);color:#fff;margin:0}
+.wz-empty{font-size:13px;color:var(--muted);line-height:1.5}
 
 /* ---- Wide 2-column flight card ---------------------------------------- */
 .flightcard{padding:20px}
@@ -1400,6 +1440,89 @@ function FlightFeed({ markets, onOpen }){
         </div>
       </div>
     </aside>
+  );
+}
+
+// Right-column live activity ticker: a few recent (sample) wins, fading downward,
+// amounts in neon green, usernames in gold.
+function LiveFeedTicker(){
+  const rows = TICKER.slice(0,4);
+  return (
+    <div className="lt-card">
+      <div className="lt-head"><span className="feed-live"/>{t("Live-Aktivität","Live activity")}</div>
+      <div className="lt-rows">
+        {rows.map((x,i)=>(
+          <div className="lt-row" key={i} style={{opacity:1-i*0.2}}>
+            <span className="lt-user">{x[0]}</span>
+            <span className="lt-mid">{t("auf","on")} {x[1]}</span>
+            <span className="lt-amt">{x[2]}€</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Always-open bet ticket in the right column. Shows the selected flight, a
+// clickable bracket list, stake input + quick chips, an estimated payout, and the
+// confirm button. Never shows an empty state (parent always feeds a flight).
+function WettZentrale({ m, total, pick, setPick, stake, setStake, wallet, onBet }){
+  if(!m) return (
+    <div className="wz-card"><div className="wz-title">🎟 {t("Wett-Zentrale","Bet center")}</div>
+      <div className="wz-empty">{t("Gerade keine wettbaren Flüge. Sobald einer im offenen Fenster ist, erscheint er hier.","No bettable flights right now. As soon as one is in the open window, it shows up here.")}</div></div>
+  );
+  const closed = !m.bettable;
+  const S = seedOf(m); const eff=o=>(o.pool||0)+(S[o.id]||0); const totEff=m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
+  const sel = m.outcomes.find(o=>o.id===pick) || m.outcomes.find(o=>o.id==="b") || m.outcomes[0];
+  const odds = sel ? displayOdds(m.outcomes, sel, m.seed) : null;
+  const win = (odds!=null) ? stake*odds : 0;
+  const tooMuch = stake>wallet;
+  return (
+    <div className="wz-card">
+      <div className="wz-title">🎟 {t("Wett-Zentrale","Bet center")}</div>
+      <div className="wz-flight">
+        <div className="wz-fl-top"><span className="wz-code">{m.code}</span>
+          {m.bettable ? <span className="wz-cd"><BetCountdown closeISO={m.betCloseISO}/></span> : <span className="wz-closed">{t("geschlossen","closed")}</span>}
+        </div>
+        <div className="wz-route">{m.from.name} ➔ {m.to.name}</div>
+      </div>
+      <div className="wz-brackets">
+        {m.outcomes.map(o=>{
+          const od = displayOdds(m.outcomes,o,m.seed);
+          const pct = Math.round(eff(o)/totEff*100);
+          const on = sel && sel.id===o.id;
+          return (
+            <button key={o.id} className={"wz-bk"+(on?" on":"")}
+              style={on?{borderColor:TONE[o.tone], boxShadow:`0 0 0 1px ${TONE[o.tone]}, 0 0 14px -5px ${TONE[o.tone]}`}:null}
+              onClick={()=>{setPick(o.id);Sound.select();}}>
+              <span className="wz-bk-dot" style={{background:TONE[o.tone]}}/>
+              <span className="wz-bk-name" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
+              <span className="wz-bk-pct">{pct}%</span>
+              <span className="wz-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="wz-stakebox">
+        <div className="wz-stakerow">
+          <span className="wz-stakelbl">{t("Einsatz","Stake")}</span>
+          <input className="wz-stakein" type="number" min="0" inputMode="numeric" value={stake}
+            onChange={e=>setStake(Math.max(0, Math.floor(+e.target.value||0)))}/>
+          <span className="wz-eur">€</span>
+        </div>
+        <div className="wz-chips">
+          <button onClick={()=>setStake(s=>Math.min(wallet, (s||0)*2||100))}>2×</button>
+          <button onClick={()=>setStake(20)}>20€</button>
+          <button onClick={()=>setStake(50)}>50€</button>
+          <button onClick={()=>setStake(100)}>100€</button>
+        </div>
+      </div>
+      <div className="wz-win">{t("Bei Gewinn (geschätzt)","If you win (est.)")}: <b>{fmt(win)} €</b></div>
+      <button className="betbtn wz-confirm" disabled={closed||stake<=0||tooMuch}
+        onClick={()=>{ if(!closed && sel) onBet(m, sel, stake); }}>
+        {closed ? t("Markt geschlossen","Market closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t("Einsatz bestätigen","Confirm bet")}
+      </button>
+    </div>
   );
 }
 
@@ -3081,8 +3204,15 @@ function App(){
   const [celebrate,setCelebrate]=useState(null);
   const [muted,setMuted]=useState(Sound.muted);
   const [menuOpen,setMenuOpen]=useState(false);
-  const [betSheet,setBetSheet]=useState(null); // {marketId, outcomeId} for the quick-bet sheet
-  const onQuickBet=(mid,oid)=>{ setBetSheet({marketId:mid, outcomeId:oid}); };
+  const [betSheet,setBetSheet]=useState(null); // {marketId, outcomeId} for the quick-bet sheet (narrow screens)
+  const [betCenterId,setBetCenterId]=useState(null); // flight shown in the always-open right Wett-Zentrale
+  const onQuickBet=(mid,oid)=>{
+    if(typeof window!=="undefined" && window.innerWidth < 1280){
+      setBetSheet({marketId:mid, outcomeId:oid});        // no room for the side panel → modal
+    } else {
+      setBetCenterId(mid); if(oid) setPick(oid);          // desktop → load into the Wett-Zentrale
+    }
+  };
   // --- Browser back/forward support (no URL change) ----------------------
   // Mirror the navigation state (tab / view / menu) into the History API so the
   // browser's back button reverses the last in-app navigation. We push an entry
@@ -3163,6 +3293,15 @@ function App(){
   const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
+
+  // Always-open Wett-Zentrale: show the chosen flight, else the first bettable one.
+  const betCenterMarket = liveMarkets.find(m=>m.id===betCenterId && m.bettable)
+                       || liveMarkets.find(m=>m.tab==="aktiv")
+                       || liveMarkets.find(m=>m.id===betCenterId)
+                       || null;
+  useEffect(()=>{
+    if(betCenterMarket && !betCenterMarket.outcomes.some(o=>o.id===pick)) setPick("b"); // default "Pünktlich"
+  },[betCenterMarket&&betCenterMarket.id]);
 
   const dataPill = dataStatus === "live"    ? { t:"LIVE",    bg:"var(--good)", fg:"#fff" }
                  : dataStatus === "demo"    ? { t:"DEMO",    bg:"var(--card2)", fg:"var(--muted)" }
@@ -3361,6 +3500,10 @@ function App(){
         </div>;
       })()}
         </div>
+        <aside className="bet-side">
+          <LiveFeedTicker/>
+          <WettZentrale m={betCenterMarket} total={betCenterMarket?total(betCenterMarket):0} pick={pick} setPick={setPick} stake={stake} setStake={setStake} wallet={wallet} onBet={onBet}/>
+        </aside>
       </div>
     </> : view.page==="daily" ? (
       <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
