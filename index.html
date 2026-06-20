@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v133 -->
+<!-- build: v2026-06-16-v134 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1365,7 +1365,7 @@ function PoolDist({ outcomes, seed, barOnly }){
 
 // Right-hand panel of the wide flight card: per-bracket est. odds & pool share,
 // the total pool, and the main bet button.
-function OddsPanel({ m, total, bettable, onQuickBet }){
+function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
   const S = seedOf(m);
   const eff = o => (o.pool||0)+(S[o.id]||0);
   const totEff = m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
@@ -1388,7 +1388,7 @@ function OddsPanel({ m, total, bettable, onQuickBet }){
           );
         })}
       </div>
-      <div className="op-total">{t("Total Pool","Total pool")}: <b><RollingNumber value={total}/> €</b></div>
+      <div className="op-total">{t("Mein Einsatz","My stake")}: <b>{fmt(myStake||0)} €</b></div>
       <button className="betbtn wette op-bet" disabled={!bettable}
         onClick={(e)=>{e.stopPropagation(); if(bettable) onQuickBet(m.id, favOutcome(m.outcomes, m.seed));}}>
         {bettable ? t("Wetten","Bet") : t("Geschlossen","Closed")}
@@ -1560,7 +1560,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
                 "🔒 geschlossen"
               }</span>)}
         </div>
-        <span className="myeinsatz">{t("Mein Einsatz","My stake")}: <b>{fmt(myStake)} €</b></span>
+        <span className="myeinsatz">{t("Total Pool","Total pool")}: <b><RollingNumber value={total}/> €</b></span>
       </div>
 
       <div className="fc-grid">
@@ -1592,7 +1592,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         </div>
 
         <div className="fc-right">
-          <OddsPanel m={m} total={total} bettable={!!m.bettable} onQuickBet={onQuickBet}/>
+          <OddsPanel m={m} total={total} bettable={!!m.bettable} onQuickBet={onQuickBet} myStake={myStake}/>
         </div>
       </div>
     </div>
