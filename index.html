@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v131 -->
+<!-- build: v2026-06-16-v132 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -283,6 +283,7 @@ button{font-family:inherit}
 .op-bet{margin-top:12px}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
 .pd-bar{display:flex;gap:0;height:22px;border-radius:8px;overflow:visible}
+.pd-sharelbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
 .pd-seg{height:100%;min-width:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;
   color:#fff;font-size:10px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.4);
   transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease,box-shadow .5s ease}
@@ -1346,7 +1347,7 @@ function PoolDist({ outcomes, seed, barOnly }){
       })}
     </div>
   );
-  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}>{bar}</div>;
+  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Pool-Anteil","Pool share")}</div>{bar}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
@@ -1370,18 +1371,15 @@ function OddsPanel({ m, total, bettable, onQuickBet }){
   const totEff = m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
   return (
     <div className="oddspanel" onClick={e=>e.stopPropagation()}>
-      <div className="op-title">📊 {t("Est. Quoten & Pool-Anteil","Est. odds & pool share")}</div>
+      <div className="op-title">📊 {t("Est. Quoten","Est. odds")}</div>
       <div className="op-list">
         {m.outcomes.map(o=>{
           const odds = displayOdds(m.outcomes, o, m.seed);
-          const pct = Math.round(eff(o)/totEff*100);
           return (
             <div key={o.id} className="op-row">
               <div className="op-l1">
                 <span className="op-dot" style={{background:TONE[o.tone], boxShadow:`0 0 7px color-mix(in srgb, ${TONE[o.tone]} 60%, transparent)`}}/>
                 <span className="op-name" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
-                <span className="op-sep">|</span>
-                <span className="op-pct">{pct}%</span>
                 <span className="op-grow"/>
                 <span className="op-odds">{odds!=null ? odds.toFixed(2)+"×" : "—"}</span>
               </div>
