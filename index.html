@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v116 -->
+<!-- build: v2026-06-16-v117 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2893,7 +2893,7 @@ function ClosedTable({ rows }){
           {filtered.map((r,i)=>{
             const cancelled = r.cancelled===1 || r.cancelled===true;
             const d = r.delayMin;
-            const status = cancelled ? "bad" : d==null ? "muted" : d>=60?"bad":d>=30?"warn":d>=15?"mid":"good";
+            const resColor = cancelled ? TONE.bad : d==null ? "var(--muted)" : TONE[winnerTone(d)];
             const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
             const wColor = (cancelled || d==null) ? "var(--muted)" : TONE[winnerTone(d)];
@@ -2906,7 +2906,7 @@ function ClosedTable({ rows }){
               <td>{fmtTime(r.actualDep)}</td>
               <td>{fmtTime(r.schedArr)}</td>
               <td>{fmtTime(r.actualArr)}</td>
-              <td><span className="ct-res" style={{color:`var(--${status})`}}>{label}</span></td>
+              <td><span className="ct-res" style={{color:resColor}}>{label}</span></td>
               <td><span style={{color:wColor,fontWeight:700}}>{winner}</span></td>
               <td className="ta-r">{r.nBets||0}</td>
               <td className="ta-r">{settled ? fmt(r.poolTotal)+" €" : "—"}</td>
