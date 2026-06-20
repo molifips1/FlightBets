@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v147 -->
+<!-- build: v2026-06-16-v148 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -831,7 +831,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-grid{display:block}
 .sheet-col-l{display:block;margin-bottom:18px}
 .sheet-col-r{display:flex;flex-direction:column}
-.sheet-head2{margin-bottom:12px}
+.sheet-head2{margin-bottom:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:38px}
+.sheet-col-l .pd-bar{height:38px;border-radius:10px}
+.sheet-col-l .pd-seg{font-size:12px}
 .sheet-col-l .dcurve,.sheet-col-l .pooldist{display:none}   /* hidden on mobile */
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
@@ -840,7 +842,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
   .sheet-col-l .dcurve{display:block;margin:16px 0 6px}
   .sheet-col-l .pooldist{display:block;margin-top:auto;padding-top:18px}
-  .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+  .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-right:0}
   .sheet-route2{padding-bottom:16px;border-bottom:1px solid var(--line)}
   .sheet-col-r .sheet-pay{margin-top:auto}
 }
@@ -3091,11 +3093,14 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 
         <div className="sheet-col-l">
           <div className="sheet-head2">
-            <div className="codeline">
-              <span className="code">{market.code}</span>
-              {market.betCloseISO && <CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/>}
+            <div className="fc-head-l">
+              <div className="codeline">
+                <span className="code">{market.code}</span>
+                {market.betCloseISO && <CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/>}
+              </div>
+              {market.dateLabel && <div className="fdate">{market.dateLabel}</div>}
             </div>
-            {market.dateLabel && <div className="fdate">{market.dateLabel}</div>}
+            <span className="myeinsatz">{t("Total Pool","Total pool")}: <b>{fmt(total)} €</b></span>
           </div>
 
           {market.from && market.to && (
