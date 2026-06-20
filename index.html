@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v130 -->
+<!-- build: v2026-06-16-v131 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -200,8 +200,7 @@ button{font-family:inherit}
 .board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
 .feed-side{flex:none;position:sticky;top:14px}
 @media(max-width:1180px){.board-wrap{grid-template-columns:1fr}.feed-side{display:none}}
-.feed-card{background:var(--card);border:1px solid color-mix(in srgb,var(--good) 35%,var(--line));border-radius:14px;padding:15px 15px 6px;
-  box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 20%,transparent),0 0 18px -6px color-mix(in srgb,var(--good) 38%,transparent),var(--shadow)}
+.feed-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px 8px;box-shadow:var(--shadow)}
 .feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .feed-live{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:feedPulse 1.7s ease-out infinite}
 @keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
@@ -211,13 +210,13 @@ button{font-family:inherit}
 .feed-rows{display:flex;flex-direction:column;max-height:calc(100vh - 200px);overflow-y:auto}
 .feed-rows::-webkit-scrollbar{width:6px}
 .feed-rows::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.feed-row{display:flex;flex-direction:column;gap:4px;background:none;border:none;border-bottom:1px solid var(--line);padding:12px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
+.feed-row{display:flex;flex-direction:column;gap:5px;background:none;border:none;border-bottom:1px solid var(--line);padding:12px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
-.feed-r1{display:flex;align-items:center;gap:8px}
-.feed-flag{font-size:15px;flex:none}
+.feed-r1{display:flex;align-items:center;gap:9px}
+.feed-flag{font-size:13px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--line);border-radius:7px;flex:none}
 .feed-code{font-weight:800;font-size:13px;color:var(--ink);white-space:nowrap}
-.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.feed-route{font-size:11px;color:var(--muted);white-space:nowrap;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;margin-left:35px}
 .feed-status{margin-left:auto;font-size:10.5px;font-weight:700;white-space:nowrap}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
@@ -3395,15 +3394,14 @@ function App(){
         <Leaderboard players={leaderboard} me={user?.id}/>
       </>
     ) : view.page==="home" ? <>
-      <div className="board-wrap">
-        <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
-        <div className="board-main">
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
         <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 {t("Läuft","In flight")}</button>
         <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
       </div>
-
+      <div className="board-wrap">
+        <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
+        <div className="board-main">
       {dataStatus==="connecting" && (
         <div className="plane-load-wrap"><span className="plane-load">✈</span></div>
       )}
