@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v160 -->
+<!-- build: v2026-06-16-v161 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1403,7 +1403,6 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
       {outcomes.map((o,i)=>
         <span key={o.id} className="pd-li">
           <span className="pd-lidot" style={{background:TONE[o.tone]}}/>
-          <span className="pd-linm" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
           <span className="pd-lipct">{pcts[i]}%</span>
         </span>)}
     </div>
