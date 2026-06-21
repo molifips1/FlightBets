@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v181 -->
+<!-- build: v2026-06-16-v182 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -268,17 +268,18 @@ button{font-family:inherit}
 .mystake b{color:var(--ink);font-weight:700}
 .fc-betbtn{width:100%;margin-top:16px}
 .betbtn.wette.fc-betbtn{padding:7px 24px}
+.fc-subhead{margin:0 0 14px}
+.fc-subhead .dcurve-head{justify-content:flex-start;gap:10px;margin:6px 0 0}
 .fc-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:0;align-items:stretch;flex:1 1 auto}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
-.fc-left .pooldist{margin-top:auto}
-.oddspanel .pooldist{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.oddspanel .pooldist{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
 .hist-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 9px}
 .fc-right{display:flex;flex-direction:column;min-width:0;padding-left:24px;border-left:1px solid var(--line)}
 .fc-right .oddspanel{flex:1 1 auto;height:100%}
 @media(max-width:820px){.fc-grid{grid-template-columns:1fr;gap:0}.fc-left{padding-right:0;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}.fc-right{padding-left:0;border-left:none}}
 
 .oddspanel{display:flex;flex-direction:column;width:100%;background:none;border:none;border-radius:0;padding:0}
-.op-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:3px 0 14px 0;padding:0}
+.op-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:0 0 14px 0;padding:0}
 .op-list{display:flex;flex-direction:column;gap:12px}
 .op-row{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%}
 .op-left{display:flex;align-items:baseline;flex-wrap:nowrap;gap:4px;min-width:0;white-space:nowrap}
@@ -364,7 +365,7 @@ button{font-family:inherit}
 .pool{font-family:Archivo;font-weight:800;font-size:20px;white-space:nowrap}
 
 /* route */
-.route{margin:0 0 8px}
+.route{margin:0}
 .stop{display:flex;align-items:center;gap:10px;font-size:14.5px}
 .stop+.stop{margin-top:7px}
 .stop.arr{align-items:flex-start}
@@ -508,9 +509,9 @@ button{font-family:inherit}
 .betbtn.locked{background:var(--card2);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .riskt b{color:var(--ink)}
 .dcurve{margin:14px 0 6px}
-.fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:3px 0 6px}
+.fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:0}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
-.dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:10px 0 4px}
 .dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-3px 0 8px}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
@@ -1270,6 +1271,31 @@ function bracketProbsFromPct(pct){
   return { a, b, c, d, merged };
 }
 
+// Projected / typical landing-delay chip ("Early −22m"). Lives in the card
+// sub-header (under the route) so the columns below can align cleanly.
+function delayStatusInfo({ status, projDelay, delayUnknown, delayStats }){
+  const proj = (projDelay==null||delayUnknown) ? null : projDelay;
+  const ds = (delayStats && Array.isArray(delayStats.pct) && delayStats.pct.length>=5) ? delayStats : null;
+  const medTone = mm => mm<=-5 ? "cool" : mm<=5 ? "good" : mm<=20 ? "warn" : "bad";
+  const toneForColor = (ds && (proj==null||delayUnknown)) ? medTone(ds.median) : status;
+  const col = TONE[toneForColor] || "var(--brand)";
+  let wordTxt, valTxt;
+  if(proj!=null){ wordTxt = statusLabel(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
+  else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
+  else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status); valTxt = "—"; }
+  const pc = (delayUnknown && !ds) ? "var(--muted)" : col;
+  return { wordTxt, valTxt, pc };
+}
+function DelayStatus(props){
+  const { wordTxt, valTxt, pc } = delayStatusInfo(props);
+  return (
+    <div className="dcurve-head" style={{"--pc":pc}}>
+      <span className="dcurve-w">{wordTxt}</span>
+      <span className="dcurve-v">{valTxt}</span>
+    </div>
+  );
+}
+
 function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, delayStats }){
   const S = seed || DEFAULT_SEED;
   const eff = o => (o.pool||0) + (S[o.id]||0);
@@ -1344,17 +1370,9 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
   const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
-  let wordTxt, valTxt;
-  if(proj!=null){ wordTxt = statusLabel(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
-  else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
-  else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status); valTxt = "—"; }
 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
-      <div className="dcurve-head">
-        <span className="dcurve-w">{wordTxt}</span>
-        <span className="dcurve-v">{valTxt}</span>
-      </div>
       <div className="pd-sharelbl">{t("Verspätungskurve","Landing Delay Curve")}</div>
       {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
       <div className="dcurve-plot">
@@ -1741,28 +1759,30 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
         </div>
       </div>
 
+      <div className="fc-subhead">
+        {isFlight ? (
+          <div className="route">
+            <div className="stop">
+              <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
+              <span className="flag">{m.from.flag}</span>
+              <span className="sname">{(m.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
+              <span className="rtime dep">{m.from.dep}</span>
+            </div>
+            {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
+            <div className="stop arr">
+              <div className="dotline"><span className="rdot end"/></div>
+              <span className="flag">{m.to.flag}</span>
+              <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="scope" style={{margin:"4px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
+        )}
+        <DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
+      </div>
+
       <div className="fc-grid">
         <div className="fc-left">
-
-          {isFlight ? (
-            <div className="route">
-              <div className="stop">
-                <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
-                <span className="flag">{m.from.flag}</span>
-                <span className="sname">{(m.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
-                <span className="rtime dep">{m.from.dep}</span>
-              </div>
-              {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
-              <div className="stop arr">
-                <div className="dotline"><span className="rdot end"/></div>
-                <span className="flag">{m.to.flag}</span>
-                <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
-          )}
-
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
 
@@ -2081,6 +2101,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span className="sname">{m.to.name}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
+          <DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
 
@@ -3274,6 +3295,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
             </div>
           )}
 
+          <DelayStatus status={market.neonTone||market.status} projDelay={market.projDelay} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
           <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
