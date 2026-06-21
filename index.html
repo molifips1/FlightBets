@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v162 -->
+<!-- build: v2026-06-16-v163 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -364,12 +364,12 @@ button{font-family:inherit}
 /* route */
 .route{margin:0 0 8px}
 .stop{display:flex;align-items:center;gap:10px;font-size:14.5px}
-.stop+.stop{margin-top:6px}
+.stop+.stop{margin-top:11px}
 .stop.arr{align-items:flex-start}
-.dotline{display:flex;flex-direction:column;align-items:center;width:14px;position:relative}
-.rdot{width:11px;height:11px;border-radius:50%;border:2.5px solid var(--ink);background:var(--card)}
+.dotline{display:flex;flex-direction:column;align-items:center;justify-content:center;width:14px;height:1.3em;position:relative}
+.rdot{width:11px;height:11px;border-radius:50%;border:2.5px solid var(--ink);background:var(--card);position:relative;z-index:1}
 .rdot.end{border-color:var(--bad);background:var(--bad)}
-.rconn{position:absolute;top:15px;left:50%;transform:translateX(-50%);width:2px;height:20px;background:var(--line)}
+.rconn{position:absolute;top:50%;left:50%;transform:translateX(-50%);width:2px;height:calc(1.3em + 11px);background:var(--line);z-index:0}
 .stop.arr .dotline{height:1.3em;justify-content:center}
 .flag{font-size:13px}
 .cc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-right:2px}
@@ -1633,14 +1633,14 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
               <div className="stop">
                 <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
                 <span className="flag">{m.from.flag}</span>
-                <span className="sname">{m.from.name}</span>
+                <span className="sname">{(m.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
                 <span className="rtime">{m.from.dep}</span>
               </div>
               {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
               <div className="stop arr">
                 <div className="dotline"><span className="rdot end"/></div>
                 <span className="flag">{m.to.flag}</span>
-                <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
+                <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
               </div>
             </div>
           ) : (
@@ -3140,13 +3140,13 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
               <div className="stop">
                 <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
                 <span className="flag">{market.from.flag}</span>
-                <span className="sname">{market.from.name}</span>
+                <span className="sname">{(market.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
                 <span className="rtime">{market.from.dep}</span>
               </div>
               <div className="stop arr">
                 <div className="dotline"><span className="rdot end"/></div>
                 <span className="flag">{market.to.flag}</span>
-                <span className="sname">{market.to.name}</span>
+                <span className="sname">{(market.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
                 <span className="rtime">{market.to.arrRevised
                   ? <><span className="old">{market.to.arr}</span><span className="new" style={{color:TONE[market.neonTone||market.status]}}>{market.to.arrRevised}</span></>
                   : market.to.arr}</span>
