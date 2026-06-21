@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v172 -->
+<!-- build: v2026-06-16-v173 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -508,6 +508,14 @@ button{font-family:inherit}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
 .dcurve-cap{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);margin:-6px 0 8px;letter-spacing:.02em}
+.histodds{margin:12px 0 2px}
+.ho-t{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px}
+.ho-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.ho-bar>span{display:block;height:100%}
+.ho-bar>span+span{box-shadow:inset 1px 0 0 rgba(0,0,0,.22)}
+.ho-leg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:11px;color:var(--ink);font-family:'IBM Plex Mono'}
+.ho-li{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.ho-li i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -1235,6 +1243,34 @@ function PoolBar({outcomes, total, seed}){
 // Delay distribution curve over minutes. The smooth hump is the crowd's money
 // (bracket shares + seed) mapped onto a minutes axis; the circle marks the most
 // likely zone; the dashed line + diamond is the data provider's PROJECTED delay.
+// Historical probability of each bet bracket, derived from the percentile CDF.
+// Brackets: a Vorzeitig (<=-5), b Pünktlich (-4..+5), c Verspätet (+6..+20), d Stark (>+20).
+// P(delay<=x) is read off the percentiles (interpolated; clamped in the tails).
+// When p95 < +20 the +5/+20 cutoffs fall in the unknown upper tail, so c and d
+// can't be split honestly — we flag `merged` and show "Verspätet+" = c+d.
+function bracketProbsFromPct(pct){
+  if(!Array.isArray(pct) || pct.length < 5) return null;
+  const P = pct.slice().sort((a,b)=>a[0]-b[0]);
+  const lo = P[0], hi = P[P.length-1];
+  const cdf = (x)=>{
+    if(x < lo[1]) return { p: lo[0]/100, bound:"lo" };   // below p5 → at most 5%
+    if(x > hi[1]) return { p: hi[0]/100, bound:"hi" };   // above p95 → at least 95%
+    let p = lo[0];
+    for(let i=0;i<P.length-1;i++){
+      const [pa,xa]=P[i], [pb,xb]=P[i+1];
+      if(x===xa) p=pa;
+      if(xa<x && x<=xb) p = xb>xa ? pa+(pb-pa)*(x-xa)/(xb-xa) : pb;
+    }
+    for(let i=0;i<P.length;i++){ if(P[i][1]===x) p=Math.max(p,P[i][0]); }
+    return { p:p/100, bound:null };
+  };
+  const e1=cdf(-5), e2=cdf(5), e3=cdf(20);
+  const clamp = v => Math.max(0, Math.min(1, v));
+  const a=clamp(e1.p), b=clamp(e2.p-e1.p), c=clamp(e3.p-e2.p), d=clamp(1-e3.p);
+  const merged = (e2.bound==="hi" || e3.bound==="hi"); // p95 below +20 → can't split c/d
+  return { a, b, c, d, merged };
+}
+
 function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, delayStats }){
   const S = seed || DEFAULT_SEED;
   const eff = o => (o.pool||0) + (S[o.id]||0);
@@ -1245,6 +1281,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   // Real historical landing-delay distribution (percentile CDF) if provided.
   const ds = (delayStats && Array.isArray(delayStats.pct) && delayStats.pct.length>=5)
     ? { ...delayStats, pct: delayStats.pct.slice().sort((a,b)=>a[0]-b[0]) } : null;
+  const bp = ds ? bracketProbsFromPct(ds.pct) : null;
 
   // Color: live status when we have a live projection, else the bracket of the
   // historical median (so far-out flights are still meaningfully tinted).
@@ -1333,6 +1370,26 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
           return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
         })}
       </div>
+      {bp && (
+        <div className="histodds">
+          <div className="ho-t">{t("So landete dieser Flug","How this flight has landed")}</div>
+          <div className="ho-bar">
+            <span style={{width:(bp.a*100)+"%", background:"var(--bk-cool)"}}/>
+            <span style={{width:(bp.b*100)+"%", background:"var(--bk-good)"}}/>
+            {bp.merged
+              ? <span style={{width:((bp.c+bp.d)*100)+"%", background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>
+              : <><span style={{width:(bp.c*100)+"%", background:"var(--bk-warn)"}}/><span style={{width:(bp.d*100)+"%", background:"var(--bk-bad)"}}/></>}
+          </div>
+          <div className="ho-leg">
+            <span className="ho-li"><i style={{background:"var(--bk-cool)"}}/>{t("Vorzeitig","Early")} {Math.round(bp.a*100)}%</span>
+            <span className="ho-li"><i style={{background:"var(--bk-good)"}}/>{t("Pünktlich","On time")} {Math.round(bp.b*100)}%</span>
+            {bp.merged
+              ? <span className="ho-li"><i style={{background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>{t("Verspätet+","Late+")} {Math.round((bp.c+bp.d)*100)}%</span>
+              : <><span className="ho-li"><i style={{background:"var(--bk-warn)"}}/>{t("Verspätet","Late")} {Math.round(bp.c*100)}%</span>
+                  <span className="ho-li"><i style={{background:"var(--bk-bad)"}}/>{t("Stark","Very late")} {Math.round(bp.d*100)}%</span></>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
