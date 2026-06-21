@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v171 -->
+<!-- build: v2026-06-16-v172 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -507,6 +507,7 @@ button{font-family:inherit}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:3px 0 6px}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.dcurve-cap{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);margin:-6px 0 8px;letter-spacing:.02em}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -1234,26 +1235,60 @@ function PoolBar({outcomes, total, seed}){
 // Delay distribution curve over minutes. The smooth hump is the crowd's money
 // (bracket shares + seed) mapped onto a minutes axis; the circle marks the most
 // likely zone; the dashed line + diamond is the data provider's PROJECTED delay.
-function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }){
-  const col = TONE[status] || "var(--brand)";
+function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, delayStats }){
   const S = seed || DEFAULT_SEED;
   const eff = o => (o.pool||0) + (S[o.id]||0);
   const totEff = outcomes.reduce((a,o)=>a+eff(o),0) || 1;
   const share = id => { const o=outcomes.find(x=>x.id===id); return o?eff(o)/totEff:0; };
 
-  const CENTER={a:-9,b:1,c:13,d:30}, SPREAD={a:4,b:4.5,c:5.5,d:11};
   const proj = (projDelay==null||delayUnknown) ? null : projDelay;
-  const Mmin = Math.min(-15, proj!=null ? Math.floor((proj-5)/5)*5 : -15);
-  const Mmax = Math.max(20, Math.ceil(((proj!=null?Math.max(proj,15):15)+5)/5)*5);
+  // Real historical landing-delay distribution (percentile CDF) if provided.
+  const ds = (delayStats && Array.isArray(delayStats.pct) && delayStats.pct.length>=5)
+    ? { ...delayStats, pct: delayStats.pct.slice().sort((a,b)=>a[0]-b[0]) } : null;
+
+  // Color: live status when we have a live projection, else the bracket of the
+  // historical median (so far-out flights are still meaningfully tinted).
+  const medTone = mm => mm<=-5 ? "cool" : mm<=5 ? "good" : mm<=20 ? "warn" : "bad";
+  const toneForColor = (ds && (proj==null||delayUnknown)) ? medTone(ds.median) : status;
+  const col = TONE[toneForColor] || "var(--brand)";
+
+  const W=300, plotH=64, padT=3, N=72;
+
+  let Mmin, Mmax;
+  if(ds){
+    const xs = ds.pct.map(p=>p[1]);
+    const lo = Math.min(...xs, 0, proj!=null?proj:0);
+    const hi = Math.max(...xs, 5, proj!=null?proj:0);
+    Mmin = Math.max(-45, Math.floor((lo-3)/5)*5);
+    Mmax = Math.min(80,  Math.ceil((hi+3)/5)*5);
+  } else {
+    Mmin = Math.min(-15, proj!=null ? Math.floor((proj-5)/5)*5 : -15);
+    Mmax = Math.max(20, Math.ceil(((proj!=null?Math.max(proj,15):15)+5)/5)*5);
+  }
   const span = Mmax - Mmin;
 
-  const W=300, plotH=64, padT=3;
-  const N=72, gauss=(x,mu,s)=>Math.exp(-0.5*((x-mu)/s)**2);
   const ys=[]; let maxV=0;
-  for(let i=0;i<=N;i++){
-    const x=Mmin+(i/N)*span; let v=0;
-    for(const id of ["a","b","c","d"]) if(CENTER[id]!=null) v+=share(id)*gauss(x,CENTER[id],SPREAD[id]);
-    ys.push(v); if(v>maxV)maxV=v;
+  if(ds){
+    // Density from the percentile CDF: the probability mass between adjacent
+    // percentile points is spread across the minutes they span; tie points
+    // (many flights at the same delay) pile into one bin → a realistic spike.
+    const acc = new Array(N+1).fill(0);
+    const idx = x => Math.round((x-Mmin)/span*N);
+    const put = (x,mass)=>{ if(x<Mmin||x>Mmax) return; const i=idx(x); if(i>=0&&i<=N) acc[i]+=mass; };
+    for(let k=0;k<ds.pct.length-1;k++){
+      const x0=ds.pct[k][1], x1=ds.pct[k+1][1], mass=ds.pct[k+1][0]-ds.pct[k][0];
+      if(x1<=x0+0.001){ put(x0,mass); }
+      else { const steps=Math.max(1,Math.round((x1-x0)/(span/N))); for(let s=0;s<steps;s++) put(x0+(x1-x0)*(s+0.5)/steps, mass/steps); }
+    }
+    for(let i=0;i<=N;i++){ const v=(acc[i-1]||0)*0.25+acc[i]*0.5+(acc[i+1]||0)*0.25; ys.push(v); if(v>maxV)maxV=v; }
+  } else {
+    const CENTER={a:-9,b:1,c:13,d:30}, SPREAD={a:4,b:4.5,c:5.5,d:11};
+    const gauss=(x,mu,s)=>Math.exp(-0.5*((x-mu)/s)**2);
+    for(let i=0;i<=N;i++){
+      const x=Mmin+(i/N)*span; let v=0;
+      for(const id of ["a","b","c","d"]) if(CENTER[id]!=null) v+=share(id)*gauss(x,CENTER[id],SPREAD[id]);
+      ys.push(v); if(v>maxV)maxV=v;
+    }
   }
   maxV=maxV||1;
   const xPix=m=>((m-Mmin)/span)*W, yPix=v=>padT+(1-v/maxV)*(plotH-padT-2);
@@ -1266,17 +1301,19 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
   const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
   const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
-  const valTxt = (delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m";
-  const wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status);
+  const histTxt = ds ? (ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")) : null;
+  let wordTxt, valTxt;
+  if(proj!=null){ wordTxt = statusLabel(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
+  else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
+  else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status); valTxt = "—"; }
 
   return (
-    <div className="dcurve" style={{"--pc": delayUnknown?"var(--muted)":col}}>
+    <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
       <div className="dcurve-head">
         <span className="dcurve-w">{wordTxt}</span>
-        <span className="dcurve-v">
-          {(delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m"}
-        </span>
+        <span className="dcurve-v">{valTxt}</span>
       </div>
+      {ds && <div className="dcurve-cap" title={t("Historische Landeverspätung dieses Flugs (letzte ~90 Tage)","Historical landing delay of this flight (last ~90 days)")}>{histTxt}</div>}
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
           <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
@@ -1648,7 +1685,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
           )}
 
-          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
+          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
 
         <div className="fc-right">
@@ -1966,7 +2003,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
-          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown}/>
+          <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
@@ -2318,6 +2355,7 @@ function boardToMarket(f){
     actualArr: f.actualArr ? fmtT(f.actualArr) : "",
     depISO: f.scheduledDep || null,
     arrISO: f.scheduledArr || null,
+    delayStats: f.delayStats || null,   // real historical landing-delay percentiles (or null)
     stops: 0,
     status,
     neonTone,
@@ -3155,7 +3193,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
             </div>
           )}
 
-          <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown}/>
+          <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
           <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
           <div className="sheet-stats">
