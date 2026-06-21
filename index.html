@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v166 -->
+<!-- build: v2026-06-16-v168 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -289,8 +289,8 @@ button{font-family:inherit}
 .op-bet.betbtn.wette{margin-top:8px}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
 .pd-bar{display:flex;gap:0;height:24px;border-radius:8px;overflow:visible}
-.pd-sharelbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
-.pd-line{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px;flex-wrap:nowrap}
+.pd-sharelbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px}
+.pd-line{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px;flex-wrap:nowrap}
 .pd-li{display:flex;align-items:center;gap:4px;min-width:0;white-space:nowrap}
 .pd-lidot{width:8px;height:8px;border-radius:50%;flex:none}
 .pd-linm{font-size:10px;font-weight:700;white-space:nowrap}
@@ -519,7 +519,7 @@ button{font-family:inherit}
 .dcurve-diamond{position:absolute;bottom:0;width:9px;height:9px;background:var(--pc);
   transform:translate(-50%,50%) rotate(45deg);pointer-events:none}
 .dcurve-axis{position:relative;height:14px;margin-top:3px}
-.dcurve-axis span{position:absolute;transform:translateX(-50%);font-size:9.5px;color:var(--muted);
+.dcurve-axis span{position:absolute;transform:translateX(-50%);font-size:9.5px;color:color-mix(in srgb,var(--ink) 60%,transparent);
   font-family:'IBM Plex Mono',monospace;white-space:nowrap}
 .poolwrap{margin:8px 0 4px}
 .poolbar{display:flex;gap:2px;height:26px;border-radius:8px;overflow:hidden}
@@ -651,10 +651,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .berhero-s{font-size:13px;opacity:.9;margin-top:6px}
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
 .plane-load-wrap{display:flex;align-items:center;justify-content:center;width:100%;min-height:64vh}
-.plane-load{font-size:112px;line-height:1;display:inline-block;transform-origin:center;color:var(--brand);animation:planeLoad 1.7s ease-in-out infinite;filter:drop-shadow(0 10px 22px rgba(0,0,0,.2))}
+.plane-load{font-size:112px;line-height:1;display:inline-block;transform-origin:center;color:var(--brand);animation:planeLoad 1.9s ease-in-out infinite;filter:drop-shadow(0 10px 22px color-mix(in srgb,var(--brand) 35%,transparent))}
 @keyframes planeLoad{
-  0%,100% {opacity:.4;transform:rotate(-12deg) scale(.9)}
-  50%     {opacity:1;transform:rotate(-12deg) scale(1.08)}
+  0%   {opacity:.5;transform:rotate(0deg) scale(.9)}
+  50%  {opacity:1;transform:rotate(180deg) scale(1.12)}
+  100% {opacity:.5;transform:rotate(360deg) scale(.9)}
 }
 @media(prefers-reduced-motion:reduce){.plane-load{animation-duration:3.4s}}
 .spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;vertical-align:-1px;margin-right:6px;animation:spinrot .7s linear infinite;opacity:.8}
@@ -1406,7 +1407,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
         </span>)}
     </div>
   ) : null;
-  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Pool-Anteil","Pool share")}</div>{bar}{lineLegend}</div>;
+  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","Bet distribution")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
@@ -1430,7 +1431,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
   const totEff = m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
   return (
     <div className="oddspanel" onClick={e=>e.stopPropagation()}>
-      <div className="op-title">📊 {t("Est. Quoten","Est. odds")}</div>
+      <div className="op-title">📊 {t("Live-Quoten","Live odds")}</div>
       <div className="op-list">
         {m.outcomes.map(o=>{
           const odds = displayOdds(m.outcomes, o, m.seed);
@@ -1826,7 +1827,7 @@ function BetCountdown({ closeISO }){
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 15*60; // last 15 min → urgent
   return <span className={"betcd"+(soon?" soon":"")}>
-    Wetten schließt in <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
+    Wette schließt in <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
   </span>;
 }
 
@@ -1847,7 +1848,7 @@ function CloseBadge({ closeISO, tone }){
   const soon = diff < 10*60; // final 10 min → red + pulse
   const col = soon ? "var(--bk-bad)" : base;
   return <span className={"phase phase-cd"+(soon?" cd-pulse":"")} style={tint(col)}>
-    <span className="cd-w">{t("Wetten schliesst","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
+    <span className="cd-w">{t("Wette schließt","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
   </span>;
 }
 
@@ -3497,7 +3498,7 @@ function App(){
       </>
     ) : view.page==="home" ? <>
       {dataStatus==="connecting" ? (
-        <div className="plane-load-wrap"><span className="plane-load">✈</span></div>
+        <div className="plane-load-wrap"><span className="plane-load">{"\u2708\uFE0E"}</span></div>
       ) : <>
       <div className="subfilter">
         <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
