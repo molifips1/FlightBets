@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v168 -->
+<!-- build: v2026-06-16-v169 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -808,7 +808,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-brackets{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .sheet-bk{display:flex;align-items:center;gap:11px;padding:14px;border:1.5px solid var(--line);border-radius:13px;
   background:var(--card2);cursor:pointer;font-family:inherit;font-size:15px;color:var(--ink);transition:border-color .15s,background .15s}
-.sheet-bk.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--card))}
+.sheet-bk.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 16%,var(--card));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand) 30%,transparent)}
 .sheet-bk-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .sheet-bk-name{font-weight:700}
 .sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
@@ -3164,13 +3164,6 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
         </div>
 
         <div className="sheet-col-r">
-          <div className="sheet-lbl">{t("Einsatz wählen","Choose stake")}</div>
-          <div className="chips-row">
-            {CHIPS.map(c=><button key={c} disabled={c>wallet}
-              className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
-              onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
-          </div>
-
           <div className="sheet-lbl">{t("Dein Tipp","Your pick")}</div>
           <div className="sheet-brackets">
             {market.outcomes.map(x=>{
@@ -3181,6 +3174,13 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
                 <span className="sheet-bk-odds">{od!=null?od.toFixed(2)+"×":"—"}</span>
               </button>;
             })}
+          </div>
+
+          <div className="sheet-lbl">{t("Einsatz wählen","Choose stake")}</div>
+          <div className="chips-row">
+            {CHIPS.map(c=><button key={c} disabled={c>wallet}
+              className={"chip-coin"+(stake===c?" on":"")+(c>wallet?" dis":"")}
+              onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
           </div>
 
           <div className="sheet-pay">
