@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v161 -->
+<!-- build: v2026-06-16-v162 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1262,7 +1262,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown }
   const peakX=pts[pk][0], peakY=pts[pk][1];
   const projX = proj!=null ? Math.max(0,Math.min(W,xPix(proj))) : null;
   const zeroX = xPix(0);
-  const tickStep = span<=40 ? 5 : span<=80 ? 10 : span<=160 ? 20 : 30;
+  const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
   const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
   const valTxt = (delayUnknown||proj==null) ? "—" : (proj>=0?"+":"")+proj+"m";
