@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v175 -->
+<!-- build: v2026-06-16-v176 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -505,13 +505,19 @@ button{font-family:inherit}
 .riskt b{color:var(--ink)}
 .dcurve{margin:14px 0 6px}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:3px 0 6px}
-.fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
+.fc-left .dcurve-body{flex:1 1 auto}
+.fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:92px}
+.dcurve-body{display:flex;align-items:stretch;gap:7px}
+.dcurve-ylabel{writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;flex:none;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--ink) 55%,transparent)}
+.dcurve-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
 .dcurve-cap{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);margin:-6px 0 8px;letter-spacing:.02em}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
-.dcurve-plot{position:relative;height:52px}
+.dcurve-plot{position:relative;height:52px;border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
 .dcurve-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .dcurve-peak{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--card);
   border:2.5px solid var(--pc);transform:translate(-50%,-50%);pointer-events:none}
@@ -1337,29 +1343,37 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
+      <div className="pd-sharelbl">{t("Verspätungskurve","Delay Curve")}</div>
       <div className="dcurve-head">
         <span className="dcurve-w">{wordTxt}</span>
         <span className="dcurve-v">{valTxt}</span>
       </div>
       {ds && <div className="dcurve-cap" title={t("Historische Landeverspätung dieses Flugs (letzte ~90 Tage)","Historical landing delay of this flight (last ~90 days)")}>{histTxt}</div>}
-      <div className="dcurve-plot">
-        <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
-          <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor={col} stopOpacity="0.26"/>
-            <stop offset="1" stopColor={col} stopOpacity="0.02"/>
-          </linearGradient></defs>
-          <path d={area} fill={`url(#${uid})`}/>
-          <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
-        </svg>
-        {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
-        {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
-      </div>
-      <div className="dcurve-axis">
-        {ticks.map((mm,i)=>{
-          const lp = xPix(mm)/W*100;
-          const tx = lp<=4 ? "translateX(0)" : lp>=96 ? "translateX(-100%)" : "translateX(-50%)";
-          return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
-        })}
+      <div className="dcurve-body">
+        <span className="dcurve-ylabel">{t("Häufigkeit","Frequency")}</span>
+        <div className="dcurve-main">
+          <div className="dcurve-plot">
+            <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
+              <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor={col} stopOpacity="0.26"/>
+                <stop offset="1" stopColor={col} stopOpacity="0.02"/>
+              </linearGradient></defs>
+              {[0.25,0.5,0.75].map(g=>{ const gy=padT+(1-g)*(plotH-padT-2); return (
+                <line key={g} x1="0" y1={gy} x2={W} y2={gy} stroke="var(--line)" strokeWidth="1" opacity="0.6" vectorEffect="non-scaling-stroke"/>); })}
+              <path d={area} fill={`url(#${uid})`}/>
+              <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+            </svg>
+            {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
+            {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
+          </div>
+          <div className="dcurve-axis">
+            {ticks.map((mm,i)=>{
+              const lp = xPix(mm)/W*100;
+              const tx = lp<=4 ? "translateX(0)" : lp>=96 ? "translateX(-100%)" : "translateX(-50%)";
+              return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
