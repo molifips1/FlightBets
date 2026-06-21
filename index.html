@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v174 -->
+<!-- build: v2026-06-16-v175 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -272,8 +272,6 @@ button{font-family:inherit}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .fc-left .pooldist{margin-top:auto}
 .oddspanel .pooldist{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.oddspanel .histodds{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
-.sheet-col-l .ho-bar{height:20px;border-radius:10px}
 .fc-right{display:flex;flex-direction:column;min-width:0;padding-left:24px;border-left:1px solid var(--line)}
 .fc-right .oddspanel{flex:1 1 auto;height:100%}
 @media(max-width:820px){.fc-grid{grid-template-columns:1fr;gap:0}.fc-left{padding-right:0;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}.fc-right{padding-left:0;border-left:none}}
@@ -510,14 +508,6 @@ button{font-family:inherit}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
 .dcurve-cap{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);margin:-6px 0 8px;letter-spacing:.02em}
-.histodds{margin:12px 0 2px}
-.ho-t{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px}
-.ho-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
-.ho-bar>span{display:block;height:100%}
-.ho-bar>span+span{box-shadow:inset 1px 0 0 rgba(0,0,0,.22)}
-.ho-leg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:7px;font-size:11px;color:var(--ink);font-family:'IBM Plex Mono'}
-.ho-li{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.ho-li i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -859,7 +849,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-stat b{color:var(--ink);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
 .sheet-col-l .pd-bar{height:38px;border-radius:10px}
 .sheet-col-l .pd-seg{font-size:12px}
-.sheet-col-l .dcurve,.sheet-col-l .pooldist,.sheet-col-l .histodds{display:none}   /* hidden on mobile */
+.sheet-col-l .dcurve,.sheet-col-l .pooldist{display:none}   /* hidden on mobile */
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
@@ -867,7 +857,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
   .sheet-col-l .dcurve{display:block;margin:16px 0 6px}
   .sheet-col-l .pooldist{display:block;margin-top:auto;padding-top:18px}
-  .sheet-col-l .histodds{display:block;margin-top:auto;padding-top:18px}
   .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-right:0}
   .sheet-route2{padding-bottom:16px;border-bottom:1px solid var(--line)}
   .sheet-col-r .sheet-pay{margin-top:auto}
@@ -1500,29 +1489,35 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   );
 }
 
-// Historical landing-delay outcome bar: shows the share of past flights that
-// fell into each bet bracket (real data from delayStats). Replaces the bet-pool
-// distribution. Renders nothing when this flight has no historical stats yet.
+// Historical landing-delay outcome bar: share of past flights that fell into
+// each bet bracket (real delayStats). Reuses the exact PoolDist markup/classes
+// so it matches the former bet-distribution format 1:1 (title, bar, legend, and
+// the modal's thicker bar). Renders nothing when this flight has no stats yet.
 function HistOdds({ delayStats }){
   const bp = (delayStats && Array.isArray(delayStats.pct)) ? bracketProbsFromPct(delayStats.pct) : null;
   if(!bp) return null;
+  const lateGrad = "linear-gradient(90deg,var(--bk-warn),var(--bk-bad))";
+  // segments: [share, solidColor|null(gradient), glowColor]
+  const segs = bp.merged
+    ? [[bp.a,"var(--bk-cool)","var(--bk-cool)"],[bp.b,"var(--bk-good)","var(--bk-good)"],[bp.c+bp.d,null,"var(--bk-bad)"]]
+    : [[bp.a,"var(--bk-cool)","var(--bk-cool)"],[bp.b,"var(--bk-good)","var(--bk-good)"],[bp.c,"var(--bk-warn)","var(--bk-warn)"],[bp.d,"var(--bk-bad)","var(--bk-bad)"]];
   return (
-    <div className="histodds">
-      <div className="ho-t">{t("So landete dieser Flug","How this flight has landed")}</div>
-      <div className="ho-bar">
-        <span style={{width:(bp.a*100)+"%", background:"var(--bk-cool)"}}/>
-        <span style={{width:(bp.b*100)+"%", background:"var(--bk-good)"}}/>
-        {bp.merged
-          ? <span style={{width:((bp.c+bp.d)*100)+"%", background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>
-          : <><span style={{width:(bp.c*100)+"%", background:"var(--bk-warn)"}}/><span style={{width:(bp.d*100)+"%", background:"var(--bk-bad)"}}/></>}
+    <div className="pooldist" onClick={e=>e.stopPropagation()}>
+      <div className="pd-sharelbl">{t("Historische Verspätungen","Historic Delays")}</div>
+      <div className="pd-bar">
+        {segs.map(([sh,col,glow],i)=>
+          <div key={i} className="pd-seg" style={{
+            width:(sh*100)+"%",
+            ...(col ? {backgroundColor:col} : {backgroundImage:lateGrad}),
+            boxShadow:`0 0 8px color-mix(in srgb, ${glow} 60%, transparent)`,
+          }}/>)}
       </div>
-      <div className="ho-leg">
-        <span className="ho-li"><i style={{background:"var(--bk-cool)"}}/>{t("Vorzeitig","Early")} {Math.round(bp.a*100)}%</span>
-        <span className="ho-li"><i style={{background:"var(--bk-good)"}}/>{t("Pünktlich","On time")} {Math.round(bp.b*100)}%</span>
-        {bp.merged
-          ? <span className="ho-li"><i style={{background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>{t("Verspätet+","Late+")} {Math.round((bp.c+bp.d)*100)}%</span>
-          : <><span className="ho-li"><i style={{background:"var(--bk-warn)"}}/>{t("Verspätet","Late")} {Math.round(bp.c*100)}%</span>
-              <span className="ho-li"><i style={{background:"var(--bk-bad)"}}/>{t("Stark","Very late")} {Math.round(bp.d*100)}%</span></>}
+      <div className="pd-line">
+        {segs.map(([sh,col],i)=>
+          <span key={i} className="pd-li">
+            <span className="pd-lidot" style={col?{background:col}:{backgroundImage:lateGrad}}/>
+            <span className="pd-lipct">{Math.round(sh*100)}%</span>
+          </span>)}
       </div>
     </div>
   );
