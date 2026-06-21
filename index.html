@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v159 -->
+<!-- build: v2026-06-16-v160 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -290,6 +290,11 @@ button{font-family:inherit}
 .pd-label{font-size:12.5px;color:var(--ink);font-weight:600;margin-bottom:10px}
 .pd-bar{display:flex;gap:0;height:24px;border-radius:8px;overflow:visible}
 .pd-sharelbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px}
+.pd-line{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px;flex-wrap:nowrap}
+.pd-li{display:flex;align-items:center;gap:4px;min-width:0;white-space:nowrap}
+.pd-lidot{width:8px;height:8px;border-radius:50%;flex:none}
+.pd-linm{font-size:10px;font-weight:700;white-space:nowrap}
+.pd-lipct{font-size:10px;font-weight:800;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
 .pd-seg{height:100%;min-width:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;
   color:#fff;font-size:10px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.4);
   transition:width .6s cubic-bezier(.2,.8,.3,1),background-color .5s ease,box-shadow .5s ease}
@@ -1377,22 +1382,33 @@ function favOutcome(outcomes, seed){
 // Pool distribution: a colour bar (segment width = share) + a legend (name · %).
 // barOnly → just the bar (used in the wide 2-column card, where the right panel
 // already carries names/ranges/odds).
-function PoolDist({ outcomes, seed, barOnly }){
+function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   const S = seed || DEFAULT_SEED;
   const eff = o => (o.pool||0)+(S[o.id]||0);
   const vals = outcomes.map(eff);
   const tot = vals.reduce((a,b)=>a+b,0)||1;
+  const pcts = outcomes.map((_,i)=>Math.round(vals[i]/tot*100));
   const bar = (
     <div className="pd-bar">
       {outcomes.map((o,i)=>{
-        const w=vals[i]/tot*100, pct=Math.round(w), c=TONE[o.tone];
+        const w=vals[i]/tot*100, c=TONE[o.tone];
         return <div key={o.id} className="pd-seg"
           style={{width:w+"%", backgroundColor:c, boxShadow:`0 0 8px color-mix(in srgb, ${c} 60%, transparent)`}}
-          title={outLabel(o.label)+" "+pct+"%"}>{pct>=8?pct+"%":""}</div>;
+          title={outLabel(o.label)+" "+pcts[i]+"%"}>{(!pctLegend && w>=8)?pcts[i]+"%":""}</div>;
       })}
     </div>
   );
-  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Pool-Anteil","Pool share")}</div>{bar}</div>;
+  const lineLegend = pctLegend ? (
+    <div className="pd-line">
+      {outcomes.map((o,i)=>
+        <span key={o.id} className="pd-li">
+          <span className="pd-lidot" style={{background:TONE[o.tone]}}/>
+          <span className="pd-linm" style={{color:TONE[o.tone]}}>{outLabel(o.label)}</span>
+          <span className="pd-lipct">{pcts[i]}%</span>
+        </span>)}
+    </div>
+  ) : null;
+  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Pool-Anteil","Pool share")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
@@ -1432,7 +1448,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
           );
         })}
       </div>
-      <PoolDist outcomes={m.outcomes} seed={m.seed} barOnly/>
+      <PoolDist outcomes={m.outcomes} seed={m.seed} barOnly pctLegend/>
     </div>
   );
 }
