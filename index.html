@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v176 -->
+<!-- build: v2026-06-16-v177 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1343,12 +1343,12 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
-      <div className="pd-sharelbl">{t("Verspätungskurve","Delay Curve")}</div>
       <div className="dcurve-head">
         <span className="dcurve-w">{wordTxt}</span>
         <span className="dcurve-v">{valTxt}</span>
       </div>
       {ds && <div className="dcurve-cap" title={t("Historische Landeverspätung dieses Flugs (letzte ~90 Tage)","Historical landing delay of this flight (last ~90 days)")}>{histTxt}</div>}
+      <div className="pd-sharelbl">{t("Verspätungskurve","Delay Curve")}</div>
       <div className="dcurve-body">
         <span className="dcurve-ylabel">{t("Häufigkeit","Frequency")}</span>
         <div className="dcurve-main">
