@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v177 -->
+<!-- build: v2026-06-16-v178 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -380,6 +380,9 @@ button{font-family:inherit}
 .rtime .new{display:block;font-weight:700}
 .rtime .rt1{display:block}
 .rtime .rt2hidden{display:block;visibility:hidden}
+.rtime.dep{color:var(--muted);font-weight:500}                 /* departure dimmed */
+.rtime.arr{font-weight:700}                                    /* arrival emphasized */
+.rtime.arr .rt1{color:var(--ink);font-weight:700}             /* plain arrival → bold + dark */
 .haltes{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
   border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 0}
 
@@ -1057,7 +1060,10 @@ const STATUS={cool:"Vorzeitig",good:"Pünktlich",mid:"Leicht verspätet",warn:"V
 const STATUS_EN={cool:"Early",good:"On time",mid:"Slightly late",warn:"Late",bad:"Very late"};
 const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
 const OUT_EN={"Vorzeitig":"Early","Pünktlich":"On time","Verspätet":"Late","Stark Verspätet":"Very late"};
-const outLabel=s=> t(s, OUT_EN[s]||s);
+// Bet-category labels with action verbs (flight brackets only — daily Yes/No etc. pass through unchanged).
+const OUT_VERB_DE={"Vorzeitig":"Landet früh","Pünktlich":"Landet pünktlich","Verspätet":"Landet spät","Stark Verspätet":"Landet sehr spät"};
+const OUT_VERB_EN={"Vorzeitig":"Lands Early","Pünktlich":"Lands On time","Verspätet":"Lands Late","Stark Verspätet":"Lands Very Late"};
+const outLabel=s=> OUT_VERB_DE[s] ? t(OUT_VERB_DE[s], OUT_VERB_EN[s]) : t(s, OUT_EN[s]||s);
 // Minute span shown as a small sub-label next to each bracket (flight markets only).
 const OUT_RANGE_DE={a:"≥ 5 Min früher",b:"−4 bis +5 Min",c:"+6 bis +20 Min",d:"> +20 Min"};
 const OUT_RANGE_EN={a:"≥ 5 min early",b:"−4 to +5 min",c:"+6 to +20 min",d:"> +20 min"};
@@ -1545,7 +1551,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
   const totEff = m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
   return (
     <div className="oddspanel" onClick={e=>e.stopPropagation()}>
-      <div className="op-title">📊 {t("Live-Quoten","Live odds")}</div>
+      <div className="op-title">📊 {t("Lande-Quoten","Landing odds")}</div>
       <div className="op-list">
         {m.outcomes.map(o=>{
           const odds = displayOdds(m.outcomes, o, m.seed);
@@ -1748,13 +1754,13 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
                 <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
                 <span className="flag">{m.from.flag}</span>
                 <span className="sname">{(m.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
-                <span className="rtime">{m.from.dep}</span>
+                <span className="rtime dep">{m.from.dep}</span>
               </div>
               {m.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{m.stops} stops ▾</span></div>}
               <div className="stop arr">
                 <div className="dotline"><span className="rdot end"/></div>
                 <span className="flag">{m.to.flag}</span>
-                <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
+                <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
               </div>
             </div>
           ) : (
@@ -2071,12 +2077,12 @@ function Detail({m,total,back,initialPick,...bet}){
               <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
               <span className="flag">{m.from.flag}</span>
               <span className="sname">{m.from.name}</span>
-              <span className="rtime">{m.from.dep}</span>
+              <span className="rtime dep">{m.from.dep}</span>
             </div>
             <div className="stop arr">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span><span className="rtime">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
+              <span className="sname">{m.to.name}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
@@ -3256,13 +3262,13 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
                 <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
                 <span className="flag">{market.from.flag}</span>
                 <span className="sname">{(market.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
-                <span className="rtime">{market.from.dep}</span>
+                <span className="rtime dep">{market.from.dep}</span>
               </div>
               <div className="stop arr">
                 <div className="dotline"><span className="rdot end"/></div>
                 <span className="flag">{market.to.flag}</span>
                 <span className="sname">{(market.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
-                <span className="rtime">{market.to.arrRevised
+                <span className="rtime arr">{market.to.arrRevised
                   ? <><span className="old">{market.to.arr}</span><span className="new" style={{color:TONE[market.neonTone||market.status]}}>{market.to.arrRevised}</span></>
                   : market.to.arr}</span>
               </div>
@@ -3303,7 +3309,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
             <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
           </div>
           <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
-            {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${o.label}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
+            {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${outLabel(o.label)}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
           </button>
         </div>
 
