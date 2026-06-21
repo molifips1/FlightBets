@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v178 -->
+<!-- build: v2026-06-16-v179 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -272,6 +272,7 @@ button{font-family:inherit}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .fc-left .pooldist{margin-top:auto}
 .oddspanel .pooldist{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.hist-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin-top:8px}
 .fc-right{display:flex;flex-direction:column;min-width:0;padding-left:24px;border-left:1px solid var(--line)}
 .fc-right .oddspanel{flex:1 1 auto;height:100%}
 @media(max-width:820px){.fc-grid{grid-template-columns:1fr;gap:0}.fc-left{padding-right:0;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}.fc-right{padding-left:0;border-left:none}}
@@ -516,7 +517,6 @@ button{font-family:inherit}
   color:color-mix(in srgb,var(--ink) 55%,transparent)}
 .dcurve-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
-.dcurve-cap{font-family:'IBM Plex Mono';font-size:10px;color:var(--muted);margin:-6px 0 8px;letter-spacing:.02em}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -1341,7 +1341,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
   const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
-  const histTxt = ds ? (ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")) : null;
   let wordTxt, valTxt;
   if(proj!=null){ wordTxt = statusLabel(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
   else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
@@ -1353,7 +1352,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
         <span className="dcurve-w">{wordTxt}</span>
         <span className="dcurve-v">{valTxt}</span>
       </div>
-      {ds && <div className="dcurve-cap" title={t("Historische Landeverspätung dieses Flugs (letzte ~90 Tage)","Historical landing delay of this flight (last ~90 days)")}>{histTxt}</div>}
       <div className="pd-sharelbl">{t("Verspätungskurve","Delay Curve")}</div>
       <div className="dcurve-body">
         <span className="dcurve-ylabel">{t("Häufigkeit","Frequency")}</span>
@@ -1539,6 +1537,7 @@ function HistOdds({ delayStats }){
             <span className="pd-lipct">{Math.round(sh*100)}%</span>
           </span>)}
       </div>
+      {delayStats.n ? <div className="hist-cap" title={t("Historische Landungen dieses Flugs (letzte ~90 Tage)","Historical landings of this flight (last ~90 days)")}>{delayStats.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div> : null}
     </div>
   );
 }
