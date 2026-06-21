@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v180 -->
+<!-- build: v2026-06-16-v181 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -509,18 +509,13 @@ button{font-family:inherit}
 .riskt b{color:var(--ink)}
 .dcurve{margin:14px 0 6px}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:3px 0 6px}
-.fc-left .dcurve-body{flex:1 1 auto}
-.fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:92px}
-.dcurve-body{display:flex;align-items:stretch;gap:7px}
-.dcurve-ylabel{writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;flex:none;
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;
-  color:color-mix(in srgb,var(--ink) 55%,transparent)}
-.dcurve-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+.fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:9px}
+.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-3px 0 8px}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
-.dcurve-plot{position:relative;height:52px;border-left:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dcurve-plot{position:relative;height:52px}
 .dcurve-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .dcurve-peak{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--card);
   border:2.5px solid var(--pc);transform:translate(-50%,-50%);pointer-events:none}
@@ -1320,7 +1315,15 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
       if(x1<=x0+0.001){ put(x0,mass); }
       else { const steps=Math.max(1,Math.round((x1-x0)/(span/N))); for(let s=0;s<steps;s++) put(x0+(x1-x0)*(s+0.5)/steps, mass/steps); }
     }
-    for(let i=0;i<=N;i++){ const v=(acc[i-1]||0)*0.25+acc[i]*0.5+(acc[i+1]||0)*0.25; ys.push(v); if(v>maxV)maxV=v; }
+    // Gaussian-smooth the density so small samples (few flights, tied minutes)
+    // still render as a clean, premium hump instead of raw Excel-style spikes.
+    const sig = Math.max(3, N/14), rad = Math.ceil(sig*3);
+    const kern = []; for(let k=-rad;k<=rad;k++) kern.push(Math.exp(-0.5*(k/sig)**2));
+    const ksum = kern.reduce((a,b)=>a+b,0);
+    for(let i=0;i<=N;i++){
+      let v=0; for(let k=-rad;k<=rad;k++){ const j=i+k; if(j>=0&&j<=N) v+=acc[j]*kern[k+rad]; }
+      v/=ksum; ys.push(v); if(v>maxV)maxV=v;
+    }
   } else {
     const CENTER={a:-9,b:1,c:13,d:30}, SPREAD={a:4,b:4.5,c:5.5,d:11};
     const gauss=(x,mu,s)=>Math.exp(-0.5*((x-mu)/s)**2);
@@ -1353,31 +1356,25 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
         <span className="dcurve-v">{valTxt}</span>
       </div>
       <div className="pd-sharelbl">{t("Verspätungskurve","Landing Delay Curve")}</div>
-      <div className="dcurve-body">
-        <span className="dcurve-ylabel">{t("Häufigkeit","Frequency")}</span>
-        <div className="dcurve-main">
-          <div className="dcurve-plot">
-            <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
-              <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor={col} stopOpacity="0.26"/>
-                <stop offset="1" stopColor={col} stopOpacity="0.02"/>
-              </linearGradient></defs>
-              {[0.25,0.5,0.75].map(g=>{ const gy=padT+(1-g)*(plotH-padT-2); return (
-                <line key={g} x1="0" y1={gy} x2={W} y2={gy} stroke="var(--line)" strokeWidth="1" opacity="0.6" vectorEffect="non-scaling-stroke"/>); })}
-              <path d={area} fill={`url(#${uid})`}/>
-              <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
-            </svg>
-            {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
-            {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
-          </div>
-          <div className="dcurve-axis">
-            {ticks.map((mm,i)=>{
-              const lp = xPix(mm)/W*100;
-              const tx = lp<=4 ? "translateX(0)" : lp>=96 ? "translateX(-100%)" : "translateX(-50%)";
-              return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
-            })}
-          </div>
-        </div>
+      {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
+      <div className="dcurve-plot">
+        <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
+          <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor={col} stopOpacity="0.26"/>
+            <stop offset="1" stopColor={col} stopOpacity="0.02"/>
+          </linearGradient></defs>
+          <path d={area} fill={`url(#${uid})`}/>
+          <path d={line} fill="none" stroke={col} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+        </svg>
+        {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
+        {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
+      </div>
+      <div className="dcurve-axis">
+        {ticks.map((mm,i)=>{
+          const lp = xPix(mm)/W*100;
+          const tx = lp<=4 ? "translateX(0)" : lp>=96 ? "translateX(-100%)" : "translateX(-50%)";
+          return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
+        })}
       </div>
     </div>
   );
@@ -1491,7 +1488,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
         </span>)}
     </div>
   ) : null;
-  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","Bet distribution")}</div>{bar}{lineLegend}</div>;
+  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","Pool Share")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">Pool distribution</div>
@@ -1566,7 +1563,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
           );
         })}
       </div>
-      <HistOdds delayStats={m.delayStats}/>
+      <PoolDist outcomes={m.outcomes} seed={m.seed} barOnly pctLegend/>
     </div>
   );
 }
@@ -2394,7 +2391,10 @@ function boardToMarket(f){
   const fmtD = iso => {
     if (!iso) return "";
     try {
-      return new Date(iso).toLocaleDateString("de-DE", { timeZone:"Europe/Berlin", weekday:"short", day:"numeric", month:"long" });
+      const loc = LANG==="en" ? "en-GB" : "de-DE";
+      const mon = LANG==="en" ? "short" : "long";
+      const s = new Date(iso).toLocaleDateString(loc, { timeZone:"Europe/Berlin", weekday:"short", day:"numeric", month:mon });
+      return LANG==="en" ? s.replace(" ", ", ") : s;   // "Sun 21 Jun" -> "Sun, 21 Jun"
     } catch(e) { return ""; }
   };
   // ID must be unique PER FLIGHT INSTANCE, not just per flight number — otherwise
@@ -3276,7 +3276,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
-          <HistOdds delayStats={market.delayStats}/>
+          <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
           <div className="sheet-stats">
             <div className="sheet-stat"><span>{t("Total Pool","Total pool")}</span><b>{fmt(total)} €</b></div>
             <div className="sheet-stat"><span>{t("Dein Einsatz","Your stake")}</span><b>{fmt(Math.min(stake,wallet))} €</b></div>
@@ -3327,7 +3327,7 @@ function ClosedTable({ rows }){
   const [q,setQ]=useState("");
   const fmtDate = d => {
     if(!d) return "—";
-    try { return new Date(d+"T00:00:00").toLocaleDateString("de-DE",{ weekday:"short", day:"numeric", month:"short" }); }
+    try { return new Date(d+"T00:00:00").toLocaleDateString(LANG==="en"?"en-GB":"de-DE",{ weekday:"short", day:"numeric", month:"short" }); }
     catch(e){ return d; }
   };
   const fmtTime = iso => {
