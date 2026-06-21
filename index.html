@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v185 -->
+<!-- build: v2026-06-16-v186 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -269,9 +269,13 @@ button{font-family:inherit}
 .fc-betbtn{width:100%;margin-top:16px}
 .betbtn.wette.fc-betbtn{padding:7px 24px}
 .fc-subhead{margin:0 0 14px}
-.fc-subhead .dcurve-head{justify-content:flex-start;gap:7px;margin:7px 0 0;padding-left:52px}
+.fc-subhead .dcurve-head{justify-content:flex-start;gap:7px;margin:7px 0 0}
 .fc-subhead .dcurve-w{font-size:14px;font-weight:700}
 .fc-subhead .dcurve-v{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:700}
+.fc-status{display:flex;align-items:baseline;margin-top:7px;font-size:14px}
+.fc-status-w{font-weight:700}
+.fc-status-v{font-family:'IBM Plex Mono',monospace;font-weight:700;margin-left:6px}
+.fc-status-t{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right}
 .fc-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:0;align-items:stretch;flex:1 1 auto}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .oddspanel .pooldist{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
@@ -1301,6 +1305,19 @@ function DelayStatus(props){
     </div>
   );
 }
+// Card status line, rendered as a third route row: word + delay on the left,
+// the revised arrival time on the right (same time column as dep/arr).
+function FlightStatusRow({ m }){
+  const st = delayStatusInfo({ status:m.neonTone||m.status, projDelay:m.projDelay, delayUnknown:m.delayUnknown, delayStats:m.delayStats });
+  const rev = m.to && m.to.arrRevised;
+  return (
+    <div className="fc-status" style={{color:st.pc}}>
+      <span className="fc-status-w">{st.wordTxt}</span>
+      <span className="fc-status-v">{st.valTxt}</span>
+      {rev && <span className="fc-status-t">{rev}</span>}
+    </div>
+  );
+}
 
 function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, delayStats }){
   const S = seed || DEFAULT_SEED;
@@ -1797,13 +1814,16 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             <div className="stop arr">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : <><span className="rt1">{m.to.arr}</span><span className="rt2hidden">&nbsp;</span></>}</span>
+              <span className="sname">{(m.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{m.to.arrRevised ? <span className="old">{m.to.arr}</span> : <span className="rt1">{m.to.arr}</span>}</span>
             </div>
+            <FlightStatusRow m={m}/>
           </div>
         ) : (
-          <div className="scope" style={{margin:"4px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
+          <>
+            <div className="scope" style={{margin:"4px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>
+            <DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
+          </>
         )}
-        <DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
       </div>
 
       <div className="fc-grid">
