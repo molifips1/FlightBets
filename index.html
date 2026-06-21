@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v173 -->
+<!-- build: v2026-06-16-v174 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -272,6 +272,8 @@ button{font-family:inherit}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .fc-left .pooldist{margin-top:auto}
 .oddspanel .pooldist{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.oddspanel .histodds{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.sheet-col-l .ho-bar{height:20px;border-radius:10px}
 .fc-right{display:flex;flex-direction:column;min-width:0;padding-left:24px;border-left:1px solid var(--line)}
 .fc-right .oddspanel{flex:1 1 auto;height:100%}
 @media(max-width:820px){.fc-grid{grid-template-columns:1fr;gap:0}.fc-left{padding-right:0;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}.fc-right{padding-left:0;border-left:none}}
@@ -857,7 +859,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-stat b{color:var(--ink);font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
 .sheet-col-l .pd-bar{height:38px;border-radius:10px}
 .sheet-col-l .pd-seg{font-size:12px}
-.sheet-col-l .dcurve,.sheet-col-l .pooldist{display:none}   /* hidden on mobile */
+.sheet-col-l .dcurve,.sheet-col-l .pooldist,.sheet-col-l .histodds{display:none}   /* hidden on mobile */
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
@@ -865,6 +867,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
   .sheet-col-l .dcurve{display:block;margin:16px 0 6px}
   .sheet-col-l .pooldist{display:block;margin-top:auto;padding-top:18px}
+  .sheet-col-l .histodds{display:block;margin-top:auto;padding-top:18px}
   .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-right:0}
   .sheet-route2{padding-bottom:16px;border-bottom:1px solid var(--line)}
   .sheet-col-r .sheet-pay{margin-top:auto}
@@ -1281,7 +1284,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   // Real historical landing-delay distribution (percentile CDF) if provided.
   const ds = (delayStats && Array.isArray(delayStats.pct) && delayStats.pct.length>=5)
     ? { ...delayStats, pct: delayStats.pct.slice().sort((a,b)=>a[0]-b[0]) } : null;
-  const bp = ds ? bracketProbsFromPct(ds.pct) : null;
 
   // Color: live status when we have a live projection, else the bracket of the
   // historical median (so far-out flights are still meaningfully tinted).
@@ -1370,26 +1372,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
           return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
         })}
       </div>
-      {bp && (
-        <div className="histodds">
-          <div className="ho-t">{t("So landete dieser Flug","How this flight has landed")}</div>
-          <div className="ho-bar">
-            <span style={{width:(bp.a*100)+"%", background:"var(--bk-cool)"}}/>
-            <span style={{width:(bp.b*100)+"%", background:"var(--bk-good)"}}/>
-            {bp.merged
-              ? <span style={{width:((bp.c+bp.d)*100)+"%", background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>
-              : <><span style={{width:(bp.c*100)+"%", background:"var(--bk-warn)"}}/><span style={{width:(bp.d*100)+"%", background:"var(--bk-bad)"}}/></>}
-          </div>
-          <div className="ho-leg">
-            <span className="ho-li"><i style={{background:"var(--bk-cool)"}}/>{t("Vorzeitig","Early")} {Math.round(bp.a*100)}%</span>
-            <span className="ho-li"><i style={{background:"var(--bk-good)"}}/>{t("Pünktlich","On time")} {Math.round(bp.b*100)}%</span>
-            {bp.merged
-              ? <span className="ho-li"><i style={{background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>{t("Verspätet+","Late+")} {Math.round((bp.c+bp.d)*100)}%</span>
-              : <><span className="ho-li"><i style={{background:"var(--bk-warn)"}}/>{t("Verspätet","Late")} {Math.round(bp.c*100)}%</span>
-                  <span className="ho-li"><i style={{background:"var(--bk-bad)"}}/>{t("Stark","Very late")} {Math.round(bp.d*100)}%</span></>}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1518,6 +1500,34 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   );
 }
 
+// Historical landing-delay outcome bar: shows the share of past flights that
+// fell into each bet bracket (real data from delayStats). Replaces the bet-pool
+// distribution. Renders nothing when this flight has no historical stats yet.
+function HistOdds({ delayStats }){
+  const bp = (delayStats && Array.isArray(delayStats.pct)) ? bracketProbsFromPct(delayStats.pct) : null;
+  if(!bp) return null;
+  return (
+    <div className="histodds">
+      <div className="ho-t">{t("So landete dieser Flug","How this flight has landed")}</div>
+      <div className="ho-bar">
+        <span style={{width:(bp.a*100)+"%", background:"var(--bk-cool)"}}/>
+        <span style={{width:(bp.b*100)+"%", background:"var(--bk-good)"}}/>
+        {bp.merged
+          ? <span style={{width:((bp.c+bp.d)*100)+"%", background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>
+          : <><span style={{width:(bp.c*100)+"%", background:"var(--bk-warn)"}}/><span style={{width:(bp.d*100)+"%", background:"var(--bk-bad)"}}/></>}
+      </div>
+      <div className="ho-leg">
+        <span className="ho-li"><i style={{background:"var(--bk-cool)"}}/>{t("Vorzeitig","Early")} {Math.round(bp.a*100)}%</span>
+        <span className="ho-li"><i style={{background:"var(--bk-good)"}}/>{t("Pünktlich","On time")} {Math.round(bp.b*100)}%</span>
+        {bp.merged
+          ? <span className="ho-li"><i style={{background:"linear-gradient(90deg,var(--bk-warn),var(--bk-bad))"}}/>{t("Verspätet+","Late+")} {Math.round((bp.c+bp.d)*100)}%</span>
+          : <><span className="ho-li"><i style={{background:"var(--bk-warn)"}}/>{t("Verspätet","Late")} {Math.round(bp.c*100)}%</span>
+              <span className="ho-li"><i style={{background:"var(--bk-bad)"}}/>{t("Stark","Very late")} {Math.round(bp.d*100)}%</span></>}
+      </div>
+    </div>
+  );
+}
+
 // Right-hand panel of the wide flight card: per-bracket est. odds & pool share,
 // the total pool, and the main bet button.
 function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
@@ -1542,7 +1552,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
           );
         })}
       </div>
-      <PoolDist outcomes={m.outcomes} seed={m.seed} barOnly pctLegend/>
+      <HistOdds delayStats={m.delayStats}/>
     </div>
   );
 }
@@ -3252,7 +3262,7 @@ function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
 
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
-          <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
+          <HistOdds delayStats={market.delayStats}/>
           <div className="sheet-stats">
             <div className="sheet-stat"><span>{t("Total Pool","Total pool")}</span><b>{fmt(total)} €</b></div>
             <div className="sheet-stat"><span>{t("Dein Einsatz","Your stake")}</span><b>{fmt(Math.min(stake,wallet))} €</b></div>
