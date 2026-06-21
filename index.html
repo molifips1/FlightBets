@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v183 -->
+<!-- build: v2026-06-16-v184 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -269,7 +269,9 @@ button{font-family:inherit}
 .fc-betbtn{width:100%;margin-top:16px}
 .betbtn.wette.fc-betbtn{padding:7px 24px}
 .fc-subhead{margin:0 0 14px}
-.fc-subhead .dcurve-head{justify-content:flex-start;gap:10px;margin:6px 0 0}
+.fc-subhead .dcurve-head{justify-content:space-between;gap:8px;margin:7px 0 0;padding-left:52px}
+.fc-subhead .dcurve-w{font-size:14px;font-weight:700}
+.fc-subhead .dcurve-v{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:700}
 .fc-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:0;align-items:stretch;flex:1 1 auto}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .oddspanel .pooldist{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
@@ -1055,6 +1057,10 @@ const TONE={cool:"var(--bk-cool)",good:"var(--bk-good)",mid:"var(--mid)",warn:"v
 const STATUS={cool:"Vorzeitig",good:"Pünktlich",mid:"Leicht verspätet",warn:"Verspätet",bad:"Stark Verspätet"};
 const STATUS_EN={cool:"Early",good:"On time",mid:"Slightly late",warn:"Late",bad:"Very late"};
 const statusLabel=s=>t(STATUS[s], STATUS_EN[s]);
+// Verb form for the projected-landing chip ("Landet früh"), matching the bet labels.
+const STATUS_VERB_DE={cool:"Landet früh",good:"Landet pünktlich",mid:"Landet leicht spät",warn:"Landet spät",bad:"Landet sehr spät"};
+const STATUS_VERB_EN={cool:"Lands Early",good:"Lands On time",mid:"Lands Slightly Late",warn:"Lands Late",bad:"Lands Very Late"};
+const statusVerb=s=>t(STATUS_VERB_DE[s]||STATUS[s], STATUS_VERB_EN[s]||STATUS_EN[s]);
 const OUT_EN={"Vorzeitig":"Early","Pünktlich":"On time","Verspätet":"Late","Stark Verspätet":"Very late"};
 // Bet-category labels with action verbs (flight brackets only — daily Yes/No etc. pass through unchanged).
 const OUT_VERB_DE={"Vorzeitig":"Landet früh","Pünktlich":"Landet pünktlich","Verspätet":"Landet spät","Stark Verspätet":"Landet sehr spät"};
@@ -1280,9 +1286,9 @@ function delayStatusInfo({ status, projDelay, delayUnknown, delayStats }){
   const toneForColor = (ds && (proj==null||delayUnknown)) ? medTone(ds.median) : status;
   const col = TONE[toneForColor] || "var(--brand)";
   let wordTxt, valTxt;
-  if(proj!=null){ wordTxt = statusLabel(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
+  if(proj!=null){ wordTxt = statusVerb(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
   else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
-  else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusLabel(status); valTxt = "—"; }
+  else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusVerb(status); valTxt = "—"; }
   const pc = (delayUnknown && !ds) ? "var(--muted)" : col;
   return { wordTxt, valTxt, pc };
 }
