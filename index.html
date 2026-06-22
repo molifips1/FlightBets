@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v236 -->
+<!-- build: v2026-06-16-v237 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -789,6 +789,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .seg:hover{color:var(--ink)}
 .seg.on{background:var(--brand);color:#fff}
 .subfilter{display:flex;gap:8px;margin:18px 0 18px;flex-wrap:wrap}
+.appfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:30px 16px 96px;color:var(--muted);font-size:12.5px}
+.appfoot-link,.appfoot-btn{color:var(--muted);text-decoration:none;background:none;border:none;font:inherit;cursor:pointer;padding:0}
+.appfoot-link:hover,.appfoot-btn:hover{color:var(--ink);text-decoration:underline}
+.appfoot-sep{opacity:.45}
+.appfoot-note{opacity:.8}
 .subpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;
   color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
 .subpill:hover{color:var(--ink)}
@@ -4039,6 +4044,14 @@ function App(){
     </> : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
+
+    <footer className="appfoot">
+      <a className="appfoot-link" href="privacy.html">{t("Datenschutz","Privacy")}</a>
+      <span className="appfoot-sep">·</span>
+      <button className="appfoot-btn" onClick={()=>{setMenuOpen(false);setTab("legal");setView({page:"home"});}}>{t("Impressum","Legal")}</button>
+      <span className="appfoot-sep">·</span>
+      <span className="appfoot-note">{t("Spielgeld · kein Glücksspiel","Play money · not gambling")}</span>
+    </footer>
 
     <div className="nav">
       <button className={"navi"+(tab==="flights"?" on":"")} onClick={()=>{setTab("flights");setView({page:"home"})}}><span className="ni">✈️</span>{t("Flüge","Flights")}</button>
