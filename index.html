@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v235 -->
+<!-- build: v2026-06-16-v236 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1690,12 +1690,12 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
 
 // Live airport feed shown to the LEFT of the card grid (desktop only). A compact
 // list of the current BER departures from the board, click → opens that flight.
-function FlightFeed({ markets, onOpen }){
-  const [ftab,setFtab]=useState("upcoming");
-  const departed = m => m.phase==="enroute" || m.phase==="landed";
+function FlightFeed({ markets, onOpen, phaseFilter }){
+  const phaseOf = m => (m.phase==="landed"||m.phase==="cancelled") ? "ergebnisse"
+                     : m.phase==="enroute" ? "laeuft" : "aktiv";
   const all = (markets||[]).slice()
     .sort((a,b)=> new Date(a.depISO||0).getTime() - new Date(b.depISO||0).getTime());
-  const rows = all.filter(m=> ftab==="departed" ? departed(m) : !departed(m)).slice(0,80);
+  const rows = all.filter(m=> phaseOf(m)===phaseFilter).slice(0,80);
   const statusFor = m => {
     if(m.phase==="cancelled") return {x:t("Annulliert","Cancelled"), tone:"bad"};
     const tone = m.neonTone || m.status || "good";
@@ -1705,10 +1705,6 @@ function FlightFeed({ markets, onOpen }){
     <aside className="feed-side">
       <div className="feed-card">
         <div className="feed-title"><span className="feed-live"/>{t("Flughafen-Feed (Live)","Airport feed (live)")}</div>
-        <div className="feed-tabs">
-          <button className={"feed-tab2"+(ftab==="upcoming"?" on":"")} onClick={()=>setFtab("upcoming")}>{t("Bevorstehend","Upcoming")}</button>
-          <button className={"feed-tab2"+(ftab==="departed"?" on":"")} onClick={()=>setFtab("departed")}>{t("Abgeflogen","Departed")}</button>
-        </div>
         <div className="feed-hrow">
           <span>FLIGHT</span><span>DEST</span><span>DEP</span><span>ARR</span><span className="feed-hst">STATUS</span>
         </div>
@@ -3984,7 +3980,7 @@ function App(){
         <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
       </div>
       <div className="board-wrap">
-        <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
+        <FlightFeed markets={liveMarkets} phaseFilter={phaseFilter} onOpen={id=>setView({page:"detail",id})}/>
         <div className="board-main">
       {(dataStatus==="offline" || dataStatus==="demo") && <div className="emptyboard">
         {dataStatus==="offline"
