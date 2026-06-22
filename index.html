@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v195 -->
+<!-- build: v2026-06-16-v196 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3269,11 +3269,11 @@ function About(){
   </div>;
 }
 
-function BetSheet({ market, initialOutcome, wallet, onBet, onClose }){
+function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose }){
   const CHIPS=[5,10,20,50,100,200];
   const [oid,setOid]=useState(initialOutcome || (market.outcomes[0]?.id));
   const firstAffordable = CHIPS.find(c=>c<=wallet) || CHIPS[0];
-  const [stake,setStake]=useState(wallet>=50?50:firstAffordable);
+  const [stake,setStake]=useState(initialStake!=null ? initialStake : (wallet>=50?50:firstAffordable));
   const o = market.outcomes.find(x=>x.id===oid) || market.outcomes[0];
   const total = market.outcomes.reduce((s,x)=>s+x.pool,0);
   // Seed is real opening liquidity, included in both odds and payout so they match.
@@ -3547,7 +3547,18 @@ function App(){
 
   async function onBet(m,o,betStake){
     const s = (betStake!=null) ? betStake : stake;
-    if(!user){ setAuthOpen(true); setToast("Zum Wetten bitte anmelden"); return; }
+    if(!user){
+      // Save the full bet intent so it survives the auth redirect (Google) or
+      // inline e-mail login, then resume it once the user is authenticated.
+      try {
+        localStorage.setItem("pending_bet", JSON.stringify({
+          flightId: m.id, ident: m.code, direction: m.direction,
+          outcome: o.id, label: o.label, stake: s,
+          odds: displayOdds(m.outcomes, o, m.seed), ts: Date.now(),
+        }));
+      } catch(_) {}
+      setAuthOpen(true); setToast(t("Zum Wetten bitte anmelden","Sign in to place your bet")); return;
+    }
     if(s<=0||s>wallet)return;
     // HARD STOP: once the close time has passed, no bet goes through — even if the
     // card still looks open (it flips on the next refresh, which we trigger here).
@@ -3577,6 +3588,46 @@ function App(){
   // Settlement is automatic on the server. The OPS button is gone.
   function onSettle(){ setToast("Abrechnung läuft automatisch nach der Landung."); }
   function reset(){ setToast("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt."); }
+
+  // ---- Auth state-loss fix: resume a bet started before login ----
+  const pendingDone = useRef(false);
+  // Once authenticated, replay the saved bet intent by opening the pre-filled
+  // confirmation sheet. localStorage is cleared the instant we consume it, so a
+  // bet can never be placed twice.
+  useEffect(()=>{
+    if(pendingDone.current || !authReady) return;
+    let raw; try{ raw = localStorage.getItem("pending_bet"); }catch(_){ pendingDone.current=true; return; }
+    if(!raw){ pendingDone.current=true; return; }
+    if(!user) return; // still logging in — keep the intent, wait
+    let pb=null; try{ pb=JSON.parse(raw); }catch(_){}
+    const clear=()=>{ try{ localStorage.removeItem("pending_bet"); }catch(_){} pendingDone.current=true; };
+    if(!pb || !pb.flightId || (Date.now()-(pb.ts||0) > 30*60*1000)){ clear(); return; } // missing/stale
+    const mk = allFindable.find(x=>x.id===pb.flightId);
+    if(!mk) return; // board not loaded yet → re-runs when allFindable updates
+    clear();                                  // DELETE FIRST → guards against duplicate bets
+    setAuthOpen(false);
+    setBetSheet({ marketId: pb.flightId, outcomeId: pb.outcome, stake: pb.stake });
+    setToast(t("Eingeloggt — bestätige deine Wette","Signed in — confirm your bet"));
+  }, [authReady, user, allFindable]);
+  // Fallback: logged in with a pending bet whose flight never reappears (closed, or
+  // no historic data) → drop it so it can't fire later.
+  useEffect(()=>{
+    if(!authReady || !user || pendingDone.current) return;
+    let raw; try{ raw = localStorage.getItem("pending_bet"); }catch(_){ return; }
+    if(!raw) return;
+    const tmr = setTimeout(()=>{
+      if(pendingDone.current) return;
+      try{
+        const r = localStorage.getItem("pending_bet"); if(!r) return;
+        const pb = JSON.parse(r);
+        if(!allFindable.find(x=>x.id===pb.flightId)){
+          localStorage.removeItem("pending_bet"); pendingDone.current=true;
+          setToast(t("Dein Flug ist nicht mehr verfügbar","Your flight is no longer available"));
+        }
+      }catch(_){}
+    }, 12000);
+    return ()=>clearTimeout(tmr);
+  }, [authReady, user, allFindable]);
 
   const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || "Konto") : null;
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,onQuickBet,positions:serverWallet.positions};
@@ -3750,7 +3801,7 @@ function App(){
 
     {toast && <div className="toast">{toast}</div>}
     {betSheet && (()=>{ const mk = allFindable.find(x=>x.id===betSheet.marketId); return mk
-      ? <BetSheet market={mk} initialOutcome={betSheet.outcomeId} wallet={wallet} onBet={onBet} onClose={()=>setBetSheet(null)}/>
+      ? <BetSheet market={mk} initialOutcome={betSheet.outcomeId} initialStake={betSheet.stake} wallet={wallet} onBet={onBet} onClose={()=>setBetSheet(null)}/>
       : null; })()}
     <BetCelebration data={celebrate} onDone={()=>setCelebrate(null)}/>
     {streakWelcome && <div className="celebrate" onClick={()=>setStreakWelcome(null)}>
