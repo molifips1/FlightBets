@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v190 -->
+<!-- build: v2026-06-16-v192 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -286,7 +286,7 @@ button{font-family:inherit}
 
 .oddspanel{display:flex;flex-direction:column;width:100%;background:none;border:none;border-radius:0;padding:0}
 .op-title{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin:0 0 14px 0;padding:0}
-.op-list{display:flex;flex-direction:column;gap:12px}
+.op-list{display:flex;flex-direction:column;gap:12px;margin-bottom:22px}
 .op-row{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%}
 .op-left{display:flex;align-items:baseline;flex-wrap:nowrap;gap:4px;min-width:0;white-space:nowrap}
 .op-dot{width:10px;height:10px;border-radius:50%;flex:none;align-self:center}
@@ -1423,7 +1423,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
           {bands.map((b,i)=>(
             <path key={i} d={area} fill={`url(#${uid}${b.key})`} clipPath={`url(#${uid}c${i})`}/>
           ))}
-          <path d={line} fill="none" stroke="color-mix(in srgb, var(--ink) 48%, transparent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+          <path d={line} fill="none" stroke="var(--pc)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
         </svg>
         {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
         {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
@@ -1606,7 +1606,7 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
   const totEff = m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
   return (
     <div className="oddspanel" onClick={e=>e.stopPropagation()}>
-      <div className="op-title">📊 {t("Lande-Quoten","Landing odds")}</div>
+      <div className="op-title">{t("Lande-Quoten","Landing odds")}</div>
       <div className="op-list">
         {m.outcomes.map(o=>{
           const odds = displayOdds(m.outcomes, o, m.seed);
