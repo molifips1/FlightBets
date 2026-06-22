@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v218 -->
+<!-- build: v2026-06-16-v219 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -508,8 +508,11 @@ button{font-family:inherit}
 .rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1px;font-weight:800}
 .rbet-route{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
 .rbet-arrow{color:var(--muted);margin:0 2px}
-.rbet-cmp{display:flex;gap:14px}
-.rbet-cmp-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rbet-idline{display:flex;align-items:baseline;flex-wrap:wrap}
+.rbet-date{font-size:11px;color:var(--muted);font-weight:500;margin-top:3px}
+.rbet-cmp{display:flex;align-items:flex-end;gap:12px}
+.rbet-cmp-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rbet-cmp-arrow{font-size:18px;font-weight:700;line-height:1;flex:none;padding-bottom:5px;color:color-mix(in srgb,var(--muted) 50%,transparent)}
 .rbet-cmp-h{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);font-weight:700}
 .rbet-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1.25}
 .rbet-bdot{width:7px;height:7px;border-radius:50%;flex:none}
@@ -3105,6 +3108,19 @@ function splitIdent(ident){
   const num  = m ? m[2] : "";
   return { code, num, name: AIRLINES[code] || code };
 }
+// IATA airport code → city name (common BER destinations); falls back to the code.
+const AIRPORTS = { BER:"Berlin", FRA:"Frankfurt", MUC:"München", CGN:"Köln", DUS:"Düsseldorf",
+  STR:"Stuttgart", HAM:"Hamburg", NUE:"Nürnberg", HAJ:"Hannover", LEJ:"Leipzig", BRE:"Bremen",
+  ORY:"Paris", CDG:"Paris", BVA:"Paris", AMS:"Amsterdam", LHR:"London", LGW:"London", STN:"London",
+  LTN:"London", VIE:"Wien", ZRH:"Zürich", GVA:"Genf", BSL:"Basel", BCN:"Barcelona", MAD:"Madrid",
+  PMI:"Palma", AGP:"Málaga", VLC:"Valencia", ALC:"Alicante", FCO:"Rom", MXP:"Mailand", LIN:"Mailand",
+  BGY:"Bergamo", VCE:"Venedig", NAP:"Neapel", IST:"Istanbul", SAW:"Istanbul", AYT:"Antalya",
+  WAW:"Warschau", KRK:"Krakau", GDN:"Danzig", PRG:"Prag", BUD:"Budapest", CPH:"Kopenhagen",
+  ARN:"Stockholm", OSL:"Oslo", HEL:"Helsinki", BRU:"Brüssel", LIS:"Lissabon", OPO:"Porto",
+  ATH:"Athen", DXB:"Dubai", DOH:"Doha", JFK:"New York", EWR:"Newark", TLV:"Tel Aviv",
+  KEF:"Reykjavík", DUB:"Dublin", EDI:"Edinburgh", MAN:"Manchester", LYS:"Lyon", NCE:"Nizza",
+  TXL:"Berlin", SXF:"Berlin" };
+const cityFor = code => AIRPORTS[String(code||"").toUpperCase()] || code || "—";
 
 function Profile({ wallet, user, streak, markets, onOpen }){
   const { rows: settledRows } = useSettled(0);   // hook must run before any early return
@@ -3129,6 +3145,7 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const BTONE = { a:"cool", b:"good", c:"warn", d:"bad" };
   const wtone = d => d<=-5?"cool":d<=5?"good":d<=20?"warn":"bad";
   const fmtT = iso => { if(!iso) return "—"; try{ return new Date(iso).toLocaleTimeString("de-DE",{timeZone:"Europe/Berlin",hour:"2-digit",minute:"2-digit",hour12:false}); }catch(e){ return "—"; } };
+  const fmtCardDate = ymd => { if(!ymd) return ""; try{ return new Date(ymd+"T12:00:00").toLocaleDateString(LANG==="de"?"de-DE":"en-GB",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return ymd; } };
   const resolved = (wallet.positions||[]).filter(p=>p.settled)
     .map(p=>({ p, row: settledByFid[p.flight_id] }))
     .sort((a,b)=>{ const da=(a.row&&a.row.date)||"", db=(b.row&&b.row.date)||""; return db.localeCompare(da); });
@@ -3189,13 +3206,16 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const aMin = (voided||d==null) ? "" : " ("+(d>=0?"+":"")+d+"min)";
           return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
             <div className="rbet-top">
-              <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>{al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}</div>
+              <div className="rbet-id">
+                <div className="rbet-idline"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>{al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}</div>
+                {row && row.date && <div className="rbet-date">{fmtCardDate(row.date)}</div>}
+              </div>
               <div className="rbet-outcome">
                 <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
                 <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
               </div>
             </div>
-            <div className="rbet-route">BER <span className="rbet-arrow">→</span> {row ? row.dest : "—"}</div>
+            <div className="rbet-route">{t("Berlin","Berlin")} <span className="rbet-arrow">→</span> {row ? cityFor(row.dest) : "—"}</div>
             <div className="rbet-cmp">
               <div className="rbet-cmp-col">
                 <div className="rbet-cmp-h">{t("DEIN TIPP","YOUR PICK")}</div>
@@ -3203,8 +3223,9 @@ function Profile({ wallet, user, streak, markets, onOpen }){
                   <span className="rbet-bdot" style={{background:pickCol}}/>{picked}
                 </span>
               </div>
+              <span className="rbet-cmp-arrow">→</span>
               <div className="rbet-cmp-col">
-                <div className="rbet-cmp-h">{t("REAL","ACTUAL")}</div>
+                <div className="rbet-cmp-h">{t("ERGEBNIS","RESULT")}</div>
                 <span className="rbet-badge" style={{color:aCol, background:`color-mix(in srgb, ${aCol} 13%, transparent)`}}>
                   <span className="rbet-bdot" style={{background:aCol}}/>{aWord}{aMin}
                 </span>
