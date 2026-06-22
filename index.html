@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v234 -->
+<!-- build: v2026-06-16-v235 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -207,8 +207,8 @@ button{font-family:inherit}
 .feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .feed-live{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:feedPulse 1.7s ease-out infinite}
 @keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
-.feed-tabs{display:flex;flex-wrap:nowrap;gap:5px;margin-bottom:12px}
-.feed-tab2{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 4px;cursor:pointer;transition:all .12s ease}
+.feed-tabs{display:flex;gap:6px;margin-bottom:12px}
+.feed-tab2{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer;transition:all .12s ease}
 .feed-tab2:hover{color:var(--ink)}
 .feed-tab2.on{color:var(--ink);background:color-mix(in srgb,var(--brand) 13%,transparent);border-color:color-mix(in srgb,var(--brand) 32%,transparent)}
 .feed-hrow,.feed-row{display:grid;grid-template-columns:50px 30px 38px 38px auto;gap:6px;align-items:center}
@@ -789,7 +789,6 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .seg:hover{color:var(--ink)}
 .seg.on{background:var(--brand);color:#fff}
 .subfilter{display:flex;gap:8px;margin:18px 0 18px;flex-wrap:wrap}
-@media(min-width:1181px){.subfilter{display:none}}
 .subpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;
   color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
 .subpill:hover{color:var(--ink)}
@@ -1691,12 +1690,12 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
 
 // Live airport feed shown to the LEFT of the card grid (desktop only). A compact
 // list of the current BER departures from the board, click → opens that flight.
-function FlightFeed({ markets, onOpen, phaseFilter, setPhaseFilter }){
-  const phaseOf = m => (m.phase==="landed"||m.phase==="cancelled") ? "ergebnisse"
-                     : m.phase==="enroute" ? "laeuft" : "aktiv";
+function FlightFeed({ markets, onOpen }){
+  const [ftab,setFtab]=useState("upcoming");
+  const departed = m => m.phase==="enroute" || m.phase==="landed";
   const all = (markets||[]).slice()
     .sort((a,b)=> new Date(a.depISO||0).getTime() - new Date(b.depISO||0).getTime());
-  const rows = all.filter(m=> phaseOf(m)===phaseFilter).slice(0,80);
+  const rows = all.filter(m=> ftab==="departed" ? departed(m) : !departed(m)).slice(0,80);
   const statusFor = m => {
     if(m.phase==="cancelled") return {x:t("Annulliert","Cancelled"), tone:"bad"};
     const tone = m.neonTone || m.status || "good";
@@ -1707,9 +1706,8 @@ function FlightFeed({ markets, onOpen, phaseFilter, setPhaseFilter }){
       <div className="feed-card">
         <div className="feed-title"><span className="feed-live"/>{t("Flughafen-Feed (Live)","Airport feed (live)")}</div>
         <div className="feed-tabs">
-          <button className={"feed-tab2"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
-          <button className={"feed-tab2"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 {t("Läuft","In flight")}</button>
-          <button className={"feed-tab2"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
+          <button className={"feed-tab2"+(ftab==="upcoming"?" on":"")} onClick={()=>setFtab("upcoming")}>{t("Bevorstehend","Upcoming")}</button>
+          <button className={"feed-tab2"+(ftab==="departed"?" on":"")} onClick={()=>setFtab("departed")}>{t("Abgeflogen","Departed")}</button>
         </div>
         <div className="feed-hrow">
           <span>FLIGHT</span><span>DEST</span><span>DEP</span><span>ARR</span><span className="feed-hst">STATUS</span>
@@ -3986,7 +3984,7 @@ function App(){
         <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
       </div>
       <div className="board-wrap">
-        <FlightFeed markets={liveMarkets} phaseFilter={phaseFilter} setPhaseFilter={setPhaseFilter} onOpen={id=>setView({page:"detail",id})}/>
+        <FlightFeed markets={liveMarkets} onOpen={id=>setView({page:"detail",id})}/>
         <div className="board-main">
       {(dataStatus==="offline" || dataStatus==="demo") && <div className="emptyboard">
         {dataStatus==="offline"
