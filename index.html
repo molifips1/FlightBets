@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v247 -->
+<!-- build: v2026-06-16-v248 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -199,7 +199,7 @@ button{font-family:inherit}
 .cardspacer{flex:1 1 0;min-height:0}
 
 /* ---- Live airport feed sidebar (left of the grid, desktop only) -------- */
-.board-wrap{display:grid;grid-template-columns:288px minmax(0,1fr);gap:18px;align-items:start}
+.board-wrap{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
 .board-main{min-width:0}
 .board-main .grid{grid-template-columns:repeat(auto-fit,minmax(460px,1fr))}
 .feed-side{flex:none;position:sticky;top:72px;align-self:start}
@@ -212,8 +212,9 @@ button{font-family:inherit}
 .feed-tab2{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer;transition:all .12s ease}
 .feed-tab2:hover{color:var(--ink)}
 .feed-tab2.on{color:var(--ink);background:color-mix(in srgb,var(--brand) 13%,transparent);border-color:color-mix(in srgb,var(--brand) 32%,transparent)}
-.feed-hrow,.feed-row{display:grid;grid-template-columns:50px 30px 38px 38px auto;gap:6px;align-items:center}
-.feed-hrow{font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;padding:0 3px 7px;border-bottom:1px solid var(--line)}
+.feed-hrow,.feed-row{display:grid;grid-template-columns:50px 64px 56px 46px auto;gap:6px;align-items:center}
+.feed-hrow{font-size:9px;font-weight:800;letter-spacing:.2px;color:var(--muted);padding:0 3px 7px;border-bottom:1px solid var(--line)}
+.feed-hrow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-rows{display:flex;flex-direction:column}
 .feed-row{background:none;border:none;border-bottom:1px solid var(--line);padding:8px 3px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:background .12s ease}
 .feed-row:hover{background:var(--card2)}
@@ -1617,7 +1618,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","distribution of bets")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
-      <div className="pd-label">{t("Pool-Verteilung","Pool distribution")}</div>
+      <div className="pd-label">{t("Verteilung der Wetten","distribution of bets")}</div>
       {bar}
       <div className="pd-legend">
         {outcomes.map(o=>
@@ -1712,7 +1713,7 @@ function FlightFeed({ markets, onOpen, phaseFilter }){
       <div className="feed-card">
         <div className="feed-title"><span className="feed-live"/>{t("Flughafen-Feed (Live)","Airport feed (live)")}</div>
         <div className="feed-hrow">
-          <span>FLIGHT</span><span>DEST</span><span>DEP</span><span>ARR</span><span className="feed-hst">STATUS</span>
+          <span>{t("Flug","Flight")}</span><span>{t("Ziel","Destination")}</span><span>{t("Abflug","Departure")}</span><span>{t("Ankunft","Arrival")}</span><span className="feed-hst">{t("Status","Status")}</span>
         </div>
         <div className="feed-rows">
           {rows.map(m=>{ const s=statusFor(m); return (
