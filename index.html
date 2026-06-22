@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v275 -->
+<!-- build: v2026-06-16-v276 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>flug.bet — Flugverspätungen tippen</title>
 <meta name="description" content="Play-money prediction markets on flight delays." />
-<meta name="theme-color" content="#0E2A47" />
+<meta name="theme-color" content="#EAEEF3" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" type="image/png" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -3845,7 +3845,7 @@ function App(){
   },[user]);
   const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | laeuft | ergebnisse
 
-  useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme)},[theme]);
+  useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme);try{var _mc=document.querySelector('meta[name="theme-color"]');if(_mc)_mc.setAttribute("content",theme==="dark"?"#0C1626":"#EAEEF3");}catch(_e){}},[theme]);
   useEffect(()=>{store.set("fb_lang",lang);try{document.documentElement.setAttribute("lang",lang)}catch(_){}},[lang]);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(null),2600);return()=>clearTimeout(t)},[toast]);
 
