@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v210 -->
+<!-- build: v2026-06-16-v211 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -872,7 +872,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
              0 0 24px -2px color-mix(in srgb,var(--neon) 45%,transparent),
              0 0 64px -10px color-mix(in srgb,var(--neon) 45%,transparent),
              0 18px 50px rgba(0,0,0,.35)}
-.sheet.neon.sheet-closing{animation:sheetNeonPulse 1.15s ease-in-out infinite}
+.sheet.neon.sheet-closing{animation:none}
 @keyframes sheetNeonPulse{
   0%,100%{border-color:var(--neon);
     box-shadow:0 0 0 1.5px var(--neon),0 0 28px -1px var(--neon),
@@ -1332,8 +1332,8 @@ function delayStatusInfo({ status, projDelay, delayUnknown, delayStats }){
   const toneForColor = (ds && (proj==null||delayUnknown)) ? medTone(ds.median) : status;
   const col = TONE[toneForColor] || "var(--brand)";
   let wordTxt, valTxt;
-  if(proj!=null){ wordTxt = statusVerb(status); valTxt = (proj>=0?"+":"")+proj+"m"; }
-  else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"m"; }
+  if(proj!=null){ wordTxt = statusVerb(status); valTxt = (proj>=0?"+":"")+proj+"min"; }
+  else if(ds){ wordTxt = t("Typisch","Typical"); valTxt = (ds.median>=0?"+":"")+ds.median+"min"; }
   else { wordTxt = delayUnknown ? t("Status unbekannt","Status unknown") : statusVerb(status); valTxt = "—"; }
   const pc = (delayUnknown && !ds) ? "var(--muted)" : col;
   return { wordTxt, valTxt, pc };
@@ -2460,7 +2460,7 @@ function boardToMarket(f){
     : effDelay==null ? "good"
     : effDelay<=-5 ? "cool" : effDelay<=5 ? "good" : effDelay<=20 ? "warn" : "bad";
   const delayLabel = f.cancelled ? "ANNULLIERT"
-    : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"m";
+    : effDelay==null ? (delayUnknown ? "k. A." : "—") : (effDelay>=0?"+":"")+effDelay+"min";
   // NEON colour = the PREDICTED landing delay (so the card glow says "läuft auf
   // rot/grün hinaus" before it lands). Uses, in order: actual landing delay once
   // known → estimated arrival (revisedArr − schedArr) → revised departure delay.
@@ -3109,7 +3109,7 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const hitRate = betsTotal ? Math.round(betsWon/betsTotal*100) : 0;
   const staked = wallet.staked||0, won = wallet.wonAmount||0;
   const netBets = won - staked; // win/loss from settled betting
-  const OUT = {a:"Pünktlich",b:"+15m",c:"+30m",d:"+60m"};
+  const OUT = {a:"Pünktlich",b:"+15min",c:"+30min",d:"+60min"};
   const open = (wallet.positions||[]).filter(p=>!p.settled);
   const openStake = open.reduce((s,p)=>s+(p.stake||0),0);
   const name = user.user_metadata?.name || user.email?.split("@")[0] || "Spieler";
@@ -3176,7 +3176,7 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const aCol = voided ? "var(--muted)" : (d==null ? "var(--muted)" : TONE[wtone(d)]);
           const outCol = win ? "var(--good)" : voided ? "var(--muted)" : "var(--bad)";
           const picked = statusLabel(BTONE[p.outcome] || "good");
-          const actualTxt = voided ? t("annulliert","cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
+          const actualTxt = voided ? t("annulliert","cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"min";
           return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
             <div className="rbet-top">
               <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span><span className="rbet-air"> · {al.name}</span></div>
@@ -3432,18 +3432,17 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
                 <span className="sname">{(market.from.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
                 <span className="rtime dep">{market.from.dep}</span>
               </div>
+              {market.stops>0 && <div style={{paddingLeft:24}}><span className="haltes">{market.stops} stops ▾</span></div>}
               <div className="stop arr">
                 <div className="dotline"><span className="rdot end"/></div>
                 <span className="flag">{market.to.flag}</span>
-                <span className="sname">{(market.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span>
-                <span className="rtime arr">{market.to.arrRevised
-                  ? <><span className="old">{market.to.arr}</span><span className="new" style={{color:TONE[market.neonTone||market.status]}}>{market.to.arrRevised}</span></>
-                  : market.to.arr}</span>
+                <span className="sname">{(market.to.name||"").replace(/\s+[A-Z]{3}$/,"")}</span><span className="rtime arr">{market.to.arrRevised ? <span className="old">{market.to.arr}</span> : <span className="rt1">{market.to.arr}</span>}</span>
               </div>
+              <FlightStatusRow m={market}/>
             </div>
           )}
 
-          <DelayStatus status={market.neonTone||market.status} projDelay={market.projDelay} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
+          {!(market.from && market.to) && <DelayStatus status={market.neonTone||market.status} projDelay={market.projDelay} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>}
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
           <div className="sheet-tail sheet-tail-l">
@@ -3533,7 +3532,7 @@ function ClosedTable({ rows }){
             const cancelled = r.cancelled===1 || r.cancelled===true;
             const d = r.delayMin;
             const resColor = cancelled ? TONE.bad : d==null ? "var(--muted)" : TONE[winnerTone(d)];
-            const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
+            const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"min";
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
             const wColor = (cancelled || d==null) ? "var(--muted)" : TONE[winnerTone(d)];
             const settled = r.poolTotal!=null;
