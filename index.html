@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v244 -->
+<!-- build: v2026-06-16-v245 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3477,30 +3477,30 @@ function Legal(){
 function About(){
   return <div className="about">
     <div className="about-hero">
-      <div className="about-hero-k">ÜBER FLUG.BET · DAS FRUSTVENTIL</div>
-      <h1 className="about-hero-t">Wir verwandeln kollektives Leid in fiktive Gewinne.</h1>
-      <div className="about-hero-badge">★ 1,3 Sterne · 100 % Frust</div>
+      <div className="about-hero-k">{t("ÜBER FLUG.BET · DAS FRUSTVENTIL","ABOUT FLUG.BET · THE FRUSTRATION VALVE")}</div>
+      <h1 className="about-hero-t">{t("Wir verwandeln kollektives Leid in fiktive Gewinne.","We turn collective suffering into fictional winnings.")}</h1>
+      <div className="about-hero-badge">{t("★ 1,3 Sterne · 100 % Frust","★ 1.3 stars · 100% frustration")}</div>
     </div>
 
     <div className="about-stats">
-      <div className="about-stat"><span className="as-v">1,3<span className="as-star">★</span></span><span className="as-l">Trustpilot BER</span></div>
-      <div className="about-stat"><span className="as-v">DACH</span><span className="as-l">Fokus-Region</span></div>
-      <div className="about-stat"><span className="as-v">0 €</span><span className="as-l">echtes Geld</span></div>
-      <div className="about-stat"><span className="as-v">2</span><span className="as-l">Live-Datenquellen</span></div>
+      <div className="about-stat"><span className="as-v">{t("1,3","1.3")}<span className="as-star">★</span></span><span className="as-l">Trustpilot BER</span></div>
+      <div className="about-stat"><span className="as-v">DACH</span><span className="as-l">{t("Fokus-Region","Focus region")}</span></div>
+      <div className="about-stat"><span className="as-v">0 €</span><span className="as-l">{t("echtes Geld","real money")}</span></div>
+      <div className="about-stat"><span className="as-v">2</span><span className="as-l">{t("Live-Datenquellen","live data sources")}</span></div>
     </div>
 
     <div className="about-body">
-      <p>Mein Leben spielt sich aktuell zwischen meinem Studium im sonnigen Barcelona und meiner Heimat Berlin ab. Wer viel fliegt, kennt das Problem, aber wer ab Berlin fliegt, kennt den „Pannenflughafen".</p>
-      <p>Alles begann nach meiner wiederholten Rekordverspätung am BER. Während ich geschlagene vier Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich abzuheben, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf wetten. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut.</p>
-      <blockquote className="about-quote">Mein persönliches Frustventil.</blockquote>
-      <p>Der offizielle Name lautet Flughafen Berlin Brandenburg „Willy Brandt". Doch nach jahrelangen Verzögerungen und massiven Baumängeln startete er als „Bauruine" und Treppenwitz der Nation. Er hat Legenden wie Tegel und Tempelhof abgelöst, nur um sich stolze 1,3 Sterne auf Trustpilot zu verdienen. Schon paradox: Jetzt baut ein einzelner Student aus der Ferne mit zwei APIs ein schonungsloseres Verspätungstracking als der Hauptstadtflughafen mit seinen Millionenbudgets.</p>
-      <p>Die Flugdaten und Verspätungen in dieser App stammen knallhart aus der Realität. Dein Kontostand hingegen ist pure Fantasie. Ein legales Wettbüro aufzuziehen, erfordert massiv Bürokratie. Deshalb starten wir dieses Projekt als reines Sozialexperiment mit striktem Spielgeld. Lade deine Freunde ein und schließe Wetten darauf ab, ob der Flieger pünktlich abhebt oder dem Namen „Pannenflughafen" wieder alle Ehre macht. Letzteres ist wahrscheinlicher, aber so macht das Warten wenigstens Spaß.</p>
+      <p>{t("Mein Leben spielt sich aktuell zwischen meinem Studium im sonnigen Barcelona und meiner Heimat Berlin ab. Wer viel fliegt, kennt das Problem, aber wer ab Berlin fliegt, kennt den „Pannenflughafen“.","My life right now plays out between my studies in sunny Barcelona and my home town of Berlin. Anyone who flies a lot knows the problem — but anyone flying out of Berlin knows the “disaster airport”.")}</p>
+      <p>{t("Alles begann nach meiner wiederholten Rekordverspätung am BER. Während ich geschlagene vier Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich abzuheben, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf wetten. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut.","It all started after my repeated record delay at BER. While I wasted a solid four hours on the uncomfortable metal seats at the gates, I thought to myself: the odds of taking off on time here feel worse than a coin flip. We might as well bet on it. Since the airport won't give me back the lifetime I lost, I built flug.bet.")}</p>
+      <blockquote className="about-quote">{t("Mein persönliches Frustventil.","My personal frustration valve.")}</blockquote>
+      <p>{t("Der offizielle Name lautet Flughafen Berlin Brandenburg „Willy Brandt“. Doch nach jahrelangen Verzögerungen und massiven Baumängeln startete er als „Bauruine“ und Treppenwitz der Nation. Er hat Legenden wie Tegel und Tempelhof abgelöst, nur um sich stolze 1,3 Sterne auf Trustpilot zu verdienen. Schon paradox: Jetzt baut ein einzelner Student aus der Ferne mit zwei APIs ein schonungsloseres Verspätungstracking als der Hauptstadtflughafen mit seinen Millionenbudgets.","Its official name is Berlin Brandenburg Airport “Willy Brandt”. But after years of delays and massive construction defects, it opened as an “unfinished ruin” and the running joke of the nation. It replaced legends like Tegel and Tempelhof — only to earn itself a proud 1.3 stars on Trustpilot. Quite the paradox: a single student, from afar and with two APIs, now builds more merciless delay tracking than the capital's airport with its multi-million budgets.")}</p>
+      <p>{t("Die Flugdaten und Verspätungen in dieser App stammen knallhart aus der Realität. Dein Kontostand hingegen ist pure Fantasie. Ein legales Wettbüro aufzuziehen, erfordert massiv Bürokratie. Deshalb starten wir dieses Projekt als reines Sozialexperiment mit striktem Spielgeld. Lade deine Freunde ein und schließe Wetten darauf ab, ob der Flieger pünktlich abhebt oder dem Namen „Pannenflughafen“ wieder alle Ehre macht. Letzteres ist wahrscheinlicher, aber so macht das Warten wenigstens Spaß.","The flight data and delays in this app are taken straight from reality. Your account balance, on the other hand, is pure fantasy. Running a legal betting shop takes a mountain of bureaucracy. So we're launching this project as a pure social experiment with strict play money. Invite your friends and bet on whether the plane takes off on time — or lives up to the “disaster airport” name all over again. The latter is more likely, but at least it makes the waiting fun.")}</p>
     </div>
 
     <div className="about-card">
       <div className="about-card-icon">📡</div>
-      <h3>Eiskalte Radarfakten</h3>
-      <p>Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radardaten und Flughafendaten ab. Wenn du deinen Einsatz auf eine bestimmte Maschine von Berlin nach Frankfurt setzt, tracken wir exakt diesen Flugverkehr. Unser Fokus liegt dabei auf der DACH-Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.</p>
+      <h3>{t("Eiskalte Radarfakten","Ice-cold radar facts")}</h3>
+      <p>{t("Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radardaten und Flughafendaten ab. Wenn du deinen Einsatz auf eine bestimmte Maschine von Berlin nach Frankfurt setzt, tracken wir exakt diesen Flugverkehr. Unser Fokus liegt dabei auf der DACH-Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.","Nothing here is simulated or estimated. We pull the unfiltered radar and airport data in real time. When you place your stake on a specific aircraft from Berlin to Frankfurt, we track exactly that flight. Our focus is the DACH region, and especially our Berlin problem child, which reliably feeds us absurdly long waiting times.")}</p>
       <div className="about-sources">
         <span className="about-src">AeroDataBox</span>
         <span className="about-src">FlightAware</span>
@@ -3509,11 +3509,11 @@ function About(){
 
     <div className="about-card">
       <div className="about-card-icon">💸</div>
-      <h3>Frust als Währung</h3>
-      <p>Wir verpacken den Flughafenwahnsinn im Gewand einer Wettplattform, um die ständigen Ausfälle sichtbarer zu machen. Auf flug.bet fließen keine echten Euros. Du spielst ausschließlich mit fiktivem Guthaben, kannst nichts einzahlen und dir nichts auszahlen lassen. Es geht einfach darum, dem Frust ein Ventil zu geben und das Warten am Gate zu gamifizieren. Wer echten Nervenkitzel mit finanziellem Risiko sucht, bucht am besten einfach ein reguläres Ticket ab Berlin.</p>
+      <h3>{t("Frust als Währung","Frustration as currency")}</h3>
+      <p>{t("Wir verpacken den Flughafenwahnsinn im Gewand einer Wettplattform, um die ständigen Ausfälle sichtbarer zu machen. Auf flug.bet fließen keine echten Euros. Du spielst ausschließlich mit fiktivem Guthaben, kannst nichts einzahlen und dir nichts auszahlen lassen. Es geht einfach darum, dem Frust ein Ventil zu geben und das Warten am Gate zu gamifizieren. Wer echten Nervenkitzel mit finanziellem Risiko sucht, bucht am besten einfach ein reguläres Ticket ab Berlin.","We dress the airport madness up as a betting platform to make the constant disruptions more visible. No real euros change hands on flug.bet. You play purely with fictional credit — you can't deposit anything and can't cash anything out. It's simply about giving frustration an outlet and gamifying the wait at the gate. Anyone after a real thrill with financial risk is better off just booking a regular ticket out of Berlin.")}</p>
     </div>
 
-    <div className="about-foot">flug.bet · Spielgeld · keine echten Einsätze</div>
+    <div className="about-foot">{t("flug.bet · Spielgeld · keine echten Einsätze","flug.bet · play money · no real stakes")}</div>
   </div>;
 }
 
