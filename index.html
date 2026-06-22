@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v216 -->
+<!-- build: v2026-06-16-v217 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -496,7 +496,7 @@ button{font-family:inherit}
 .open-tip{color:var(--muted);font-size:12.5px}
 .open-stake{font-weight:800;font-size:15px;color:var(--ink);margin-top:3px}
 /* Resolved bets as flight-ticket cards (grid, 4 per row) */
-.rbet-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rbet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:var(--muted)}
@@ -508,8 +508,11 @@ button{font-family:inherit}
 .rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1px;font-weight:800}
 .rbet-route{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
 .rbet-arrow{color:var(--muted);margin:0 2px}
-.rbet-metric{font-size:12.5px;line-height:1.5}
-.rbet-sep{color:var(--muted);opacity:.4;font-weight:400}
+.rbet-cmp{display:flex;gap:14px}
+.rbet-cmp-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rbet-cmp-h{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rbet-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1.25}
+.rbet-bdot{width:7px;height:7px;border-radius:50%;flex:none}
 .rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:13px}
 .rbet-times{display:flex;justify-content:space-between;gap:8px}
 .rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -3193,10 +3196,19 @@ function Profile({ wallet, user, streak, markets, onOpen }){
               </div>
             </div>
             <div className="rbet-route">BER <span className="rbet-arrow">→</span> {row ? row.dest : "—"}</div>
-            <div className="rbet-metric">
-              <span style={{color:pickCol,fontWeight:800}}>{t("Tipp","Pick")}: {picked}</span>
-              <span className="rbet-sep"> | </span>
-              <span style={{color:aCol,fontWeight:800}}>{t("Real","Actual")}: {aWord}{aMin}</span>
+            <div className="rbet-cmp">
+              <div className="rbet-cmp-col">
+                <div className="rbet-cmp-h">{t("DEIN TIPP","YOUR PICK")}</div>
+                <span className="rbet-badge" style={{color:pickCol, background:`color-mix(in srgb, ${pickCol} 13%, transparent)`}}>
+                  <span className="rbet-bdot" style={{background:pickCol}}/>{picked}
+                </span>
+              </div>
+              <div className="rbet-cmp-col">
+                <div className="rbet-cmp-h">{t("REAL","ACTUAL")}</div>
+                <span className="rbet-badge" style={{color:aCol, background:`color-mix(in srgb, ${aCol} 13%, transparent)`}}>
+                  <span className="rbet-bdot" style={{background:aCol}}/>{aWord}{aMin}
+                </span>
+              </div>
             </div>
             <div className="rbet-bottom">
               <div className="rbet-times">
