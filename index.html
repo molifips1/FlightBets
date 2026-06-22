@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v284 -->
+<!-- build: v2026-06-16-v285 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -979,7 +979,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-bg{padding:0 10px calc(14px + env(safe-area-inset-bottom))}
   .sheet{position:relative;max-height:92vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 16px 14px;border-radius:18px}
   .sheet .sheet-grip{display:none}
-  .sheet .sheet-x-abs{width:42px;height:42px;font-size:23px;top:6px;right:6px}
+  .sheet .sheet-x-abs{width:46px;height:46px;font-size:27px;top:3px;right:3px}
   .sheet .sheet-head2{padding:0 0 8px;margin-bottom:8px;border-bottom:1px solid var(--line)}
   .sheet .fc-head-r{margin-top:28px}
   .sheet .sheet-route2{padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid var(--line)}
@@ -1958,7 +1958,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       </div>
 
       <button className="betbtn wette fc-betbtn" disabled={!m.bettable}
-        onClick={(e)=>{e.stopPropagation(); if(m.bettable) onQuickBet(m.id, favOutcome(m.outcomes, m.seed));}}>
+        onClick={(e)=>{e.stopPropagation(); if(m.bettable){ Sound.bet(); onQuickBet(m.id, favOutcome(m.outcomes, m.seed)); }}}>
         {m.bettable ? t("Wetten","Bet") : t("Geschlossen","Closed")}
       </button>
     </div>
@@ -3609,7 +3609,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   const neonCol = TONE[market.neonTone||market.status] || "var(--brand)";
   useEffect(()=>{ if(typeof window!=="undefined" && window.innerWidth>=560) return; const b=document.body; const y=window.scrollY||window.pageYOffset||0; const prev={position:b.style.position,top:b.style.top,left:b.style.left,right:b.style.right,width:b.style.width,overflow:b.style.overflow}; b.style.position="fixed"; b.style.top="-"+y+"px"; b.style.left="0"; b.style.right="0"; b.style.width="100%"; b.style.overflow="hidden"; return ()=>{ b.style.position=prev.position; b.style.top=prev.top; b.style.left=prev.left; b.style.right=prev.right; b.style.width=prev.width; b.style.overflow=prev.overflow; window.scrollTo(0,y); }; },[]);
   useEffect(()=>{ if(typeof window!=="undefined" && window.innerWidth>=560) return; var mc=document.querySelector('meta[name="theme-color"]'); if(!mc) return; var prev=mc.getAttribute("content"); var dark=document.documentElement.getAttribute("data-theme")==="dark"; mc.setAttribute("content", dark?"#0A1220":"#8A909C"); return ()=>{ mc.setAttribute("content", prev); }; },[]);
-  const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
+  const place=()=>{ if(closed||tooMuch||stake<=0) return; Sound.select(); onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
     <div className={"sheet sheet-wide neon"+(closingSoon?" sheet-closing":"")} style={{"--neon":neonCol}} onClick={e=>e.stopPropagation()}>
       <div className="sheet-grip"/>
