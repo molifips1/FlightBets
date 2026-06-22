@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v217 -->
+<!-- build: v2026-06-16-v218 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3418,11 +3418,10 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   const [stake,setStake]=useState(initialStake!=null ? initialStake : (wallet>=50?50:firstAffordable));
   const o = market.outcomes.find(x=>x.id===oid) || market.outcomes[0];
   const total = market.outcomes.reduce((s,x)=>s+x.pool,0);
-  // Payout shown = stake × the odds displayed on the bracket button (no house fee, no
-  // pool dilution) so "If you win" always equals stake × odds exactly (50€ × 2.70 = 135€).
-  const proj = (oo,st)=>{ if(!oo) return 0; const od=displayOdds(market.outcomes,oo,market.seed); return od!=null ? st*od : 0; };
-  // Money: exact two decimals when not a whole number (50 × 2.07 = 103.50 €), else clean integer.
-  const fmtPay = v => { const r=Math.round(v*100)/100; return Number.isInteger(r) ? fmt(r) : r.toFixed(2); };
+  // Transparency rule: pay out with the SAME odds the user sees on screen (rounded to
+  // 2 decimals), so stake × shown-odds = shown payout exactly. Always 2 decimals.
+  const proj = (oo,st)=>{ if(!oo) return 0; const od=displayOdds(market.outcomes,oo,market.seed); return od!=null ? st*parseFloat(od.toFixed(2)) : 0; };
+  const fmtPay = v => v.toFixed(2);
   const tooMuch = stake>wallet;
   const now = useNow(1000);
   const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
