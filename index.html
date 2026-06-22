@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v213 -->
+<!-- build: v2026-06-16-v214 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -497,21 +497,20 @@ button{font-family:inherit}
 .open-stake{font-weight:800;font-size:15px;color:var(--ink);margin-top:3px}
 /* Resolved bets as flight-ticket cards (grid, 4 per row) */
 .rbet-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:13px 15px;display:flex;flex-direction:column}
+.rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:var(--muted)}
 .rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.rbet-code{font-family:Archivo;font-weight:800;font-size:14.5px;color:var(--ink)}
+.rbet-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
 .rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
-.rbet-outcome{display:flex;flex-direction:column;align-items:flex-end;gap:1px;white-space:nowrap}
+.rbet-outcome{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
 .rbet-net{font-family:Archivo;font-weight:800;font-size:20px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
 .rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1px;font-weight:800}
-.rbet-route{font-size:12.5px;color:var(--ink);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.rbet-arrow{color:var(--muted)}
-.rbet-metric{font-weight:800;font-size:13px;color:var(--ink);margin:9px 0 11px}
-.rbet-dot{color:var(--muted)}
-.rbet-actual{color:var(--muted);font-weight:700}
-.rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+.rbet-route{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+.rbet-arrow{color:var(--muted);margin:0 2px}
+.rbet-metric{font-size:12.5px;line-height:1.5}
+.rbet-sep{color:var(--muted);opacity:.4;font-weight:400}
+.rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:13px}
 .rbet-times{display:flex;justify-content:space-between;gap:8px}
 .rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
 .rbet-tval{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
@@ -3178,17 +3177,23 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const aCol = voided ? "var(--muted)" : (d==null ? "var(--muted)" : TONE[wtone(d)]);
           const outCol = win ? "var(--good)" : voided ? "var(--muted)" : "var(--bad)";
           const picked = statusLabel(BTONE[p.outcome] || "good");
-          const actualTxt = voided ? t("annulliert","cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"min";
+          const pickCol = TONE[BTONE[p.outcome]] || "var(--ink)";
+          const aWord = voided ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : statusLabel(wtone(d));
+          const aMin = (voided||d==null) ? "" : " ("+(d>=0?"+":"")+d+"min)";
           return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
             <div className="rbet-top">
-              <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span><span className="rbet-air"> · {al.name}</span></div>
+              <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>{al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}</div>
               <div className="rbet-outcome">
                 <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
                 <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
               </div>
             </div>
-            <div className="rbet-route">{flagFor("BER")} Berlin BER <span className="rbet-arrow">→</span> {row ? <>{flagFor(row.dest)} {row.dest}</> : "—"}</div>
-            <div className="rbet-metric">{picked} {t("getippt","picked")} <span className="rbet-dot">·</span> <span className="rbet-actual">actual </span><span style={{color:aCol,fontWeight:800}}>{actualTxt}</span></div>
+            <div className="rbet-route">BER <span className="rbet-arrow">→</span> {row ? row.dest : "—"}</div>
+            <div className="rbet-metric">
+              <span style={{color:pickCol,fontWeight:800}}>{t("Tipp","Pick")}: {picked}</span>
+              <span className="rbet-sep"> | </span>
+              <span style={{color:aCol,fontWeight:800}}>{t("Real","Actual")}: {aWord}{aMin}</span>
+            </div>
             <div className="rbet-bottom">
               <div className="rbet-times">
                 <div className="rbet-tcol"><div className="rbet-tlbl">DEP</div><div className="rbet-tval">{fmtT(row&&row.schedDep)}</div></div>
