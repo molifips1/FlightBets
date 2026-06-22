@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v248 -->
+<!-- build: v2026-06-16-v249 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3415,58 +3415,70 @@ function Settings({ user, theme, setTheme, muted, setMuted, signOut, setToast })
 
 function Legal(){
   return <div className="legal">
-    <div className="rankhead"><h2>Rechtliches</h2>
-      <p>Impressum &amp; Datenschutzerklärung</p>
+    <div className="rankhead"><h2>{t("Rechtliches","Legal")}</h2>
+      <p>{t("Impressum & Datenschutzerklärung","Legal notice & privacy policy")}</p>
     </div>
 
+    {LANG==="en" && <section className="legal-sec">
+      <p style={{fontSize:13,color:"var(--muted)"}}>This is a courtesy English translation. The German version is the legally binding text.</p>
+    </section>}
+
     <section className="legal-sec">
-      <h3>Spielgeld-Hinweis</h3>
-      <p>flug.bet ist ein kostenloses Unterhaltungsangebot. Alle Einsätze erfolgen ausschließlich mit <b>fiktivem Spielgeld ohne jeden Geldwert</b>. Es können keine echten Einsätze getätigt, keine echten Gewinne ausgezahlt und kein Spielgeld gekauft werden. flug.bet ist <b>kein Glücksspiel</b> im Sinne des Glücksspielstaatsvertrags und steht in keiner Verbindung zum Flughafen BER, zu Fluggesellschaften oder Datenanbietern.</p>
+      <h3>{t("Spielgeld-Hinweis","Play-money notice")}</h3>
+      {LANG==="de"
+        ? <p>flug.bet ist ein kostenloses Unterhaltungsangebot. Alle Einsätze erfolgen ausschließlich mit <b>fiktivem Spielgeld ohne jeden Geldwert</b>. Es können keine echten Einsätze getätigt, keine echten Gewinne ausgezahlt und kein Spielgeld gekauft werden. flug.bet ist <b>kein Glücksspiel</b> im Sinne des Glücksspielstaatsvertrags und steht in keiner Verbindung zum Flughafen BER, zu Fluggesellschaften oder Datenanbietern.</p>
+        : <p>flug.bet is a free entertainment service. All stakes are placed exclusively with <b>fictional play money that has no monetary value</b>. No real stakes can be placed, no real winnings can be paid out, and no play money can be purchased. flug.bet is <b>not gambling</b> within the meaning of the German Interstate Treaty on Gambling and has no affiliation with BER airport, airlines, or data providers.</p>}
     </section>
 
     <section className="legal-sec">
-      <h3>Impressum</h3>
-      <p>Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz):</p>
+      <h3>{t("Impressum","Legal notice (Impressum)")}</h3>
+      <p>{t("Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz):","Information pursuant to § 5 DDG (German Digital Services Act):")}</p>
       <p>
         Matteo Weber<br/>
         Carrer de Bailèn, 79, Eixample<br/>
         08009 Barcelona<br/>
-        Spanien
+        {t("Spanien","Spain")}
       </p>
-      <p><b>Kontakt:</b><br/>E-Mail: matteo.s@gmail.com</p>
-      <p><b>Verantwortlich für den Inhalt</b> (gem. § 18 Abs. 2 MStV): Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien</p>
+      <p><b>{t("Kontakt:","Contact:")}</b><br/>{t("E-Mail:","Email:")} matteo.s@gmail.com</p>
+      {LANG==="de"
+        ? <p><b>Verantwortlich für den Inhalt</b> (gem. § 18 Abs. 2 MStV): Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien</p>
+        : <p><b>Responsible for the content</b> (pursuant to § 18 (2) MStV): Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spain</p>}
     </section>
 
     <section className="legal-sec">
-      <h3>Datenschutzerklärung</h3>
+      <h3>{t("Datenschutzerklärung","Privacy policy")}</h3>
 
-      <h4>1. Verantwortlicher</h4>
-      <p>Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien, erreichbar unter matteo.s@gmail.com.</p>
+      <h4>{t("1. Verantwortlicher","1. Controller")}</h4>
+      <p>{t("Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien, erreichbar unter matteo.s@gmail.com.","Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spain, reachable at matteo.s@gmail.com.")}</p>
 
-      <h4>2. Welche Daten wir verarbeiten</h4>
-      <p>Bei der Registrierung und Nutzung verarbeiten wir: deine <b>E-Mail-Adresse</b> und einen frei gewählten <b>Anzeigenamen</b> (zur Anmeldung und Identifikation), sowie deine <b>Spielaktivität</b> (platzierte Wetten, Spielgeld-Guthaben, Login-Streak). Bei Anmeldung über Google erhalten wir die von Google freigegebenen Basis-Profildaten (E-Mail, Name).</p>
+      <h4>{t("2. Welche Daten wir verarbeiten","2. What data we process")}</h4>
+      {LANG==="de"
+        ? <p>Bei der Registrierung und Nutzung verarbeiten wir: deine <b>E-Mail-Adresse</b> und einen frei gewählten <b>Anzeigenamen</b> (zur Anmeldung und Identifikation), sowie deine <b>Spielaktivität</b> (platzierte Wetten, Spielgeld-Guthaben, Login-Streak). Bei Anmeldung über Google erhalten wir die von Google freigegebenen Basis-Profildaten (E-Mail, Name).</p>
+        : <p>When you register and use the service, we process: your <b>email address</b> and a freely chosen <b>display name</b> (for sign-in and identification), as well as your <b>play activity</b> (placed bets, play-money balance, login streak). If you sign in via Google, we receive the basic profile data released by Google (email, name).</p>}
 
-      <h4>3. Eingesetzte Dienste (Auftragsverarbeiter / Drittanbieter)</h4>
-      <p>Zur Bereitstellung des Dienstes nutzen wir:</p>
+      <h4>{t("3. Eingesetzte Dienste (Auftragsverarbeiter / Drittanbieter)","3. Services used (processors / third parties)")}</h4>
+      <p>{t("Zur Bereitstellung des Dienstes nutzen wir:","To provide the service we use:")}</p>
       <ul>
-        <li><b>Supabase</b> (Authentifizierung &amp; Nutzerkonten)</li>
-        <li><b>Cloudflare</b> (Server-Infrastruktur, Datenbank, Auslieferung)</li>
-        <li><b>Google</b> (optionaler „Mit Google anmelden"-Login)</li>
-        <li><b>GitHub Pages</b> (Auslieferung der Website)</li>
-        <li>Flugdaten von <b>AeroDataBox</b> und <b>FlightAware (AeroAPI)</b> (keine personenbezogenen Daten betroffen)</li>
+        <li><b>Supabase</b> ({t("Authentifizierung & Nutzerkonten","authentication & user accounts")})</li>
+        <li><b>Cloudflare</b> ({t("Server-Infrastruktur, Datenbank, Auslieferung","server infrastructure, database, delivery")})</li>
+        <li><b>Google</b> ({t("optionaler „Mit Google anmelden“-Login","optional “Sign in with Google” login")})</li>
+        <li><b>GitHub Pages</b> ({t("Auslieferung der Website","website delivery")})</li>
+        <li>{t("Flugdaten von","Flight data from")} <b>AeroDataBox</b> {t("und","and")} <b>FlightAware (AeroAPI)</b> ({t("keine personenbezogenen Daten betroffen","no personal data involved")})</li>
       </ul>
-      <p>Die Nutzung dieser Dienste erfolgt auf Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO) an einer sicheren und effizienten Bereitstellung unseres Angebots. Bei der Datenübermittlung in Drittländer (z. B. USA) stützen wir uns auf Standardvertragsklauseln oder Angemessenheitsbeschlüsse.</p>
+      {LANG==="de"
+        ? <p>Die Nutzung dieser Dienste erfolgt auf Grundlage unseres berechtigten Interesses (Art. 6 Abs. 1 lit. f DSGVO) an einer sicheren und effizienten Bereitstellung unseres Angebots. Bei der Datenübermittlung in Drittländer (z. B. USA) stützen wir uns auf Standardvertragsklauseln oder Angemessenheitsbeschlüsse.</p>
+        : <p>We use these services on the basis of our legitimate interest (Art. 6(1)(f) GDPR) in providing our service securely and efficiently. Where data is transferred to third countries (e.g. the USA), we rely on standard contractual clauses or adequacy decisions.</p>}
 
-      <h4>4. Zweck und Rechtsgrundlage</h4>
-      <p>Die Verarbeitung erfolgt zur Bereitstellung des Spiels und deines Kontos (Art. 6 Abs. 1 lit. b DSGVO – Vertragserfüllung).</p>
+      <h4>{t("4. Zweck und Rechtsgrundlage","4. Purpose and legal basis")}</h4>
+      <p>{t("Die Verarbeitung erfolgt zur Bereitstellung des Spiels und deines Kontos (Art. 6 Abs. 1 lit. b DSGVO – Vertragserfüllung).","Processing is carried out to provide the game and your account (Art. 6(1)(b) GDPR – performance of a contract).")}</p>
 
-      <h4>5. Speicherdauer</h4>
-      <p>Wir speichern deine Daten, solange dein Konto besteht. Bei Löschung deines Kontos werden deine personenbezogenen Daten unwiderruflich gelöscht.</p>
+      <h4>{t("5. Speicherdauer","5. Storage period")}</h4>
+      <p>{t("Wir speichern deine Daten, solange dein Konto besteht. Bei Löschung deines Kontos werden deine personenbezogenen Daten unwiderruflich gelöscht.","We store your data for as long as your account exists. When you delete your account, your personal data is irrevocably deleted.")}</p>
 
-      <h4>6. Deine Rechte</h4>
-      <p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Zur Löschung deines Kontos nutze die Lösch-Funktion direkt in deinem Profil. Bei weiteren Fragen wende dich an matteo.s@gmail.com.</p>
+      <h4>{t("6. Deine Rechte","6. Your rights")}</h4>
+      <p>{t("Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Zur Löschung deines Kontos nutze die Lösch-Funktion direkt in deinem Profil. Bei weiteren Fragen wende dich an matteo.s@gmail.com.","You have the right to access, rectification, erasure, restriction of processing, data portability and objection (Art. 15–21 GDPR), as well as the right to lodge a complaint with a supervisory authority. To delete your account, use the delete function directly in your profile. For any further questions, contact matteo.s@gmail.com.")}</p>
 
-      <h4>7. Kontakt für Datenschutz</h4>
+      <h4>{t("7. Kontakt für Datenschutz","7. Privacy contact")}</h4>
       <p>matteo.s@gmail.com</p>
     </section>
   </div>;
