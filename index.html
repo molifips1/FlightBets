@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v211 -->
+<!-- build: v2026-06-16-v212 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -489,32 +489,34 @@ button{font-family:inherit}
 .stat-v{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .stat-l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
 .prof-empty{color:var(--muted);font-size:13.5px;padding:8px 2px}
-.open-list{display:flex;flex-direction:column;gap:6px}
-.open-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--line);cursor:pointer;font-size:14px;text-align:left;width:100%}
+.open-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.open-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
 .open-row:hover{border-color:var(--brand)}
-.open-code{font-weight:700;color:var(--ink);width:72px}
-.open-tip{flex:1;color:var(--muted)}
-.open-stake{font-weight:700;color:var(--ink)}
-/* Resolved bets as flight-ticket cards */
-.rbet-list{display:flex;flex-direction:column;gap:10px}
-.rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:13px 16px}
+.open-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
+.open-tip{color:var(--muted);font-size:12.5px}
+.open-stake{font-weight:800;font-size:15px;color:var(--ink);margin-top:3px}
+/* Resolved bets as flight-ticket cards (grid, 4 per row) */
+.rbet-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:13px 15px;display:flex;flex-direction:column}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:var(--muted)}
-.rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.rbet-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
-.rbet-air{font-size:12px;color:var(--muted);font-weight:600}
-.rbet-net{font-family:Archivo;font-weight:800;font-size:22px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
-.rbet-route{font-size:13px;color:var(--ink);font-weight:600;margin-top:4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rbet-code{font-family:Archivo;font-weight:800;font-size:14.5px;color:var(--ink)}
+.rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
+.rbet-outcome{display:flex;flex-direction:column;align-items:flex-end;gap:1px;white-space:nowrap}
+.rbet-net{font-family:Archivo;font-weight:800;font-size:20px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
+.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1px;font-weight:800}
+.rbet-route{font-size:12.5px;color:var(--ink);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .rbet-arrow{color:var(--muted)}
-.rbet-metric{font-weight:800;font-size:13.5px;color:var(--ink);margin:11px 0 12px}
+.rbet-metric{font-weight:800;font-size:13px;color:var(--ink);margin:9px 0 11px}
 .rbet-dot{color:var(--muted)}
 .rbet-actual{color:var(--muted);font-weight:700}
-.rbet-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:10px}
-.rbet-times{display:flex;gap:20px}
-.rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:700}
-.rbet-tval{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);margin-top:2px}
-.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.2px;font-weight:800}
-@media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+.rbet-times{display:flex;justify-content:space-between;gap:8px}
+.rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rbet-tval{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
+@media(max-width:1000px){.rbet-list,.open-list{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}.open-list{grid-template-columns:repeat(2,1fr)}.rbet-list{grid-template-columns:1fr}}
 .legal{max-width:680px;padding-bottom:20px}
 .legal-note{background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);
   border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.55;color:var(--ink);margin-bottom:20px}
@@ -3180,7 +3182,10 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
             <div className="rbet-top">
               <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span><span className="rbet-air"> · {al.name}</span></div>
-              <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
+              <div className="rbet-outcome">
+                <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
+                <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
+              </div>
             </div>
             <div className="rbet-route">{flagFor("BER")} Berlin BER <span className="rbet-arrow">→</span> {row ? <>{flagFor(row.dest)} {row.dest}</> : "—"}</div>
             <div className="rbet-metric">{picked} {t("getippt","picked")} <span className="rbet-dot">·</span> <span className="rbet-actual">actual </span><span style={{color:aCol,fontWeight:800}}>{actualTxt}</span></div>
@@ -3190,7 +3195,6 @@ function Profile({ wallet, user, streak, markets, onOpen }){
                 <div className="rbet-tcol"><div className="rbet-tlbl">SCHED ARR</div><div className="rbet-tval">{fmtT(row&&row.schedArr)}</div></div>
                 <div className="rbet-tcol"><div className="rbet-tlbl">ARRIVED</div><div className="rbet-tval" style={{color:aCol}}>{fmtT(row&&row.actualArr)}</div></div>
               </div>
-              <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
             </div>
           </div>;
         })}
