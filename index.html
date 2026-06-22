@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v228 -->
+<!-- build: v2026-06-16-v229 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -874,6 +874,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-bk-name{font-weight:700}
 .sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
 .sheet-pay{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.sheet-payhint{font-size:10.5px;line-height:1.35;color:var(--muted);margin:-4px 0 10px}
 .sheet-pay b{font-size:20px;color:var(--good)}
 .sheet-place{width:100%;border:none;border-radius:14px;padding:15px 14px;margin-top:6px;cursor:pointer;text-align:center;
   font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;letter-spacing:.2px;
@@ -912,7 +913,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
-  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:0;align-items:stretch;--tailh:112px}
+  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:0;align-items:stretch;--tailh:138px}
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0;padding-right:30px}
   .sheet-col-r{padding-left:30px;border-left:1px solid var(--line)}
   .sheet-col-l .dcurve{display:flex;flex-direction:column;flex:1 1 auto;min-height:150px;margin:9px 0 12px}
@@ -1760,7 +1761,10 @@ function WettZentrale({ m, total, pick, setPick, stake, setStake, wallet, onBet 
   const S = seedOf(m); const eff=o=>(o.pool||0)+(S[o.id]||0); const totEff=m.outcomes.reduce((s,o)=>s+eff(o),0)||1;
   const sel = m.outcomes.find(o=>o.id===pick) || m.outcomes.find(o=>o.id==="b") || m.outcomes[0];
   const odds = sel ? displayOdds(m.outcomes, sel, m.seed) : null;
-  const win = (odds!=null) ? stake*odds : 0;
+  // Pari-mutuel: the user's own stake dilutes the odds. Show the diluted odds (no rake)
+  // while a stake is entered, and base the estimated win on it.
+  const liveOdds = (sel && stake>0) ? (totEff + stake)/(eff(sel) + stake) : odds;
+  const win = (liveOdds!=null) ? stake*liveOdds : 0;
   const tooMuch = stake>wallet;
   return (
     <div className="wz-card">
@@ -1771,7 +1775,7 @@ function WettZentrale({ m, total, pick, setPick, stake, setStake, wallet, onBet 
         </div>
         <div className="wz-route">{m.from.name} ➔ {m.to.name}</div>
       </div>
-      <div className="wz-tip">{t("Tipp","Tip")}: <b style={sel?{color:TONE[sel.tone]}:null}>{sel?outLabel(sel.label):"—"}</b> <span className="wz-tip-odds">({odds!=null?odds.toFixed(2)+"×":"—"})</span></div>
+      <div className="wz-tip">{t("Tipp","Tip")}: <b style={sel?{color:TONE[sel.tone]}:null}>{sel?outLabel(sel.label):"—"}</b> <span className="wz-tip-odds">({liveOdds!=null?liveOdds.toFixed(2)+"×":"—"})</span></div>
       <div className="wz-stakebox">
         <div className="wz-stakerow">
           <span className="wz-stakelbl">{t("Einsatz","Stake")}</span>
@@ -2095,7 +2099,7 @@ function CloseBadge({ closeISO, tone }){
 
 function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle}){
   const mult=o=>displayOdds(m.outcomes,o,m.seed)||1;
-  const proj=(o,s)=>{const sd=seedOf(m);const np=o.pool+(sd[o.id]||0)+s,nt=total+seedSum(sd)+s;return (s/np)*nt*(1-RAKE)};
+  const proj=(o,s)=>{const sd=seedOf(m);const np=o.pool+(sd[o.id]||0)+s,nt=total+seedSum(sd)+s;return np>0?(s/np)*nt:0};
   const s=Math.min(stake,wallet);
   const now = useNow(1000);
   const closed = m.betCloseISO && now >= new Date(m.betCloseISO).getTime();
@@ -2114,7 +2118,7 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
       <input type="range" min={10} max={Math.max(10,wallet)} step={10} value={s} onChange={e=>setStake(+e.target.value)}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,flexWrap:"wrap"}}>
         <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>VORAUSSICHTLICHER GEWINN</div>
-          <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>nach {RAKE*100}% Gebühr</span></div></div>
+          <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>{t("geschätzt","estimate")}</span></div></div>
         <button className="betbtn" disabled={closed||stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{closed?t("Wetten geschlossen","Betting closed"):stake>wallet?t("Nicht genug","Too low"):t("Wette platzieren","Place bet")}</button>
       </div>
     </div>}
@@ -2167,7 +2171,7 @@ function Detail({m,total,back,initialPick,...bet}){
   const sel = m.outcomes.find(o=>o.id===pick);
   const s = Math.min(bet.stake, bet.wallet);
   // parimutuel payout estimate for the selected bracket at stake s
-  const proj = (o,st)=>{ if(!o) return 0; const sd=seedOf(m); const np=o.pool+(sd[o.id]||0)+st, nt=total+seedSum(sd)+st; return (st/np)*nt*(1-RAKE); };
+  const proj = (o,st)=>{ if(!o) return 0; const sd=seedOf(m); const np=o.pool+(sd[o.id]||0)+st, nt=total+seedSum(sd)+st; return np>0?(st/np)*nt:0; };
   const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
 
   return <div>
@@ -2272,7 +2276,7 @@ function Detail({m,total,back,initialPick,...bet}){
               <span>Bei Gewinn (geschätzt)</span>
               <b>{fmt(proj(sel,s))} €</b>
             </div>
-            <div className="paynote">Parimutuel: Gewinner teilen den Pool (abzgl. {RAKE*100}% Gebühr) anteilig zum Einsatz. Schätzung aus dem aktuellen Pool — verschiebt sich mit neuen Wetten.</div>
+            <div className="paynote">Parimutuel: Gewinner teilen den Pool anteilig zum Einsatz. Brutto-Schätzung aus dem aktuellen Pool — dein Einsatz drückt die Quote, spätere Wetten verschieben sie weiter.</div>
             <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={closed||bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{closed?t("Wetten geschlossen","Betting closed"):bet.stake>bet.wallet?t("Nicht genug Guthaben","Not enough balance"):t("Wette platzieren","Place bet")}</button>
           </div>}
           </>}
@@ -3515,9 +3519,14 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   const [stake,setStake]=useState(initialStake!=null ? initialStake : (wallet>=50?50:firstAffordable));
   const o = market.outcomes.find(x=>x.id===oid) || market.outcomes[0];
   const total = market.outcomes.reduce((s,x)=>s+x.pool,0);
-  // Transparency rule: pay out with the SAME odds the user sees on screen (rounded to
-  // 2 decimals), so stake × shown-odds = shown payout exactly. Always 2 decimals.
-  const proj = (oo,st)=>{ if(!oo) return 0; const od=displayOdds(market.outcomes,oo,market.seed); return od!=null ? st*parseFloat(od.toFixed(2)) : 0; };
+  const es = Math.max(0, Math.min(stake, wallet)); // effective stake (capped at balance)
+  // Pari-mutuel reality: the user's own stake joins the pool and dilutes the odds.
+  // NewOdds = (totalEff + stake) / (myEff + stake), eff = pool + seed. NO rake — gross
+  // estimate; later bets (and bots) move the odds further before the market closes.
+  const S0 = market.seed || DEFAULT_SEED;
+  const effOf = x => (x.pool||0) + (S0[x.id]||0);
+  const dilutedOdds = (oo,st)=>{ if(!oo) return null; const myEff=effOf(oo)+st; const totEff=market.outcomes.reduce((s,x)=>s+effOf(x),0)+st; return myEff>0 ? totEff/myEff : null; };
+  const proj = (oo,st)=>{ const od=dilutedOdds(oo,st); return od!=null ? st*parseFloat(od.toFixed(2)) : 0; };
   const fmtPay = v => v.toFixed(2);
   const tooMuch = stake>wallet;
   const now = useNow(1000);
@@ -3577,7 +3586,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
           <div className="sheet-lbl">{t("Dein Tipp","Your pick")}</div>
           <div className="sheet-brackets">
             {market.outcomes.map(x=>{
-              const on=x.id===oid; const od=displayOdds(market.outcomes,x,market.seed);
+              const on=x.id===oid; const od=(on && es>0) ? dilutedOdds(x, es) : displayOdds(market.outcomes,x,market.seed);
               return <button key={x.id} className={"sheet-bk"+(on?" on":"")} style={{"--bk":TONE[x.tone]}} onClick={()=>setOid(x.id)}>
                 <span className="sheet-bk-dot" style={{background:TONE[x.tone]}}/>
                 <span className="sheet-bk-name">{outLabel(x.label)}</span>{rangeLabel(x.id) && <span className="sheet-bk-range">{rangeLabel(x.id)}</span>}
@@ -3602,8 +3611,9 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
           <div className="sheet-tail sheet-tail-r">
             <div className="sheet-pay">
               <span>{t("Bei Gewinn (geschätzt)","If you win (estimation)")}</span>
-              <b>{fmtPay(proj(o,Math.min(stake,wallet)))} €</b>
+              <b>{fmtPay(proj(o,es))} €</b>
             </div>
+            <div className="sheet-payhint">{t("Schätzung — dein Einsatz drückt die Quote, und spätere Wetten verändern sie weiter.","Estimate — your stake lowers the odds, and later bets shift them further.")}</div>
             <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
               {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren · ${stake} € auf ${outLabel(o.label)}`, `Place bet · ${stake} € on ${outLabel(o.label)}`)}
             </button>
