@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v187 -->
+<!-- build: v2026-06-16-v190 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1406,7 +1406,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
-      <div className="pd-sharelbl">{t("Verspätungskurve","Landing Delay Curve")}</div>
+      <div className="pd-sharelbl">{t("Historische Landekurve","Historic Landing Curve")}</div>
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
           <defs>
@@ -1435,7 +1435,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
           return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
         })}
       </div>
-      {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
     </div>
   );
 }
