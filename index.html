@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v274 -->
+<!-- build: v2026-06-16-v275 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -973,6 +973,12 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-place{white-space:nowrap}
   /* In-bar pool-share % needs a readable floor only in the modal bar */
   .sheet-col-l .pd-seg{min-width:30px;white-space:nowrap;padding:0 2px;font-variant-numeric:tabular-nums}
+}
+@media(max-width:559px){
+  .sheet{max-height:90vh;overflow-y:auto}
+  .sheet .sheet-grip{display:none}
+  .sheet .sheet-head2{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+  .sheet .sheet-route2{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
 }
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
@@ -3587,6 +3593,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   const closeMs = market.betCloseISO ? new Date(market.betCloseISO).getTime() : null;
   const closingSoon = !!closeMs && !closed && (closeMs - now) <= 10*60*1000;
   const neonCol = TONE[market.neonTone||market.status] || "var(--brand)";
+  useEffect(()=>{ if(typeof window!=="undefined" && window.innerWidth>=560) return; const prev=document.body.style.overflow; document.body.style.overflow="hidden"; return ()=>{ document.body.style.overflow=prev; }; },[]);
   const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
     <div className={"sheet sheet-wide neon"+(closingSoon?" sheet-closing":"")} style={{"--neon":neonCol}} onClick={e=>e.stopPropagation()}>
@@ -3599,9 +3606,10 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
             <div className="fc-head-l">
               <div className="codeline">
                 <span className="code">{market.code}</span>
-                {market.betCloseISO && <CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/>}
+                {market.betCloseISO && <span className="cb-desk"><CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/></span>}
               </div>
               {market.dateLabel && <div className="fdate">{market.dateLabel}</div>}
+              {market.betCloseISO && <span className="cb-mob"><CloseBadge closeISO={market.betCloseISO} tone={TONE[market.neonTone||market.status]}/></span>}
             </div>
             <div className="fc-head-r">
               <span className="myeinsatz">{t("Preisgeld","Prize pool")}: <b><RollingNumber value={total}/> €</b></span>
