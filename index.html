@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v276 -->
+<!-- build: v2026-06-16-v277 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -975,10 +975,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l .pd-seg{min-width:30px;white-space:nowrap;padding:0 2px;font-variant-numeric:tabular-nums}
 }
 @media(max-width:559px){
-  .sheet{max-height:90vh;overflow-y:auto}
+  .sheet{max-height:90vh;overflow-y:auto;overscroll-behavior:contain}
   .sheet .sheet-grip{display:none}
   .sheet .sheet-head2{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
-  .sheet .sheet-route2{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+  .sheet .sheet-route2{padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .sheet .sheet-col-l{margin-bottom:0}
 }
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
@@ -3593,7 +3594,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   const closeMs = market.betCloseISO ? new Date(market.betCloseISO).getTime() : null;
   const closingSoon = !!closeMs && !closed && (closeMs - now) <= 10*60*1000;
   const neonCol = TONE[market.neonTone||market.status] || "var(--brand)";
-  useEffect(()=>{ if(typeof window!=="undefined" && window.innerWidth>=560) return; const prev=document.body.style.overflow; document.body.style.overflow="hidden"; return ()=>{ document.body.style.overflow=prev; }; },[]);
+  useEffect(()=>{ if(typeof window!=="undefined" && window.innerWidth>=560) return; const b=document.body; const y=window.scrollY||window.pageYOffset||0; const prev={position:b.style.position,top:b.style.top,left:b.style.left,right:b.style.right,width:b.style.width,overflow:b.style.overflow}; b.style.position="fixed"; b.style.top="-"+y+"px"; b.style.left="0"; b.style.right="0"; b.style.width="100%"; b.style.overflow="hidden"; return ()=>{ b.style.position=prev.position; b.style.top=prev.top; b.style.left=prev.left; b.style.right=prev.right; b.style.width=prev.width; b.style.overflow=prev.overflow; window.scrollTo(0,y); }; },[]);
   const place=()=>{ if(closed||tooMuch||stake<=0) return; onBet(market,o,stake); onClose(); };
   return <div className="sheet-bg" onClick={onClose}>
     <div className={"sheet sheet-wide neon"+(closingSoon?" sheet-closing":"")} style={{"--neon":neonCol}} onClick={e=>e.stopPropagation()}>
