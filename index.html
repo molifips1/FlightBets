@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v214 -->
+<!-- build: v2026-06-16-v215 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -897,8 +897,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
-  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch;--tailh:112px}
-  .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
+  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:0;align-items:stretch;--tailh:112px}
+  .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0;padding-right:30px}
+  .sheet-col-r{padding-left:30px;border-left:1px solid var(--line)}
   .sheet-col-l .dcurve{display:flex;flex-direction:column;flex:1 1 auto;min-height:150px;margin:9px 0 12px}
   .sheet-col-l .dcurve-plot{flex:1 1 auto;height:auto;min-height:130px}
   .sheet-col-l .dcurve-head{margin:6px 0 2px}
