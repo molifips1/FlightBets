@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v239 -->
+<!-- build: v2026-06-16-v240 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1617,7 +1617,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","Pool Share")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
-      <div className="pd-label">Pool distribution</div>
+      <div className="pd-label">{t("Pool-Verteilung","Pool distribution")}</div>
       {bar}
       <div className="pd-legend">
         {outcomes.map(o=>
@@ -1807,9 +1807,9 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
       ["tegel4ever","2d","Interessante Entwicklung am BER."],["tegel4ever","2d","Daumen drücken!"],
       ["verspätet","3d","Klassiker."],["verspätet","3d","Hab's gewusst."]];
     return <div className="card disc">
-      <div className="dh"><span>Live-Diskussion</span><span>{msgs.length*25} Kommentare</span></div>
+      <div className="dh"><span>{t("Live-Diskussion","Live discussion")}</span><span>{msgs.length*25} {t("Kommentare","comments")}</span></div>
       {msgs.map((x,i)=><div className="msg" key={i}><span className="who">{x[0]}</span><span className="ago">{x[1]}</span><div className="tx">{x[2]}</div></div>)}
-      <div className="composer"><input placeholder="Sag deine Meinung…"/><button className="ico">➤</button></div>
+      <div className="composer"><input placeholder={t("Sag deine Meinung…","Say your piece…")}/><button className="ico">➤</button></div>
     </div>;
   }
   if(m.type==="daily"){
@@ -1852,10 +1852,10 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
             {m.phase && (m.bettable
               ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
               : <span className={"phase ph-"+(m.tab||m.phase)}>{
-                  m.phase==="cancelled" ? "✕ annulliert" :
-                  m.phase==="landed"    ? "✓ gelandet" :
-                  m.phase==="enroute"   ? "✈ abgeflogen" :
-                  "🔒 geschlossen"
+                  m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
+                  m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
+                  m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
+                  t("🔒 geschlossen","🔒 closed")
                 }</span>)}
           </div>
           {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
@@ -2026,7 +2026,7 @@ function FlightMap({ m }){
         )}
       </svg>
       <div className="fm-status">
-        {state==="loading" && <span>◌ Flugzeug wird geortet…</span>}
+        {state==="loading" && <span>{t("◌ Flugzeug wird geortet…","◌ Locating aircraft…")}</span>}
         {state==="airborne" && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
         {state==="ground" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
         {state==="static" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
@@ -2052,7 +2052,7 @@ function Countdown({ dep, fallback }){
   }
   const [now, setNow] = useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
-  if (!target.current) return <span>● Am Boden — kein Live-Tracking</span>;
+  if (!target.current) return <span>{t("● Am Boden — kein Live-Tracking","● On the ground — no live tracking")}</span>;
   let diff = Math.floor((target.current - now)/1000);
   if (diff <= 0) return <span className="fm-live">● Gestartet / startet jetzt</span>;
   const hh = Math.floor(diff/3600); diff%=3600;
@@ -2073,7 +2073,7 @@ function BetCountdown({ closeISO }){
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 15*60; // last 15 min → urgent
   return <span className={"betcd"+(soon?" soon":"")}>
-    Wette schließt in <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
+    {t("Wette schließt in","Bet closes in")} <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
   </span>;
 }
 
@@ -2114,17 +2114,17 @@ function BetPanel({m,total,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle
     </div>
     {pick && <div className="stake">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span className="mono" style={{fontSize:11,color:"var(--muted)"}}>EINSATZ</span>
+        <span className="mono" style={{fontSize:11,color:"var(--muted)"}}>{t("EINSATZ","STAKE")}</span>
         <span className="mono" style={{fontWeight:600}}>{fmt(s)} €</span>
       </div>
       <input type="range" min={10} max={Math.max(10,wallet)} step={10} value={s} onChange={e=>setStake(+e.target.value)}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:12,flexWrap:"wrap"}}>
-        <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>VORAUSSICHTLICHER GEWINN</div>
+        <div><div className="mono" style={{fontSize:11,color:"var(--muted)",marginBottom:3}}>{t("VORAUSSICHTLICHER GEWINN","ESTIMATED WIN")}</div>
           <div className="ret">{fmt(proj(m.outcomes.find(o=>o.id===pick),s))} € <span style={{color:"var(--muted)",fontSize:12}}>{t("geschätzt","estimate")}</span></div></div>
         <button className="betbtn" disabled={closed||stake>wallet} onClick={()=>onBet(m,m.outcomes.find(o=>o.id===pick))}>{closed?t("Wetten geschlossen","Betting closed"):stake>wallet?t("Nicht genug","Too low"):t("Wette platzieren","Place bet")}</button>
       </div>
     </div>}
-    <div className="note">Abrechnung über: {m.settles}.</div>
+    <div className="note">{t("Abrechnung über: ","Settled via: ")}{m.settles}.</div>
     {ops && <div style={{marginTop:11,borderTop:"1px dashed var(--line)",paddingTop:11}}>
       <div className="mono" style={{fontSize:10,color:"var(--muted)",marginBottom:7}}>⚙ ORAKEL SIMULIEREN</div>
       {m.outcomes.map(o=><button key={o.id} className="ico" style={{width:"auto",padding:"6px 9px",fontSize:11,marginRight:6,marginBottom:6}} onClick={()=>onSettle(m,o.id)}>abrechnen ▸ {o.label}</button>)}
@@ -2177,7 +2177,7 @@ function Detail({m,total,back,initialPick,...bet}){
   const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
 
   return <div>
-    <button className="back" onClick={back}>← Alle Märkte</button>
+    <button className="back" onClick={back}>{t("← Alle Märkte","← All markets")}</button>
     <div className="dwrap">
       {/* LEFT: flight info + brackets */}
       <div>
@@ -2190,10 +2190,10 @@ function Detail({m,total,back,initialPick,...bet}){
               {isFlight && m.phase && (m.bettable
                 ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
                 : <span className={"phase ph-"+(m.tab||m.phase)}>{
-                    m.phase==="cancelled" ? "✕ annulliert" :
-                    m.phase==="landed"    ? "✓ gelandet" :
-                    m.phase==="enroute"   ? "✈ abgeflogen" :
-                    "🔒 geschlossen"
+                    m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
+                    m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
+                    m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
+                    t("🔒 geschlossen","🔒 closed")
                   }</span>)}
             </div>
             <span className="pool"><RollingNumber value={total}/> €</span>
@@ -2217,7 +2217,7 @@ function Detail({m,total,back,initialPick,...bet}){
 
         {/* Bracket list — pick your bracket, pools visible */}
         <div className="panelbox">
-          <div className="sectlbl">Tippe die Landeverspätung · {m.outcomes.length} Optionen</div>
+          <div className="sectlbl">{t("Tippe die Landeverspätung","Predict the landing delay")} · {m.outcomes.length} {t("Optionen","options")}</div>
           <div className="brackets">
             {m.outcomes.map(o=>{
               const mult = displayOdds(m.outcomes, o, m.seed);
@@ -2228,7 +2228,7 @@ function Detail({m,total,back,initialPick,...bet}){
                 <div className="bk-l">
                   <span className="bk-name">{outLabel(o.label)}</span>
                   {rangeLabel(o.id) && <span className="bk-range">{rangeLabel(o.id)}</span>}
-                  {on && <span className="bk-sel">GEWÄHLT</span>}
+                  {on && <span className="bk-sel">{t("GEWÄHLT","SELECTED")}</span>}
                 </div>
                 <div className="bk-mid">
                   <div className="bk-pool">Pool <RollingNumber value={o.pool}/> € · {total>0?<><RollingNumber value={pct} format={v=>Math.round(v)+"%"}/> {t("des Pools","of pool")}</>:"—"}</div>
@@ -2238,7 +2238,7 @@ function Detail({m,total,back,initialPick,...bet}){
               </button>;
             })}
           </div>
-          <div className="oddsnote"><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (1 Stunde vor Abflug).</div>
+          <div className="oddsnote">{LANG==="de" ? <><b>%</b> = Anteil des Pools — so verteilt sich das Spielgeld auf die Optionen (so tippt die Menge), <b>nicht</b> wie wahrscheinlich der Ausgang ist. <b>×</b> = mögliche Quote beim aktuellen Pool; sie verschiebt sich mit neuen Wetten und steht <b>endgültig fest, wenn das Wettfenster schließt</b> (1 Stunde vor Abflug).</> : <><b>%</b> = share of the pool — how the play money is split across the options (how the crowd is betting), <b>not</b> how likely the outcome is. <b>×</b> = possible odds at the current pool; they shift with new bets and are <b>locked in when the betting window closes</b> (1 hour before departure).</>}</div>
         </div>
 
         {/* Route reliability — only meaningful for real flights (departures from BER) */}
@@ -2246,12 +2246,12 @@ function Detail({m,total,back,initialPick,...bet}){
 
         {/* Market rules */}
         <div className="panelbox">
-          <div className="sectlbl">Marktregeln</div>
+          <div className="sectlbl">{t("Marktregeln","Market rules")}</div>
           <div className="rules">
-            <p>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges am Zielflughafen. Du setzt €-Spielgeld auf eine der vier Optionen — Wetten schließen 1 Stunde vor Abflug. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</p>
-            <p><b>Abrechnung:</b> über die offizielle erfasste Ankunfts-/Abflugzeit. {m.settles?("Quelle: "+m.settles+"."):""}</p>
-            <p><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze zurückerstattet.</p>
-            <p className="rules-net">Spielgeld · keine echten Einsätze · DACH-Region</p>
+            <p>{LANG==="de" ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges am Zielflughafen. Du setzt €-Spielgeld auf eine der vier Optionen — Wetten schließen 1 Stunde vor Abflug. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</> : <>Each market is a <b>parimutuel pool</b> on this flight's <b>landing delay</b> at the destination airport. You stake play-money € on one of four options — betting closes 1 hour before departure. At settlement, everyone who was right shares the whole pool in proportion to their stake — minus a {RAKE*100}% fee. The odds are an estimate from the current pool and shift the more is bet.</>}</p>
+            <p><b>{t("Abrechnung:","Settlement:")}</b> {t("über die offizielle erfasste Ankunfts-/Abflugzeit.","via the official recorded arrival/departure time.")} {m.settles?(t("Quelle: ","Source: ")+m.settles+"."):""}</p>
+            <p>{LANG==="de" ? <><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze zurückerstattet.</> : <><b>Void &amp; refund:</b> if the flight is cancelled or no reliable data is available for settlement, the market is declared <b>void</b> and all stakes are refunded.</>}</p>
+            <p className="rules-net">{t("Spielgeld · keine echten Einsätze · DACH-Region","Play money · no real stakes · DACH region")}</p>
           </div>
         </div>
       </div>
@@ -2262,23 +2262,23 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="sectlbl">{m.settled ? t("Abgerechnet · Wetten geschlossen","Settled · betting closed") : t("Live · Jetzt wetten","Live · bet now")}</div>
           {m.settled ? <div className="closedbox">
             <div className="closed-em">{m.phase==="cancelled"?"✕":"✓"}</div>
-            <div className="closed-t">{m.phase==="cancelled"?"Flug annulliert":"Flug abgeflogen"}</div>
-            <div className="closed-s">{m.delayUnknown ? "Ergebnis liegt nicht verlässlich vor." : <>Ergebnis: <b style={{color:TONE[m.status]}}>{m.delay}</b>. Auf abgeschlossene Flüge kann nicht mehr gewettet werden.</>}</div>
+            <div className="closed-t">{m.phase==="cancelled"?t("Flug annulliert","Flight cancelled"):t("Flug abgeflogen","Flight departed")}</div>
+            <div className="closed-s">{m.delayUnknown ? t("Ergebnis liegt nicht verlässlich vor.","No reliable result available.") : <>{t("Ergebnis: ","Result: ")}<b style={{color:TONE[m.status]}}>{m.delay}</b>. {t("Auf abgeschlossene Flüge kann nicht mehr gewettet werden.","Settled flights can no longer be bet on.")}</>}</div>
           </div> : <>
-          {!pick && <div className="pickhint">Wähle links eine Verspätungs-Option, um zu wetten.</div>}
+          {!pick && <div className="pickhint">{t("Wähle links eine Verspätungs-Option, um zu wetten.","Pick a delay option on the left to bet.")}</div>}
           {pick && <div className="stakebox">
             <div className="stakerow"><span className="stakelbl">{t("DEIN TIPP","YOUR PICK")}</span><span className="stakeval">{outLabel(sel.label)}</span></div>
-            <div className="stakerow"><span className="stakelbl">EINSATZ</span><span className="stakeval">{fmt(s)} €</span></div>
+            <div className="stakerow"><span className="stakelbl">{t("EINSATZ","STAKE")}</span><span className="stakeval">{fmt(s)} €</span></div>
             <input type="range" min={10} max={Math.max(10,bet.wallet)} step={10} value={s} onChange={e=>bet.setStake(+e.target.value)}/>
             <div className="quickadd">
               {[10,25,50].map(v=><button key={v} onClick={()=>bet.setStake(Math.min(bet.wallet,s+v))}>+{v}</button>)}
               <button onClick={()=>bet.setStake(bet.wallet)}>Max</button>
             </div>
             <div className="payrow">
-              <span>Bei Gewinn (geschätzt)</span>
+              <span>{t("Bei Gewinn (geschätzt)","If you win (estimate)")}</span>
               <b>{fmt(proj(sel,s))} €</b>
             </div>
-            <div className="paynote">Parimutuel: Gewinner teilen den Pool anteilig zum Einsatz. Brutto-Schätzung aus dem aktuellen Pool — dein Einsatz drückt die Quote, spätere Wetten verschieben sie weiter.</div>
+            <div className="paynote">{t("Parimutuel: Gewinner teilen den Pool anteilig zum Einsatz. Brutto-Schätzung aus dem aktuellen Pool — dein Einsatz drückt die Quote, spätere Wetten verschieben sie weiter.","Parimutuel: winners share the pool in proportion to their stake. Gross estimate from the current pool — your stake nudges the odds, later bets shift them further.")}</div>
             <button className="betbtn" style={{width:"100%",marginTop:12}} disabled={closed||bet.stake>bet.wallet} onClick={()=>bet.onBet(m,sel)}>{closed?t("Wetten geschlossen","Betting closed"):bet.stake>bet.wallet?t("Nicht genug Guthaben","Not enough balance"):t("Wette platzieren","Place bet")}</button>
           </div>}
           </>}
@@ -2288,10 +2288,10 @@ function Detail({m,total,back,initialPick,...bet}){
           </div>}
         </div>
         <div className="panelbox">
-          <div className="sectlbl">Diskussion</div>
-          <div className="composer" style={{marginTop:0}}><input placeholder="Teile deine Einschätzung zu diesem Flug…"/></div>
-          <button className="betbtn ghost" style={{width:"100%",marginTop:10}}>Posten</button>
-          <div className="empty"><div className="e1">💬</div><div className="e2">Noch keine Kommentare</div><div className="e3">Sei der/die Erste!</div></div>
+          <div className="sectlbl">{t("Diskussion","Discussion")}</div>
+          <div className="composer" style={{marginTop:0}}><input placeholder={t("Teile deine Einschätzung zu diesem Flug…","Share your take on this flight…")}/></div>
+          <button className="betbtn ghost" style={{width:"100%",marginTop:10}}>{t("Posten","Post")}</button>
+          <div className="empty"><div className="e1">💬</div><div className="e2">{t("Noch keine Kommentare","No comments yet")}</div><div className="e3">{t("Sei der/die Erste!","Be the first!")}</div></div>
         </div>
       </div>
     </div>
@@ -2806,9 +2806,9 @@ function AuthModal({ onClose }){
   const [err,setErr]=useState(null);
 
   if(!sb) return <div className="modal-bg" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}>
-    <div className="modal-h">Anmeldung nicht konfiguriert</div>
-    <p className="rules-net" style={{marginTop:8}}>Trage SUPABASE_URL und SUPABASE_ANON_KEY in CONFIG ein, um Logins zu aktivieren.</p>
-    <button className="betbtn" style={{width:"100%",marginTop:14}} onClick={onClose}>Schließen</button>
+    <div className="modal-h">{t("Anmeldung nicht konfiguriert","Sign-in not configured")}</div>
+    <p className="rules-net" style={{marginTop:8}}>{t("Trage SUPABASE_URL und SUPABASE_ANON_KEY in CONFIG ein, um Logins zu aktivieren.","Add SUPABASE_URL and SUPABASE_ANON_KEY to CONFIG to enable sign-in.")}</p>
+    <button className="betbtn" style={{width:"100%",marginTop:14}} onClick={onClose}>{t("Schließen","Close")}</button>
   </div></div>;
 
   async function submit(){
@@ -2817,42 +2817,42 @@ function AuthModal({ onClose }){
       if(mode==="signup"){
         const { error } = await sb.auth.signUp({ email, password:pass, options:{ data:{ name } } });
         if(error) throw error;
-        setMsg("Fast geschafft! Wir haben dir eine Bestätigungs-Mail geschickt. Bitte den Link darin anklicken, dann kannst du dich anmelden.");
+        setMsg(t("Fast geschafft! Wir haben dir eine Bestätigungs-Mail geschickt. Bitte den Link darin anklicken, dann kannst du dich anmelden.","Almost done! We sent you a confirmation email. Click the link inside, then you can sign in."));
       }else if(mode==="reset"){
         const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
         if(error) throw error;
-        setMsg("Wir haben dir einen Link zum Zurücksetzen des Passworts geschickt. Schau in dein Postfach.");
+        setMsg(t("Wir haben dir einen Link zum Zurücksetzen des Passworts geschickt. Schau in dein Postfach.","We sent you a password reset link. Check your inbox."));
       }else{
         const { error } = await sb.auth.signInWithPassword({ email, password:pass });
         if(error) throw error;
         onClose();
       }
     }catch(e){
-      const m=(e&&e.message)||"Fehler";
-      setErr(/rate limit/i.test(m)?"E-Mail-Limit erreicht — bitte etwas später erneut versuchen.":/confirm/i.test(m)?"Bitte zuerst deine E-Mail bestätigen (Link in der Mail).":/invalid/i.test(m)?"E-Mail oder Passwort falsch.":m);
+      const m=(e&&e.message)||t("Fehler","Error");
+      setErr(/rate limit/i.test(m)?t("E-Mail-Limit erreicht — bitte etwas später erneut versuchen.","Email limit reached — please try again a little later."):/confirm/i.test(m)?t("Bitte zuerst deine E-Mail bestätigen (Link in der Mail).","Please confirm your email first (link in the email)."):/invalid/i.test(m)?t("E-Mail oder Passwort falsch.","Email or password incorrect."):m);
     }finally{ setBusy(false); }
   }
 
   return <div className="modal-bg" onClick={onClose}>
     <div className="modal" onClick={e=>e.stopPropagation()}>
-      <div className="modal-h">{mode==="login"?"Anmelden":mode==="reset"?"Passwort zurücksetzen":"Konto erstellen"}</div>
+      <div className="modal-h">{mode==="login"?t("Anmelden","Sign in"):mode==="reset"?t("Passwort zurücksetzen","Reset password"):t("Konto erstellen","Create account")}</div>
       <div className="authtabs">
-        <button className={mode==="login"||mode==="reset"?"on":""} onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>Anmelden</button>
-        <button className={mode==="signup"?"on":""} onClick={()=>{setMode("signup");setErr(null);setMsg(null)}}>Registrieren</button>
+        <button className={mode==="login"||mode==="reset"?"on":""} onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>{t("Anmelden","Sign in")}</button>
+        <button className={mode==="signup"?"on":""} onClick={()=>{setMode("signup");setErr(null);setMsg(null)}}>{t("Registrieren","Sign up")}</button>
       </div>
 
       {msg ? <div className="authmsg ok">{msg}</div> : <>
-        {mode==="signup" && <input className="authinput" placeholder="Anzeigename" value={name} onChange={e=>setName(e.target.value)}/>}
-        <input className="authinput" type="email" placeholder="E-Mail" value={email} onChange={e=>setEmail(e.target.value)}/>
-        {mode!=="reset" && <input className="authinput" type="password" placeholder="Passwort" value={pass} onChange={e=>setPass(e.target.value)}/>}
+        {mode==="signup" && <input className="authinput" placeholder={t("Anzeigename","Display name")} value={name} onChange={e=>setName(e.target.value)}/>}
+        <input className="authinput" type="email" placeholder={t("E-Mail","Email")} value={email} onChange={e=>setEmail(e.target.value)}/>
+        {mode!=="reset" && <input className="authinput" type="password" placeholder={t("Passwort","Password")} value={pass} onChange={e=>setPass(e.target.value)}/>}
         {err && <div className="authmsg bad">{err}</div>}
         <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!email||(mode!=="reset"&&!pass)} onClick={submit}>
-          {busy?"…":mode==="login"?"Anmelden":mode==="reset"?"Link senden":"Konto erstellen"}
+          {busy?"…":mode==="login"?t("Anmelden","Sign in"):mode==="reset"?t("Link senden","Send link"):t("Konto erstellen","Create account")}
         </button>
-        {mode==="login" && <button className="authlink" onClick={()=>{setMode("reset");setErr(null);setMsg(null)}}>Passwort vergessen?</button>}
-        {mode==="reset" && <button className="authlink" onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>← Zurück zum Anmelden</button>}
+        {mode==="login" && <button className="authlink" onClick={()=>{setMode("reset");setErr(null);setMsg(null)}}>{t("Passwort vergessen?","Forgot password?")}</button>}
+        {mode==="reset" && <button className="authlink" onClick={()=>{setMode("login");setErr(null);setMsg(null)}}>{t("← Zurück zum Anmelden","← Back to sign in")}</button>}
         {mode!=="reset" && <>
-          <div className="author"><span>oder</span></div>
+          <div className="author"><span>{t("oder","or")}</span></div>
           <button className="googlebtn" onClick={()=>sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:REDIRECT_URL}})}>
             <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" style={{flex:"0 0 auto"}}>
               <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.62z"/>
@@ -2860,11 +2860,11 @@ function AuthModal({ onClose }){
               <path fill="#FBBC05" d="M3.97 10.71a5.41 5.41 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.33z"/>
               <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A9 9 0 0 0 9 0 9 9 0 0 0 .96 4.96L3.97 7.3C4.68 5.17 6.66 3.58 9 3.58z"/>
             </svg>
-            Mit Google anmelden
+            {t("Mit Google anmelden","Sign in with Google")}
           </button>
         </>}
       </>}
-      <button className="authclose" onClick={onClose}>Schließen</button>
+      <button className="authclose" onClick={onClose}>{t("Schließen","Close")}</button>
     </div>
   </div>;
 }
@@ -2876,8 +2876,8 @@ function FeedbackModal({ onClose, user, setToast }){
   const [err,setErr]=useState(null);
   async function submit(){
     const message=text.trim();
-    if(!message){ setErr("Bitte beschreibe kurz das Problem."); return; }
-    if(!CONFIG.API_BASE){ setErr("Kein Server verbunden."); return; }
+    if(!message){ setErr(t("Bitte beschreibe kurz das Problem.","Please describe the problem briefly.")); return; }
+    if(!CONFIG.API_BASE){ setErr(t("Kein Server verbunden.","No server connected.")); return; }
     setBusy(true); setErr(null);
     try{
       const r=await fetch(`${CONFIG.API_BASE}/api/feedback`,{
@@ -2892,28 +2892,28 @@ function FeedbackModal({ onClose, user, setToast }){
       });
       const d=await r.json().catch(()=>({}));
       if(r.ok && d.ok) setDone(true);
-      else setErr(d.error==="empty"?"Bitte beschreibe kurz das Problem.":"Konnte nicht gesendet werden. Bitte später erneut versuchen.");
-    }catch(e){ setErr("Server nicht erreichbar. Bitte später erneut versuchen."); }
+      else setErr(d.error==="empty"?t("Bitte beschreibe kurz das Problem.","Please describe the problem briefly."):t("Konnte nicht gesendet werden. Bitte später erneut versuchen.","Couldn't be sent. Please try again later."));
+    }catch(e){ setErr(t("Server nicht erreichbar. Bitte später erneut versuchen.","Server unreachable. Please try again later.")); }
     finally{ setBusy(false); }
   }
   return <div className="modal-bg" onClick={onClose}>
     <div className="modal" onClick={e=>e.stopPropagation()}>
-      <div className="modal-h">🐞 Fehler melden</div>
+      <div className="modal-h">🐞 {t("Fehler melden","Report a bug")}</div>
       {done ? <>
-        <div className="authmsg ok">Danke! Deine Meldung ist angekommen. 🙏</div>
-        <button className="authclose" onClick={onClose}>Schließen</button>
+        <div className="authmsg ok">{t("Danke! Deine Meldung ist angekommen. 🙏","Thanks! Your report came through. 🙏")}</div>
+        <button className="authclose" onClick={onClose}>{t("Schließen","Close")}</button>
       </> : <>
         <p style={{fontSize:13,color:"var(--muted)",margin:"0 0 10px",lineHeight:1.5}}>
-          Was ist schiefgelaufen? Je genauer du es beschreibst, desto schneller können wir es beheben.
+          {t("Was ist schiefgelaufen? Je genauer du es beschreibst, desto schneller können wir es beheben.","What went wrong? The more detail you give, the faster we can fix it.")}
         </p>
         <textarea className="authinput" style={{minHeight:120,resize:"vertical",fontFamily:"inherit"}}
-          placeholder="z. B. Auf der Flug-Detailseite passiert nichts, wenn ich auf „Wetten“ tippe…"
+          placeholder={t("z. B. Auf der Flug-Detailseite passiert nichts, wenn ich auf „Wetten“ tippe…","e.g. Nothing happens on the flight detail page when I tap a bet…")}
           value={text} onChange={e=>setText(e.target.value)} maxLength={4000}/>
         {err && <div className="authmsg bad">{err}</div>}
         <button className="betbtn" style={{width:"100%",marginTop:6}} disabled={busy||!text.trim()} onClick={submit}>
-          {busy?"…":"Absenden"}
+          {busy?"…":t("Absenden","Send")}
         </button>
-        <button className="authclose" onClick={onClose}>Abbrechen</button>
+        <button className="authclose" onClick={onClose}>{t("Abbrechen","Cancel")}</button>
       </>}
     </div>
   </div>;
@@ -2954,8 +2954,8 @@ function Leaderboard({ players, me }){
   if(players===null) return <div className="lb-empty">Lade Ranking…</div>;
   if(!players.length) return <div className="lb-empty">
     <div className="lb-emoji">🏆</div>
-    <div className="lb-et">Noch kein Ranking</div>
-    <div className="lb-es">Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.</div>
+    <div className="lb-et">{t("Noch kein Ranking","No ranking yet")}</div>
+    <div className="lb-es">{t("Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.","Once players place their first bet, they show up here — sorted by balance.")}</div>
   </div>;
   const medal = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
   return <div className="flapboard">
@@ -3063,7 +3063,7 @@ function BetCelebration({ data, onDone }){
   return <div className="celebrate" onClick={onDone}>
     <div className="celebrate-card">
       <div className="celebrate-check">✓</div>
-      <div className="celebrate-t">{data.big?"Erste Wette platziert! 🎉":"Wette platziert!"}</div>
+      <div className="celebrate-t">{data.big?t("Erste Wette platziert! 🎉","First bet placed! 🎉"):t("Wette platziert!","Bet placed!")}</div>
       <div className="celebrate-s">{fmt(data.stake)} € {t("auf","on")} „{outLabel(data.label)}"</div>
     </div>
     {bits.map((b,i)=><span key={i} className="confetti" style={{
@@ -3089,7 +3089,7 @@ function ResultsCelebration({ data, onDone }){
       <div className="celebrate-check" style={{background:good?"var(--good)":"var(--card2)",color:good?"#fff":"var(--muted)",fontSize:28}}>
         {good?"✓":"•"}
       </div>
-      <div className="celebrate-t">{data.count} {data.count===1?"Wette":"Wetten"} abgerechnet</div>
+      <div className="celebrate-t">{data.count} {data.count===1?t("Wette","bet"):t("Wetten","bets")} {t("abgerechnet","settled")}</div>
       <div className="celebrate-s">
         {data.wonCount} richtig · {good?"+":""}{fmt(net)} € unterm Strich
         {data.xpGained>0 && <span className="res-xp"> · +{data.xpGained} XP</span>}
@@ -3142,17 +3142,17 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const [rbFilter, setRbFilter] = useState("all"); // resolved-bets filter: all | won | lost
   if(!user) return <div className="lb-empty">
     <div className="lb-emoji">👤</div>
-    <div className="lb-et">Nicht angemeldet</div>
-    <div className="lb-es">Melde dich an, um dein Profil und deine Statistiken zu sehen.</div>
+    <div className="lb-et">{t("Nicht angemeldet","Not signed in")}</div>
+    <div className="lb-es">{t("Melde dich an, um dein Profil und deine Statistiken zu sehen.","Sign in to see your profile and stats.")}</div>
   </div>;
   const betsTotal = wallet.betsTotal||0, betsWon = wallet.betsWon||0;
   const hitRate = betsTotal ? Math.round(betsWon/betsTotal*100) : 0;
   const staked = wallet.staked||0, won = wallet.wonAmount||0;
   const netBets = won - staked; // win/loss from settled betting
-  const OUT = {a:"Pünktlich",b:"+15min",c:"+30min",d:"+60min"};
+  const OUT = {a:t("Pünktlich","On time"),b:"+15min",c:"+30min",d:"+60min"};
   const open = (wallet.positions||[]).filter(p=>!p.settled);
   const openStake = open.reduce((s,p)=>s+(p.stake||0),0);
-  const name = user.user_metadata?.name || user.email?.split("@")[0] || "Spieler";
+  const name = user.user_metadata?.name || user.email?.split("@")[0] || t("Spieler","Player");
   const codeFor = fid => { const m = markets.find(x=>x.id===fid); return m?m.code:fid; };
 
   // Resolved (settled) bets → flight-ticket cards. Join the player's settled
@@ -3203,25 +3203,25 @@ function Profile({ wallet, user, streak, markets, onOpen }){
 
     <div className="lvlbox">
       {(() => { const p = levelProgress(wallet.xp); return <>
-        <div className="lvlbox-top"><span className="lvl-badge">Level {p.level}</span><span className="lvl-xp">{wallet.xp||0} XP · {p.into}/{p.span} bis Lvl {p.level+1}</span></div>
+        <div className="lvlbox-top"><span className="lvl-badge">Level {p.level}</span><span className="lvl-xp">{wallet.xp||0} XP · {p.into}/{p.span} {t("bis Lvl","to Lvl")} {p.level+1}</span></div>
         <div className="lvl-bar"><span style={{width:p.pct+"%"}}/></div>
-        <div className="lvl-hint">XP gibt's nur für richtige Tipps — mutige Treffer auf hohe Quoten zählen mehr.</div>
+        <div className="lvl-hint">{t("XP gibt's nur für richtige Tipps — mutige Treffer auf hohe Quoten zählen mehr.","XP only comes from correct picks — bold hits on high odds count more.")}</div>
       </>; })()}
     </div>
 
     <div className="stat-grid">
-      <div className="stat"><div className="stat-v">{hitRate}%</div><div className="stat-l">Trefferquote</div></div>
-      <div className="stat"><div className="stat-v">{betsWon}/{betsTotal}</div><div className="stat-l">Wetten gewonnen</div></div>
-      <div className="stat"><div className="stat-v">{fmt(staked)} €</div><div className="stat-l">Gesamt eingesetzt</div></div>
-      <div className="stat"><div className="stat-v">{fmt(won)} €</div><div className="stat-l">Zurückgewonnen</div></div>
-      <div className="stat"><div className="stat-v" style={{color:netBets>=0?"var(--good)":"var(--bad)"}}>{netBets>=0?"+":""}{fmt(netBets)} €</div><div className="stat-l">Bilanz aus Wetten</div></div>
-      <div className="stat"><div className="stat-v">{open.length}</div><div className="stat-l">Offene Wetten</div></div>
+      <div className="stat"><div className="stat-v">{hitRate}%</div><div className="stat-l">{t("Trefferquote","Hit rate")}</div></div>
+      <div className="stat"><div className="stat-v">{betsWon}/{betsTotal}</div><div className="stat-l">{t("Wetten gewonnen","Bets won")}</div></div>
+      <div className="stat"><div className="stat-v">{fmt(staked)} €</div><div className="stat-l">{t("Gesamt eingesetzt","Total staked")}</div></div>
+      <div className="stat"><div className="stat-v">{fmt(won)} €</div><div className="stat-l">{t("Zurückgewonnen","Won back")}</div></div>
+      <div className="stat"><div className="stat-v" style={{color:netBets>=0?"var(--good)":"var(--bad)"}}>{netBets>=0?"+":""}{fmt(netBets)} €</div><div className="stat-l">{t("Bilanz aus Wetten","Betting balance")}</div></div>
+      <div className="stat"><div className="stat-v">{open.length}</div><div className="stat-l">{t("Offene Wetten","Open bets")}</div></div>
     </div>
 
     <div className="panelbox">
-      <div className="sectlbl">Offene Wetten {open.length>0 && `· ${fmt(openStake)} € im Spiel`}</div>
+      <div className="sectlbl">{t("Offene Wetten","Open bets")} {open.length>0 && `· ${fmt(openStake)} € ${t("im Spiel","in play")}`}</div>
       {open.length===0
-        ? <div className="prof-empty">Keine offenen Wetten. Setz auf einen Flug, um loszulegen.</div>
+        ? <div className="prof-empty">{t("Keine offenen Wetten. Setz auf einen Flug, um loszulegen.","No open bets. Back a flight to get started.")}</div>
         : <div className="open-list">{open.map((p,i)=>
             <button className="open-row" key={i} onClick={()=>onOpen(p.flight_id)}>
               <span className="open-code">{codeFor(p.flight_id)}</span>
@@ -3338,74 +3338,74 @@ function Settings({ user, theme, setTheme, muted, setMuted, signOut, setToast })
   const [confirmDel,setConfirmDel]=useState(false);
 
   const saveName=async()=>{
-    const n=name.trim(); if(!n){setToast("Name darf nicht leer sein");return;}
+    const n=name.trim(); if(!n){setToast(t("Name darf nicht leer sein","Name can't be empty"));return;}
     setBusy("name");
-    try{ const {error}=await sb.auth.updateUser({data:{name:n}}); setToast(error?("Fehler: "+error.message):"Anzeigename gespeichert"); }
-    catch(e){ setToast("Fehler beim Speichern"); } finally{ setBusy(""); }
+    try{ const {error}=await sb.auth.updateUser({data:{name:n}}); setToast(error?(t("Fehler: ","Error: ")+error.message):t("Anzeigename gespeichert","Display name saved")); }
+    catch(e){ setToast(t("Fehler beim Speichern","Error while saving")); } finally{ setBusy(""); }
   };
   const saveEmail=async()=>{
-    const e2=email.trim(); if(!e2){setToast("E-Mail darf nicht leer sein");return;}
+    const e2=email.trim(); if(!e2){setToast(t("E-Mail darf nicht leer sein","Email can't be empty"));return;}
     setBusy("email");
-    try{ const {error}=await sb.auth.updateUser({email:e2}); setToast(error?("Fehler: "+error.message):"Bestätigungs-Mail verschickt — bitte beide Postfächer prüfen"); }
-    catch(e){ setToast("Fehler beim Ändern"); } finally{ setBusy(""); }
+    try{ const {error}=await sb.auth.updateUser({email:e2}); setToast(error?(t("Fehler: ","Error: ")+error.message):t("Bestätigungs-Mail verschickt — bitte beide Postfächer prüfen","Confirmation email sent — please check both inboxes")); }
+    catch(e){ setToast(t("Fehler beim Ändern","Error while changing")); } finally{ setBusy(""); }
   };
   const savePw=async()=>{
-    if(pw.length<8){setToast("Passwort muss mind. 8 Zeichen haben");return;}
+    if(pw.length<8){setToast(t("Passwort muss mind. 8 Zeichen haben","Password must be at least 8 characters"));return;}
     setBusy("pw");
-    try{ const {error}=await sb.auth.updateUser({password:pw}); setToast(error?("Fehler: "+error.message):"Passwort geändert"); setPw(""); }
-    catch(e){ setToast("Fehler beim Ändern"); } finally{ setBusy(""); }
+    try{ const {error}=await sb.auth.updateUser({password:pw}); setToast(error?(t("Fehler: ","Error: ")+error.message):t("Passwort geändert","Password changed")); setPw(""); }
+    catch(e){ setToast(t("Fehler beim Ändern","Error while changing")); } finally{ setBusy(""); }
   };
   const doDelete=async()=>{
     setBusy("del");
     try{
       const r=await authedFetch(`${CONFIG.API_BASE}/api/delete-account`,{method:"POST"});
       const d=await r.json();
-      if(d.ok){ setToast("Konto gelöscht. Du wirst abgemeldet."); setTimeout(()=>signOut(),1500); }
-      else setToast("Löschen fehlgeschlagen: "+(d.error||"unbekannt"));
-    }catch(e){ setToast("Löschen fehlgeschlagen — Server nicht erreichbar"); }
+      if(d.ok){ setToast(t("Konto gelöscht. Du wirst abgemeldet.","Account deleted. You will be signed out.")); setTimeout(()=>signOut(),1500); }
+      else setToast(t("Löschen fehlgeschlagen: ","Deletion failed: ")+(d.error||t("unbekannt","unknown")));
+    }catch(e){ setToast(t("Löschen fehlgeschlagen — Server nicht erreichbar","Deletion failed — server unreachable")); }
     finally{ setBusy(""); setConfirmDel(false); }
   };
 
   return <div className="settings">
-    <div className="rankhead"><h2>⚙️ Einstellungen</h2><p>Darstellung, Konto und Daten.</p></div>
+    <div className="rankhead"><h2>⚙️ {t("Einstellungen","Settings")}</h2><p>{t("Darstellung, Konto und Daten.","Appearance, account and data.")}</p></div>
 
     <div className="set-sec">
-      <div className="set-h">Darstellung</div>
-      <div className="set-row"><span>Dunkler Modus</span>
+      <div className="set-h">{t("Darstellung","Appearance")}</div>
+      <div className="set-row"><span>{t("Dunkler Modus","Dark mode")}</span>
         <button className={"toggle"+(theme==="dark"?" on":"")} onClick={()=>setTheme(t=>t==="light"?"dark":"light")}><span/></button></div>
-      <div className="set-row"><span>Ton</span>
+      <div className="set-row"><span>{t("Ton","Sound")}</span>
         <button className={"toggle"+(!muted?" on":"")} onClick={()=>{const v=!muted;setMuted(v);Sound.setMuted(v);if(!v)Sound.select();}}><span/></button></div>
     </div>
 
     {user ? <>
       <div className="set-sec">
-        <div className="set-h">Konto</div>
-        <label className="set-field"><span>Anzeigename</span>
-          <div className="set-inline"><input value={name} onChange={e=>setName(e.target.value)} placeholder="Dein Name"/>
-            <button className="set-btn" disabled={busy==="name"} onClick={saveName}>{busy==="name"?"…":"Speichern"}</button></div></label>
-        <label className="set-field"><span>E-Mail</span>
+        <div className="set-h">{t("Konto","Account")}</div>
+        <label className="set-field"><span>{t("Anzeigename","Display name")}</span>
+          <div className="set-inline"><input value={name} onChange={e=>setName(e.target.value)} placeholder={t("Dein Name","Your name")}/>
+            <button className="set-btn" disabled={busy==="name"} onClick={saveName}>{busy==="name"?"…":t("Speichern","Save")}</button></div></label>
+        <label className="set-field"><span>{t("E-Mail","Email")}</span>
           <div className="set-inline"><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@mail.de"/>
-            <button className="set-btn" disabled={busy==="email"} onClick={saveEmail}>{busy==="email"?"…":"Ändern"}</button></div>
-          <span className="set-hint">Du erhältst eine Bestätigungs-Mail an die neue Adresse.</span></label>
-        <label className="set-field"><span>Neues Passwort</span>
-          <div className="set-inline"><input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="mind. 8 Zeichen"/>
-            <button className="set-btn" disabled={busy==="pw"} onClick={savePw}>{busy==="pw"?"…":"Ändern"}</button></div></label>
+            <button className="set-btn" disabled={busy==="email"} onClick={saveEmail}>{busy==="email"?"…":t("Ändern","Change")}</button></div>
+          <span className="set-hint">{t("Du erhältst eine Bestätigungs-Mail an die neue Adresse.","You'll get a confirmation email at the new address.")}</span></label>
+        <label className="set-field"><span>{t("Neues Passwort","New password")}</span>
+          <div className="set-inline"><input type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder={t("mind. 8 Zeichen","min. 8 characters")}/>
+            <button className="set-btn" disabled={busy==="pw"} onClick={savePw}>{busy==="pw"?"…":t("Ändern","Change")}</button></div></label>
       </div>
 
       <div className="set-sec danger-sec">
-        <div className="set-h">Konto löschen</div>
-        <p className="set-hint">Löscht dein Konto und alle deine Daten (Guthaben, Wetten) unwiderruflich. Spielgeld hat keinen Geldwert.</p>
+        <div className="set-h">{t("Konto löschen","Delete account")}</div>
+        <p className="set-hint">{t("Löscht dein Konto und alle deine Daten (Guthaben, Wetten) unwiderruflich. Spielgeld hat keinen Geldwert.","Permanently deletes your account and all your data (balance, bets). Play money has no monetary value.")}</p>
         {!confirmDel
-          ? <button className="set-del" onClick={()=>setConfirmDel(true)}>Konto löschen…</button>
+          ? <button className="set-del" onClick={()=>setConfirmDel(true)}>{t("Konto löschen…","Delete account…")}</button>
           : <div className="set-confirm">
-              <span>Wirklich endgültig löschen?</span>
+              <span>{t("Wirklich endgültig löschen?","Really delete permanently?")}</span>
               <div className="set-confirm-row">
-                <button className="set-del" disabled={busy==="del"} onClick={doDelete}>{busy==="del"?"Lösche…":"Ja, endgültig löschen"}</button>
-                <button className="set-cancel" onClick={()=>setConfirmDel(false)}>Abbrechen</button>
+                <button className="set-del" disabled={busy==="del"} onClick={doDelete}>{busy==="del"?t("Lösche…","Deleting…"):t("Ja, endgültig löschen","Yes, delete permanently")}</button>
+                <button className="set-cancel" onClick={()=>setConfirmDel(false)}>{t("Abbrechen","Cancel")}</button>
               </div>
             </div>}
       </div>
-    </> : <div className="set-sec"><p className="set-hint">Melde dich an, um Kontoeinstellungen zu sehen.</p></div>}
+    </> : <div className="set-sec"><p className="set-hint">{t("Melde dich an, um Kontoeinstellungen zu sehen.","Sign in to see account settings.")}</p></div>}
   </div>;
 }
 
@@ -3655,7 +3655,7 @@ function ClosedTable({ rows }){
     : rows;
   return <>
     <div className="ctable-search">
-      <input className="ctable-input" placeholder="🔍 Nach Ziel oder Flug suchen…" value={q} onChange={e=>setQ(e.target.value)}/>
+      <input className="ctable-input" placeholder={t("🔍 Nach Ziel oder Flug suchen…","🔍 Search by destination or flight…")} value={q} onChange={e=>setQ(e.target.value)}/>
     </div>
     <div className="ctable-wrap">
       <table className="ctable">
@@ -3845,11 +3845,11 @@ function App(){
       Sound.bet();
       setCelebrate({ stake: s, label:o.label, big:firstBet });
       setBump(b=>b+1); // refetch pools + wallet
-    }catch(e){ setToast("Wette fehlgeschlagen — Server nicht erreichbar"); }
+    }catch(e){ setToast(t("Wette fehlgeschlagen — Server nicht erreichbar","Bet failed — server unreachable")); }
   }
   // Settlement is automatic on the server. The OPS button is gone.
-  function onSettle(){ setToast("Abrechnung läuft automatisch nach der Landung."); }
-  function reset(){ setToast("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt."); }
+  function onSettle(){ setToast(t("Abrechnung läuft automatisch nach der Landung.","Settlement runs automatically after landing.")); }
+  function reset(){ setToast(t("Guthaben wird serverseitig geführt und nicht mehr lokal zurückgesetzt.","Balance is managed server-side and no longer reset locally.")); }
 
   // ---- Auth state-loss fix: resume a bet started before login ----
   const pendingDone = useRef(false);
@@ -3891,13 +3891,13 @@ function App(){
     return ()=>clearTimeout(tmr);
   }, [authReady, user, allFindable]);
 
-  const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || "Konto") : null;
+  const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || t("Konto","Account")) : null;
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,onQuickBet,positions:serverWallet.positions};
   const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
 
   return <div className="app">
     <div className="top">
-      <div className="wm" role="button" title="Zu den wettbaren Flügen" onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
+      <div className="wm" role="button" title={t("Zu den wettbaren Flügen","To the bettable flights")} onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
       <div className="topr">
         <button className="iconbtn" onClick={()=>setTheme(tm=>tm==="light"?"dark":"light")} title={t("Heller / Dunkler Modus","Light / Dark mode")} aria-label={t("Heller / Dunkler Modus","Light / Dark mode")}>{theme==="light"?"🌙":"☀️"}</button>
         <button className="iconbtn lang" onClick={()=>setLang(l=>l==="de"?"en":"de")} title={t("Sprache wechseln","Switch language")} aria-label={t("Sprache wechseln","Switch language")}>{lang==="de"?"DE":"EN"}</button>
@@ -3905,7 +3905,7 @@ function App(){
           {streak>0 && <span className="chip streak" title={t("Anmelde-Streak","Login streak")}>🔥 <RollingNumber value={streak} from0/></span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Ranking">🏆 {t("Ranking","Ranking")}</button>
-          <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 {t("Meine Wetten","My bets")}</button>
+          <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title={t("Meine Wetten & Statistik","My bets & stats")}>🎫 {t("Meine Wetten","My bets")}</button>
           <button className="avatar hide-mobile" onClick={()=>setMenuOpen(o=>!o)}/>
         </> : (
           <>
@@ -3952,7 +3952,7 @@ function App(){
             <button className="menu-item danger" onClick={()=>{setMenuOpen(false);signOut();}}><span className="mi-i">↩</span>{t("Abmelden","Sign out")}</button>
           </>}
         </div>
-        <div className="menu-foot">flug.bet · Spielgeld</div>
+        <div className="menu-foot">flug.bet · {t("Spielgeld","Play money")}</div>
       </div>
     </>}
 
@@ -3973,7 +3973,7 @@ function App(){
       <>
         <div className="rankhead">
           <h2>🏆 Ranking</h2>
-          <p>Beste Tipper nach Guthaben — wer aus den Start-925 € am meisten gemacht hat.</p>
+          <p>{t("Beste Tipper nach Guthaben — wer aus den Start-925 € am meisten gemacht hat.","Top tipsters by balance — who made the most out of the starting €925.")}</p>
         </div>
         <Leaderboard players={leaderboard} me={user?.id}/>
       </>
@@ -3991,8 +3991,8 @@ function App(){
         <div className="board-main">
       {(dataStatus==="offline" || dataStatus==="demo") && <div className="emptyboard">
         {dataStatus==="offline"
-          ? "Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft."
-          : "Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden."}
+          ? t("Die Live-Tafel ist gerade nicht erreichbar. Der Worker antwortet nicht — Daten erscheinen, sobald er wieder läuft.","The live board is currently unreachable. The worker isn't responding — data will appear once it's back.")
+          : t("Kein Live-Worker verbunden. Trag deine Worker-URL in CONFIG.API_BASE ein, um die echte BER-Tafel zu laden.","No live worker connected. Add your worker URL to CONFIG.API_BASE to load the real BER board.")}
       </div>}
 
       {(() => {
@@ -4071,8 +4071,8 @@ function App(){
     {streakWelcome && <div className="celebrate" onClick={()=>setStreakWelcome(null)}>
       <div className="celebrate-card">
         <div className="streak-flame">🔥</div>
-        <div className="celebrate-t">{streakWelcome.streak} {streakWelcome.streak===1?"Tag":"Tage"} in Folge!</div>
-        <div className="celebrate-s">Willkommen zurück · <b style={{color:"var(--good)"}}>+{streakWelcome.bonus} €</b> Bonus</div>
+        <div className="celebrate-t">{streakWelcome.streak} {streakWelcome.streak===1?t("Tag","day"):t("Tage","days")} {t("in Folge!","in a row!")}</div>
+        <div className="celebrate-s">{t("Willkommen zurück","Welcome back")} · <b style={{color:"var(--good)"}}>+{streakWelcome.bonus} €</b> {t("Bonus","bonus")}</div>
       </div>
     </div>}
     {!streakWelcome && <ResultsCelebration data={results} onDone={()=>setResults(null)}/>}
