@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v219 -->
+<!-- build: v2026-06-16-v220 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -499,7 +499,7 @@ button{font-family:inherit}
 .rbet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .rbet.loss{border-left-color:var(--bad)}
-.rbet.void{border-left-color:var(--muted)}
+.rbet.void{border-left-color:color-mix(in srgb,var(--muted) 45%,var(--line))}
 .rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .rbet-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
 .rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
@@ -3196,23 +3196,27 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const al = splitIdent(ident);
           const net = (p.payout||0)-(p.stake||0);
           const voided = !!(row && (row.cancelled===1||row.cancelled===true));
-          const win = !voided && net>0;
           const d = (row && row.delayMin!=null) ? row.delayMin : null;
-          const aCol = voided ? "var(--muted)" : (d==null ? "var(--muted)" : TONE[wtone(d)]);
-          const outCol = win ? "var(--good)" : voided ? "var(--muted)" : "var(--bad)";
+          // No usable result (cancelled, no delay, or no actual arrival) ⇒ neutral/refunded.
+          // Such a bet must NEVER be shown as profit or loss.
+          const neutral = voided || d==null || !(row && row.actualArr);
+          const win = !neutral && net>0;
+          const aCol = neutral ? "var(--muted)" : TONE[wtone(d)];
+          const outCol = neutral ? "var(--muted)" : (win ? "var(--good)" : "var(--bad)");
+          const netTxt = neutral ? "±0 €" : (net>0?"+":"")+fmt(net)+" €";
           const picked = statusLabel(BTONE[p.outcome] || "good");
           const pickCol = TONE[BTONE[p.outcome]] || "var(--ink)";
           const aWord = voided ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : statusLabel(wtone(d));
           const aMin = (voided||d==null) ? "" : " ("+(d>=0?"+":"")+d+"min)";
-          return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
+          return <div className={"rbet"+(neutral?" void":win?"":" loss")} key={i}>
             <div className="rbet-top">
               <div className="rbet-id">
                 <div className="rbet-idline"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>{al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}</div>
                 {row && row.date && <div className="rbet-date">{fmtCardDate(row.date)}</div>}
               </div>
               <div className="rbet-outcome">
-                <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
-                <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
+                <div className="rbet-net" style={{color:outCol}}>{netTxt}</div>
+                <div className="rbet-status" style={{color: neutral ? "color-mix(in srgb,var(--muted) 70%,transparent)" : outCol}}>{neutral ? t("ERSTATTET","REFUNDED") : win?"PROFIT":"LOSS"}</div>
               </div>
             </div>
             <div className="rbet-route">{t("Berlin","Berlin")} <span className="rbet-arrow">→</span> {row ? cityFor(row.dest) : "—"}</div>
