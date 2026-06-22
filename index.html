@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v241 -->
+<!-- build: v2026-06-16-v242 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3960,6 +3960,7 @@ function App(){
     {feedbackOpen && <FeedbackModal onClose={()=>setFeedbackOpen(false)} user={user} setToast={setToast}/>}
 
     <main className="app-main">
+    {tab!=="flights" && <button className="back" onClick={()=>{setTab("flights");setView({page:"home"});}}>← {t("Zu den Flügen","Back to flights")}</button>}
     {tab==="settings" ? (
       <Settings user={user} theme={theme} setTheme={setTheme} muted={muted} setMuted={setMuted} signOut={signOut} setToast={setToast}/>
     ) : tab==="about" ? (
