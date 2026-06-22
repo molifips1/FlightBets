@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v242 -->
+<!-- build: v2026-06-16-v243 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2640,6 +2640,7 @@ function usePools(bump){
     if(!CONFIG.API_BASE) return;
     let dead=false;
     async function tick(){
+      if(typeof document!=="undefined" && document.hidden) return; // don't poll a backgrounded tab
       try{
         const r = await fetch(`${CONFIG.API_BASE}/api/pools`);
         if(!r.ok) return;
@@ -2649,8 +2650,10 @@ function usePools(bump){
       }catch(e){}
     }
     tick();
-    const h=setInterval(tick, 60*1000); // every minute
-    return ()=>{ dead=true; clearInterval(h); };
+    const h=setInterval(tick, 12*1000); // ~live: refresh pools/odds every 12s while visible
+    const onVis=()=>{ if(!document.hidden) tick(); }; // returning to the tab → refetch at once
+    document.addEventListener("visibilitychange", onVis);
+    return ()=>{ dead=true; clearInterval(h); document.removeEventListener("visibilitychange", onVis); };
   },[bump]);
   return { pools, settled };
 }
