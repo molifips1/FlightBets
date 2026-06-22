@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v285 -->
+<!-- build: v2026-06-16-v286 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -319,7 +319,7 @@ button{font-family:inherit}
   [data-theme="dark"] .app .top{background:#0C1626;border-bottom-color:transparent}
   .topr .iconbtn{width:36px;height:32px;border-radius:9px;display:grid;place-items:center;line-height:1}
   .topr .chip{height:32px;padding:0 11px;font-size:13px;border-radius:9px}
-  .app .subfilter{top:44px;gap:6px;margin:0 -18px 6px;padding:6px 18px;flex-wrap:nowrap;background:var(--bg);backdrop-filter:none}
+  .app .subfilter{top:42px;gap:6px;margin:0 -18px 6px;padding:6px 18px 8px;flex-wrap:nowrap;background:var(--bg);backdrop-filter:none}
   [data-theme="dark"] .app .subfilter{background:#0C1626}
   .app .subfilter .subpill{flex:1;min-width:0;text-align:center;padding:7px 4px;font-size:12px;white-space:nowrap}
 }
@@ -976,23 +976,23 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l .pd-seg{min-width:30px;white-space:nowrap;padding:0 2px;font-variant-numeric:tabular-nums}
 }
 @media(max-width:559px){
-  .sheet-bg{padding:0 10px calc(14px + env(safe-area-inset-bottom))}
-  .sheet{position:relative;max-height:92vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 16px 14px;border-radius:18px}
+  .sheet-bg{align-items:center;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom)}
+  .sheet{position:relative;max-height:90vh;overflow-y:auto;overscroll-behavior:contain;padding:14px 18px 16px;border-radius:18px;animation:sheetPop .2s ease-out}
   .sheet .sheet-grip{display:none}
   .sheet .sheet-x-abs{width:46px;height:46px;font-size:27px;top:3px;right:3px}
-  .sheet .sheet-head2{padding:0 0 8px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .sheet .sheet-head2{padding:0 0 10px;margin-bottom:11px;border-bottom:1px solid var(--line)}
   .sheet .fc-head-r{margin-top:28px}
-  .sheet .sheet-route2{padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid var(--line)}
-  .sheet .sheet-col-l{margin-bottom:0}
-  .sheet .sheet-lbl{margin:0 0 5px}
-  .sheet .sheet-brackets{gap:5px;margin-bottom:8px}
-  .sheet .sheet-bk{padding:9px 11px;gap:9px}
-  .sheet .chips-row{gap:6px;margin-bottom:8px}
-  .sheet .chip-coin{aspect-ratio:auto;height:38px;border-radius:11px}
-  .sheet .chip-custom{border-radius:11px}
-  .sheet .sheet-pay{padding:8px 0}
+  .sheet .sheet-route2{padding-bottom:10px;margin-bottom:11px;border-bottom:1px solid var(--line)}
+  .sheet .sheet-col-l{margin-bottom:2px}
+  .sheet .sheet-lbl{margin:0 0 7px}
+  .sheet .sheet-brackets{gap:7px;margin-bottom:12px}
+  .sheet .sheet-bk{padding:11px 12px;gap:10px}
+  .sheet .chips-row{gap:7px;margin-bottom:12px}
+  .sheet .chip-coin{aspect-ratio:auto;height:40px;border-radius:12px}
+  .sheet .chip-custom{border-radius:12px}
+  .sheet .sheet-pay{padding:10px 0}
   .sheet .sheet-payhint{display:none}
-  .sheet .sheet-place{padding:12px 14px;margin-top:2px}
+  .sheet .sheet-place{padding:13px 14px;margin-top:4px}
 }
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
