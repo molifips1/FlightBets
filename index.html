@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v246 -->
+<!-- build: v2026-06-16-v247 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1614,7 +1614,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
         </span>)}
     </div>
   ) : null;
-  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","Pool Share")}</div>{bar}{lineLegend}</div>;
+  if(barOnly) return <div className="pooldist" onClick={e=>e.stopPropagation()}><div className="pd-sharelbl">{t("Verteilung der Wetten","distribution of bets")}</div>{bar}{lineLegend}</div>;
   return (
     <div className="pooldist" onClick={e=>e.stopPropagation()}>
       <div className="pd-label">{t("Pool-Verteilung","Pool distribution")}</div>
