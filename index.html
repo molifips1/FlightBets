@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v215 -->
+<!-- build: v2026-06-16-v216 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -839,7 +839,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:1px;transition:transform .1s,border-color .15s,background .15s,color .15s}
 .chip-coin small{font-size:9px;font-weight:700;opacity:.7}
-.chip-coin.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 12%,var(--card));color:var(--brand);transform:translateY(-2px)}
+.chip-coin.on{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,var(--card));color:var(--ink);transform:translateY(-2px)}
 .chip-coin.dis{opacity:.35;cursor:default}
 .chip-custom{flex:1.4;display:flex;align-items:center;justify-content:center;gap:1px;border-radius:14px;border:2px solid var(--line);
   background:color-mix(in srgb,var(--ink) 6%,var(--card));box-shadow:inset 0 2px 5px color-mix(in srgb,var(--ink) 12%,transparent);
@@ -848,8 +848,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .chip-custom input::-webkit-outer-spin-button,.chip-custom input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .chip-custom input::placeholder{color:var(--muted);opacity:.7}
 .chip-custom small{font-size:9px;font-weight:700;opacity:.7}
-.chip-custom.on{border-color:var(--brand);color:var(--brand);background:color-mix(in srgb,var(--brand) 9%,var(--card))}
-.chip-custom:focus-within{border-color:var(--brand);box-shadow:inset 0 2px 6px color-mix(in srgb,var(--ink) 14%,transparent),0 0 0 3px color-mix(in srgb,var(--brand) 16%,transparent)}
+.chip-custom.on{border-color:var(--ink);color:var(--ink);background:color-mix(in srgb,var(--ink) 7%,var(--card))}
+.chip-custom:focus-within{border-color:var(--ink);box-shadow:inset 0 2px 6px color-mix(in srgb,var(--ink) 14%,transparent),0 0 0 3px color-mix(in srgb,var(--ink) 12%,transparent)}
 .sheet-tail{display:flex;flex-direction:column}
 .sheet-brackets{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .sheet-bk{--bk:var(--brand);display:flex;align-items:center;gap:11px;padding:14px;border:1.5px solid var(--line);border-radius:13px;
@@ -860,8 +860,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
 .sheet-pay{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .sheet-pay b{font-size:20px;color:var(--good)}
-.sheet-place{width:100%;border:none;border-radius:14px;padding:16px;margin-top:6px;cursor:pointer;white-space:nowrap;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13.5px;letter-spacing:.5px;
+.sheet-place{width:100%;border:none;border-radius:14px;padding:15px 14px;margin-top:6px;cursor:pointer;text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;letter-spacing:.2px;
   background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
 .sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
 .sheet-place:disabled{background:var(--line);color:var(--muted);cursor:default}
@@ -913,6 +913,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-col-l .sheet-tail-l{justify-content:flex-start}
   .sheet-col-r .sheet-tail-r{margin-top:auto;justify-content:flex-start}
   .sheet-col-r .sheet-pay{border-top:none;padding-top:0}
+  .sheet-place{white-space:nowrap}
+  /* In-bar pool-share % needs a readable floor only in the modal bar */
+  .sheet-col-l .pd-seg{min-width:30px;white-space:nowrap;padding:0 2px;font-variant-numeric:tabular-nums}
 }
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
@@ -1576,7 +1579,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
         const w=vals[i]/tot*100, c=TONE[o.tone];
         return <div key={o.id} className="pd-seg"
           style={{width:w+"%", backgroundColor:c, boxShadow:`0 0 8px color-mix(in srgb, ${c} 60%, transparent)`}}
-          title={outLabel(o.label)+" "+pcts[i]+"% · "+Math.round(vals[i])+"€"}>{(!pctLegend && w>=8)?pcts[i]+"%":""}</div>;
+          title={outLabel(o.label)+" "+pcts[i]+"% · "+Math.round(vals[i])+"€"}>{!pctLegend ? pcts[i]+"%" : ""}</div>;
       })}
     </div>
   );
@@ -3406,6 +3409,8 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
   // Payout shown = stake × the odds displayed on the bracket button (no house fee, no
   // pool dilution) so "If you win" always equals stake × odds exactly (50€ × 2.70 = 135€).
   const proj = (oo,st)=>{ if(!oo) return 0; const od=displayOdds(market.outcomes,oo,market.seed); return od!=null ? st*od : 0; };
+  // Money: exact two decimals when not a whole number (50 × 2.07 = 103.50 €), else clean integer.
+  const fmtPay = v => { const r=Math.round(v*100)/100; return Number.isInteger(r) ? fmt(r) : r.toFixed(2); };
   const tooMuch = stake>wallet;
   const now = useNow(1000);
   const closed = market.betCloseISO && now >= new Date(market.betCloseISO).getTime();
@@ -3456,7 +3461,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
           <div className="sheet-tail sheet-tail-l">
-            <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly pctLegend/>
+            <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
           </div>
         </div>
 
@@ -3489,10 +3494,10 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
           <div className="sheet-tail sheet-tail-r">
             <div className="sheet-pay">
               <span>{t("Bei Gewinn (geschätzt)","If you win (estimation)")}</span>
-              <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
+              <b>{fmtPay(proj(o,Math.min(stake,wallet)))} €</b>
             </div>
             <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
-              {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren · ${stake} €`, `Place bet · ${stake} €`)}
+              {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren · ${stake} € auf ${outLabel(o.label)}`, `Place bet · ${stake} € on ${outLabel(o.label)}`)}
             </button>
           </div>
         </div>
