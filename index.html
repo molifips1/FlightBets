@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v186 -->
+<!-- build: v2026-06-16-v187 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -518,7 +518,7 @@ button{font-family:inherit}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:0}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:10px 0 4px}
-.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-3px 0 8px}
+.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:7px 0 0}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -1407,7 +1407,6 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
       <div className="pd-sharelbl">{t("Verspätungskurve","Landing Delay Curve")}</div>
-      {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
           <defs>
@@ -1436,6 +1435,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
           return <span key={mm} className={mm===0?"zero":""} style={{left:lp+"%", transform:tx}}>{mm}m</span>;
         })}
       </div>
+      {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
     </div>
   );
 }
