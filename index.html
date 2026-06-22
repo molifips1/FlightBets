@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v220 -->
+<!-- build: v2026-06-16-v221 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3197,9 +3197,10 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const net = (p.payout||0)-(p.stake||0);
           const voided = !!(row && (row.cancelled===1||row.cancelled===true));
           const d = (row && row.delayMin!=null) ? row.delayMin : null;
-          // No usable result (cancelled, no delay, or no actual arrival) ⇒ neutral/refunded.
-          // Such a bet must NEVER be shown as profit or loss.
-          const neutral = voided || d==null || !(row && row.actualArr);
+          // Neutral/refunded ONLY when there is no usable delay result: the flight was
+          // cancelled (delay_min NULL) or no delay number exists. A known delay IS a result
+          // even if the arrival timestamp is missing — the worker already settled on it.
+          const neutral = voided || d==null;
           const win = !neutral && net>0;
           const aCol = neutral ? "var(--muted)" : TONE[wtone(d)];
           const outCol = neutral ? "var(--muted)" : (win ? "var(--good)" : "var(--bad)");
