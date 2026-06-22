@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v259 -->
+<!-- build: v2026-06-16-v261 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -301,6 +301,7 @@ button{font-family:inherit}
   .fc-left .dcurve{min-height:26px}
   .fc-left .dcurve-plot{min-height:16px}
   .dcurve{margin:8px 0 4px}
+  .dcurve-plot{height:26px}
   .dcurve-cap{margin:-2px 0 6px}
   .op-list{gap:9px;margin-bottom:12px}
   .pd-bar{height:20px}
@@ -308,7 +309,8 @@ button{font-family:inherit}
   .pooldist{margin-top:8px}
   .fc-betbtn{margin-top:12px}
   .cb-desk{display:none}
-  .cb-mob{display:inline-flex;margin-top:4px}
+  .cb-mob{display:inline-flex;margin-top:4px;align-self:flex-start}
+  .topr .chip.streak{display:none}
   .oddspanel .pooldist{display:none}
   .betbtn.wette.fc-betbtn{padding:14px 24px;font-size:15px;font-weight:800;letter-spacing:1.4px;border-radius:12px}
 }
@@ -1884,11 +1886,11 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
                 }</span>)}
           </div>
           {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
+          {m.bettable && <span className="cb-mob"><CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/></span>}
         </div>
         <div className="fc-head-r">
           <span className="myeinsatz">{t("Preisgeld","Prize pool")}: <b><RollingNumber value={total}/> €</b></span>
           <span className="mystake">{t("Mein Einsatz","My stake")}: <b>{fmt(myStake||0)} €</b></span>
-          {m.bettable && <span className="cb-mob"><CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/></span>}
         </div>
       </div>
 
