@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v212 -->
+<!-- build: v2026-06-16-v213 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -332,7 +332,7 @@ button{font-family:inherit}
 .cbk-odds{margin-left:auto;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--ink);flex:none}
 .cbk-range{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.2}
 .bk-range{display:block;font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
-.sheet-bk-range{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
+.sheet-bk-range{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:6px;white-space:nowrap}
 /* Neon edge — applies in both light and dark. Colour comes from the card's --neon
    (set by flight status: green on-time, red late, etc.). */
 .card.neon{
@@ -861,7 +861,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
 .sheet-pay{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .sheet-pay b{font-size:20px;color:var(--good)}
-.sheet-place{width:100%;border:none;border-radius:14px;padding:16px;margin-top:6px;cursor:pointer;
+.sheet-place{width:100%;border:none;border-radius:14px;padding:16px;margin-top:6px;cursor:pointer;white-space:nowrap;
   font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13.5px;letter-spacing:.5px;
   background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
 .sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
@@ -898,7 +898,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
-  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch;--tailh:140px}
+  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch;--tailh:112px}
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
   .sheet-col-l .dcurve{display:flex;flex-direction:column;flex:1 1 auto;min-height:150px;margin:9px 0 12px}
   .sheet-col-l .dcurve-plot{flex:1 1 auto;height:auto;min-height:130px}
@@ -910,8 +910,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
      (above POOL SHARE on the left, above IF YOU WIN on the right) sit on the exact
      same horizontal axis. */
   .sheet-col-l .sheet-tail-l,.sheet-col-r .sheet-tail-r{min-height:var(--tailh);border-top:1px solid var(--line);padding-top:14px}
-  .sheet-col-l .sheet-tail-l{justify-content:flex-end}
-  .sheet-col-r .sheet-tail-r{margin-top:auto;justify-content:flex-end}
+  .sheet-col-l .sheet-tail-l{justify-content:flex-start}
+  .sheet-col-r .sheet-tail-r{margin-top:auto;justify-content:flex-start}
   .sheet-col-r .sheet-pay{border-top:none;padding-top:0}
 }
 /* ---- Closed flights table ---- */
@@ -1768,7 +1768,7 @@ function WettZentrale({ m, total, pick, setPick, stake, setStake, wallet, onBet 
           <button onClick={()=>setStake(100)}>100€</button>
         </div>
       </div>
-      <div className="wz-win">{t("Bei Gewinn (geschätzt)","If you win (est.)")}: <b>{fmt(win)} €</b></div>
+      <div className="wz-win">{t("Bei Gewinn (geschätzt)","If you win (estimation)")}: <b>{fmt(win)} €</b></div>
       <button className="betbtn wz-confirm" disabled={closed||stake<=0||tooMuch}
         onClick={()=>{ if(!closed && sel) onBet(m, sel, stake); }}>
         {closed ? t("Markt geschlossen","Market closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t("Einsatz bestätigen","Confirm bet")}
@@ -3482,11 +3482,11 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
 
           <div className="sheet-tail sheet-tail-r">
             <div className="sheet-pay">
-              <span>{t("Bei Gewinn (geschätzt)","If you win (est.)")}</span>
+              <span>{t("Bei Gewinn (geschätzt)","If you win (estimation)")}</span>
               <b>{fmt(proj(o,Math.min(stake,wallet)))} €</b>
             </div>
             <button className="sheet-place" disabled={closed||tooMuch||stake<=0} onClick={place}>
-              {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren — ${stake}€ auf ${outLabel(o.label)}`, `Place bet — ${stake}€ on ${outLabel(o.label)}`)}
+              {closed ? t("Wetten geschlossen","Betting closed") : tooMuch ? t("Nicht genug Guthaben","Not enough balance") : t(`Wette platzieren · ${stake} €`, `Place bet · ${stake} €`)}
             </button>
           </div>
         </div>
