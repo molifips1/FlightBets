@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v233 -->
+<!-- build: v2026-06-16-v234 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -207,8 +207,8 @@ button{font-family:inherit}
 .feed-title{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .feed-live{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none;animation:feedPulse 1.7s ease-out infinite}
 @keyframes feedPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent)}70%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 0%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
-.feed-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.feed-tab2{font-family:inherit;font-size:11.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer;transition:all .12s ease}
+.feed-tabs{display:flex;flex-wrap:nowrap;gap:5px;margin-bottom:12px}
+.feed-tab2{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;font-family:inherit;font-size:10.5px;font-weight:700;color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:5px 4px;cursor:pointer;transition:all .12s ease}
 .feed-tab2:hover{color:var(--ink)}
 .feed-tab2.on{color:var(--ink);background:color-mix(in srgb,var(--brand) 13%,transparent);border-color:color-mix(in srgb,var(--brand) 32%,transparent)}
 .feed-hrow,.feed-row{display:grid;grid-template-columns:50px 30px 38px 38px auto;gap:6px;align-items:center}
