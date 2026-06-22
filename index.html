@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v207 -->
+<!-- build: v2026-06-16-v208 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -495,6 +495,25 @@ button{font-family:inherit}
 .open-code{font-weight:700;color:var(--ink);width:72px}
 .open-tip{flex:1;color:var(--muted)}
 .open-stake{font-weight:700;color:var(--ink)}
+/* Resolved bets as flight-ticket cards */
+.rbet-list{display:flex;flex-direction:column;gap:10px}
+.rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:13px 16px}
+.rbet.loss{border-left-color:var(--bad)}
+.rbet.void{border-left-color:var(--muted)}
+.rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rbet-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
+.rbet-air{font-size:12px;color:var(--muted);font-weight:600}
+.rbet-net{font-family:Archivo;font-weight:800;font-size:22px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
+.rbet-route{font-size:13px;color:var(--ink);font-weight:600;margin-top:4px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rbet-arrow{color:var(--muted)}
+.rbet-metric{font-weight:800;font-size:13.5px;color:var(--ink);margin:11px 0 12px}
+.rbet-dot{color:var(--muted)}
+.rbet-actual{color:var(--muted);font-weight:700}
+.rbet-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:10px}
+.rbet-times{display:flex;gap:20px}
+.rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rbet-tval{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);margin-top:2px}
+.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.2px;font-weight:800}
 @media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
 .legal{max-width:680px;padding-bottom:20px}
 .legal-note{background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);
@@ -3059,7 +3078,22 @@ function ResultsCelebration({ data, onDone }){
 
 // Personal stats page — all from the wallet data already loaded. `markets` lets
 // us resolve open-position flight codes; `onOpen` jumps to a market.
+// Common IATA carrier codes → display name (BER-relevant); falls back to the code.
+const AIRLINES = { LH:"Lufthansa", FR:"Ryanair", EW:"Eurowings", U2:"easyJet", BA:"British Airways",
+  KL:"KLM", AF:"Air France", LX:"Swiss", OS:"Austrian", TK:"Turkish Airlines", W6:"Wizz Air",
+  VY:"Vueling", EN:"Air Dolomiti", SK:"SAS", AZ:"ITA Airways", IB:"Iberia", TP:"TAP Air Portugal",
+  SN:"Brussels Airlines", DE:"Condor", X3:"TUI fly", PC:"Pegasus", QR:"Qatar Airways", EK:"Emirates",
+  A3:"Aegean", LO:"LOT", AY:"Finnair", DY:"Norwegian", BT:"airBaltic", HV:"Transavia" };
+function splitIdent(ident){
+  if(!ident) return { code:"", num:"", name:"" };
+  const m = String(ident).match(/^([A-Za-z]+)\s*(.*)$/);
+  const code = (m ? m[1] : String(ident)).toUpperCase();
+  const num  = m ? m[2] : "";
+  return { code, num, name: AIRLINES[code] || code };
+}
+
 function Profile({ wallet, user, streak, markets, onOpen }){
+  const { rows: settledRows } = useSettled(0);   // hook must run before any early return
   if(!user) return <div className="lb-empty">
     <div className="lb-emoji">👤</div>
     <div className="lb-et">Nicht angemeldet</div>
@@ -3074,6 +3108,16 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const openStake = open.reduce((s,p)=>s+(p.stake||0),0);
   const name = user.user_metadata?.name || user.email?.split("@")[0] || "Spieler";
   const codeFor = fid => { const m = markets.find(x=>x.id===fid); return m?m.code:fid; };
+
+  // Resolved (settled) bets → flight-ticket cards. Join the player's settled
+  // positions to the public settled-flight rows (route, times, actual delay).
+  const settledByFid = {}; for(const r of (settledRows||[])) settledByFid["bd_"+r.ident+"_"+r.date] = r;
+  const BTONE = { a:"cool", b:"good", c:"warn", d:"bad" };
+  const wtone = d => d<=-5?"cool":d<=5?"good":d<=20?"warn":"bad";
+  const fmtT = iso => { if(!iso) return "—"; try{ return new Date(iso).toLocaleTimeString("de-DE",{timeZone:"Europe/Berlin",hour:"2-digit",minute:"2-digit",hour12:false}); }catch(e){ return "—"; } };
+  const resolved = (wallet.positions||[]).filter(p=>p.settled)
+    .map(p=>({ p, row: settledByFid[p.flight_id] }))
+    .sort((a,b)=>{ const da=(a.row&&a.row.date)||"", db=(b.row&&b.row.date)||""; return db.localeCompare(da); });
 
   return <div>
     <div className="prof-head">
@@ -3112,6 +3156,40 @@ function Profile({ wallet, user, streak, markets, onOpen }){
               <span className="open-stake">{fmt(p.stake)} €</span>
             </button>)}</div>}
     </div>
+
+    {resolved.length>0 && <div className="panelbox">
+      <div className="sectlbl">{t("Abgerechnete Wetten","Resolved bets")} · {resolved.length}</div>
+      <div className="rbet-list">
+        {resolved.map(({p,row},i)=>{
+          const ident = (row && row.ident) || (p.flight_id||"").split("_")[1] || p.flight_id;
+          const al = splitIdent(ident);
+          const net = (p.payout||0)-(p.stake||0);
+          const voided = !!(row && (row.cancelled===1||row.cancelled===true));
+          const win = !voided && net>0;
+          const d = (row && row.delayMin!=null) ? row.delayMin : null;
+          const aCol = voided ? "var(--muted)" : (d==null ? "var(--muted)" : TONE[wtone(d)]);
+          const outCol = win ? "var(--good)" : voided ? "var(--muted)" : "var(--bad)";
+          const picked = statusLabel(BTONE[p.outcome] || "good");
+          const actualTxt = voided ? t("annulliert","cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"m";
+          return <div className={"rbet"+(voided?" void":win?"":" loss")} key={i}>
+            <div className="rbet-top">
+              <div className="rbet-id"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span><span className="rbet-air"> · {al.name}</span></div>
+              <div className="rbet-net" style={{color:outCol}}>{net>0?"+":""}{fmt(net)} €</div>
+            </div>
+            <div className="rbet-route">{flagFor("BER")} Berlin BER <span className="rbet-arrow">→</span> {row ? <>{flagFor(row.dest)} {row.dest}</> : "—"}</div>
+            <div className="rbet-metric">{picked} {t("getippt","picked")} <span className="rbet-dot">·</span> <span className="rbet-actual">actual </span><span style={{color:aCol,fontWeight:800}}>{actualTxt}</span></div>
+            <div className="rbet-bottom">
+              <div className="rbet-times">
+                <div className="rbet-tcol"><div className="rbet-tlbl">DEP</div><div className="rbet-tval">{fmtT(row&&row.schedDep)}</div></div>
+                <div className="rbet-tcol"><div className="rbet-tlbl">SCHED ARR</div><div className="rbet-tval">{fmtT(row&&row.schedArr)}</div></div>
+                <div className="rbet-tcol"><div className="rbet-tlbl">ARRIVED</div><div className="rbet-tval" style={{color:aCol}}>{fmtT(row&&row.actualArr)}</div></div>
+              </div>
+              <div className="rbet-status" style={{color:outCol}}>{voided?t("STORNO","VOID"):win?"PROFIT":"LOSS"}</div>
+            </div>
+          </div>;
+        })}
+      </div>
+    </div>}
   </div>;
 }
 
