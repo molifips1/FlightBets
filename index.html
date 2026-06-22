@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v196 -->
+<!-- build: v2026-06-16-v197 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -268,11 +268,12 @@ button{font-family:inherit}
 .mystake b{color:var(--ink);font-weight:700}
 .fc-betbtn{width:100%;margin-top:16px}
 .betbtn.wette.fc-betbtn{padding:7px 24px}
-.fc-subhead{margin:0 0 14px}
+.fc-subhead{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .fc-subhead .dcurve-head{justify-content:flex-start;gap:7px;margin:7px 0 0}
 .fc-subhead .dcurve-w{font-size:14px;font-weight:700}
 .fc-subhead .dcurve-v{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:700}
 .fc-status{display:flex;align-items:baseline;margin-top:7px;font-size:14px}
+.fc-status-label{color:var(--muted);font-weight:600;margin-right:6px}
 .fc-status-w{font-weight:700}
 .fc-status-v{font-family:'IBM Plex Mono',monospace;font-weight:700;margin-left:6px}
 .fc-status-t{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right}
@@ -1312,6 +1313,7 @@ function FlightStatusRow({ m }){
   const rev = m.to && m.to.arrRevised;
   return (
     <div className="fc-status" style={{color:st.pc}}>
+      <span className="fc-status-label">{t("Aktueller Status:","Current Status:")}</span>
       <span className="fc-status-w">{st.wordTxt}</span>
       <span className="fc-status-v">{st.valTxt}</span>
       {rev && <span className="fc-status-t">{rev}</span>}
