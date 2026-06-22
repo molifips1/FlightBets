@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v208 -->
+<!-- build: v2026-06-16-v209 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -896,7 +896,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 @media(min-width:760px){
   .sheet.sheet-wide{max-width:920px;padding:28px 32px calc(26px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;border-radius:22px}
   .sheet-wide .sheet-grip{display:none}
-  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch;--tailh:120px}
+  .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch;--tailh:140px}
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
   .sheet-col-l .dcurve{display:flex;flex-direction:column;flex:1 1 auto;min-height:150px;margin:9px 0 12px}
   .sheet-col-l .dcurve-plot{flex:1 1 auto;height:auto;min-height:130px}
@@ -908,7 +908,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
      (above POOL SHARE on the left, above IF YOU WIN on the right) sit on the exact
      same horizontal axis. */
   .sheet-col-l .sheet-tail-l,.sheet-col-r .sheet-tail-r{min-height:var(--tailh);border-top:1px solid var(--line);padding-top:14px}
-  .sheet-col-l .sheet-tail-l{justify-content:flex-start}
+  .sheet-col-l .sheet-tail-l{justify-content:flex-end}
   .sheet-col-r .sheet-tail-r{margin-top:auto;justify-content:flex-end}
   .sheet-col-r .sheet-pay{border-top:none;padding-top:0}
 }
@@ -1561,7 +1561,13 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   const realTot = realVals.reduce((a,b)=>a+b,0);
   const vals = realTot>0 ? realVals : outcomes.map(o => (o.pool||0)+(S[o.id]||0));
   const tot = (realTot>0 ? realTot : vals.reduce((a,b)=>a+b,0)) || 1;
-  const pcts = outcomes.map((_,i)=>Math.round(vals[i]/tot*100));
+  // Largest-remainder rounding so the four shown percentages add up to exactly 100%
+  // (no bracket — e.g. a thin 7% slice — silently drops out of the legend).
+  const raw = vals.map(v=>v/tot*100);
+  const pcts = raw.map(Math.floor);
+  let _rem = 100 - pcts.reduce((a,b)=>a+b,0);
+  const _ord = raw.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
+  for(let _k=0; _rem>0 && _ord.length; _k++,_rem--) pcts[_ord[_k%_ord.length].i]++;
   const bar = (
     <div className="pd-bar">
       {outcomes.map((o,i)=>{
@@ -3441,7 +3447,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
           <DelayCurve outcomes={market.outcomes} seed={market.seed} status={market.neonTone||market.status} projDelay={market.projDelay} projArr={market.projArr} delayUnknown={market.delayUnknown} delayStats={market.delayStats}/>
 
           <div className="sheet-tail sheet-tail-l">
-            <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly/>
+            <PoolDist outcomes={market.outcomes} seed={market.seed} barOnly pctLegend/>
           </div>
         </div>
 
@@ -3465,7 +3471,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
               onClick={()=>setStake(c)}>{c}<small>€</small></button>)}
             <label className={"chip-custom"+(CHIPS.includes(stake)?"":" on")}>
               <input type="number" inputMode="numeric" min="1" placeholder="…"
-                value={stake>0?stake:""}
+                value={CHIPS.includes(stake)?"":(stake>0?stake:"")}
                 onChange={e=>setStake(Math.max(0,Math.floor(Number(e.target.value)||0)))}/>
               <small>€</small>
             </label>
