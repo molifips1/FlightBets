@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v237 -->
+<!-- build: v2026-06-16-v238 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -58,7 +58,8 @@ body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing
 .mono{font-family:'IBM Plex Mono',monospace}
 .disp{font-family:Archivo,system-ui,sans-serif}
 button{font-family:inherit}
-.app{max-width:1400px;margin:0 auto;padding:0 18px 44px}
+.app{max-width:1400px;margin:0 auto;padding:0 18px 44px;min-height:100vh;display:flex;flex-direction:column}
+.app-main{flex:1 0 auto;min-width:0}
 
 /* top bar */
 .top{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 84%, transparent);
@@ -3958,6 +3959,7 @@ function App(){
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
     {feedbackOpen && <FeedbackModal onClose={()=>setFeedbackOpen(false)} user={user} setToast={setToast}/>}
 
+    <main className="app-main">
     {tab==="settings" ? (
       <Settings user={user} theme={theme} setTheme={setTheme} muted={muted} setMuted={setMuted} signOut={signOut} setToast={setToast}/>
     ) : tab==="about" ? (
@@ -4044,6 +4046,7 @@ function App(){
     </> : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
+    </main>
 
     <footer className="appfoot">
       <a className="appfoot-link" href="privacy.html">{t("Datenschutz","Privacy")}</a>
