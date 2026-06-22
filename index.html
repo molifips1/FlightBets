@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v200 -->
+<!-- build: v2026-06-16-v201 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1027,9 +1027,11 @@ const RAKE=0.05;
 // before real bets arrive. Real stakes add on top and shift the odds normally.
 // DEFAULT_SEED is the fallback line when we have no history for a flight yet;
 // blendSeed() personalises it per flight from collected history.
-const DEFAULT_SEED = { a:100, b:85, c:35, d:20 };
+// Tiny uniform floor: just a divide-by-zero guard for brand-new empty flights, so
+// odds are driven by the ACTUAL pool money (real users + bots). MUST match worker SEED.
+const DEFAULT_SEED = { a:5, b:5, c:5, d:5 };
 const SEED_POOL = DEFAULT_SEED;          // back-compat alias
-const SEED_TOTAL = DEFAULT_SEED.a+DEFAULT_SEED.b+DEFAULT_SEED.c+DEFAULT_SEED.d; // 240
+const SEED_TOTAL = DEFAULT_SEED.a+DEFAULT_SEED.b+DEFAULT_SEED.c+DEFAULT_SEED.d; // 20
 const seedOf = m => (m && m.seed) || DEFAULT_SEED;
 const seedSum = sd => (sd.a||0)+(sd.b||0)+(sd.c||0)+(sd.d||0);
 const PRIOR_N = 12;                       // how many "virtual" samples the default line is worth
