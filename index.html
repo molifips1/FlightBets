@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v203 -->
+<!-- build: v2026-06-16-v204 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -869,8 +869,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .sheet-wide .sheet-grip{display:none}
   .sheet-grid{display:grid;grid-template-columns:1.12fr 1fr;gap:36px;align-items:stretch}
   .sheet-col-l{display:flex;flex-direction:column;margin-bottom:0}
-  .sheet-col-l .dcurve{display:block;margin:16px 0 6px}
-  .sheet-col-l .pooldist{display:block;margin-top:auto;padding-top:18px}
+  .sheet-col-l .dcurve{display:flex;flex-direction:column;flex:1 1 auto;min-height:160px;margin:16px 0 16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .sheet-col-l .dcurve-plot{flex:1 1 auto;height:auto;min-height:130px}
+  .sheet-col-l .pooldist{display:block;margin-top:0;padding-top:0}
   .sheet-head2{padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--line);padding-right:0}
   .sheet-route2{padding-bottom:16px;border-bottom:1px solid var(--line)}
   .sheet-col-r .sheet-pay{margin-top:auto}
