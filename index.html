@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v243 -->
+<!-- build: v2026-06-16-v244 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3701,6 +3701,21 @@ function App(){
   LANG = lang; // keep the module-level language in sync before children render
   const [markets]=useState(SEED); // SEED now holds only daily questions; flights come live from the board
   const [bump,setBump]=useState(0); // increment to refetch pools+wallet after a bet
+  const poolChan = useRef(null);
+  // Real-time push: every client joins a Supabase Realtime broadcast channel. When
+  // anyone places a bet, their browser broadcasts a tiny "bet" ping; every other
+  // client reacts by pulling the authoritative pools from the server immediately
+  // (we push a signal, not the numbers — the worker stays the source of truth).
+  // The periodic poll below stays as a safety net (settlements, missed pings), so
+  // if Realtime is ever unavailable it simply degrades to the old behaviour.
+  useEffect(()=>{
+    if(!sb) return;
+    const ch = sb.channel("flugbet-pools", { config:{ broadcast:{ self:false } } });
+    ch.on("broadcast", { event:"bet" }, ()=>{ setBump(b=>b+1); });
+    ch.subscribe();
+    poolChan.current = ch;
+    return ()=>{ try{ sb.removeChannel(ch); }catch(_){} poolChan.current=null; };
+  },[]);
   const [tab,setTab]=useState("flights");
   const { pools: serverPools, settled: serverSettled } = usePools(bump);
   const { user, ready: authReady, signOut } = useAuth();
@@ -3848,6 +3863,9 @@ function App(){
       Sound.bet();
       setCelebrate({ stake: s, label:o.label, big:firstBet });
       setBump(b=>b+1); // refetch pools + wallet
+      // Push to everyone else in real time: a tiny ping; their clients then pull
+      // the fresh pools from the server. Best-effort — the poll is the backstop.
+      try{ poolChan.current && poolChan.current.send({ type:"broadcast", event:"bet", payload:{ id:m.id, ts:Date.now() } }); }catch(_){}
     }catch(e){ setToast(t("Wette fehlgeschlagen — Server nicht erreichbar","Bet failed — server unreachable")); }
   }
   // Settlement is automatic on the server. The OPS button is gone.
