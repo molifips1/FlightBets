@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v192 -->
+<!-- build: v2026-06-16-v194 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1393,37 +1393,18 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
   const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
   const uid="dc"+Math.random().toString(36).slice(2,7);
-  // Bracket bands for the area fill: blue ≤−5 · green −4..+5 · amber +6..+20 · red >+20.
-  // Boundaries sit between the integer brackets (−4.5 / +5.5 / +20.5), clamped to view.
-  const clampX = m => Math.max(0, Math.min(W, xPix(m)));
-  const bx1=clampX(-4.5), bx2=clampX(5.5), bx3=clampX(20.5);
-  const bands = [
-    {key:"cool", color:"var(--bk-cool)", x:0,   w:bx1},
-    {key:"good", color:"var(--bk-good)", x:bx1, w:bx2-bx1},
-    {key:"warn", color:"var(--bk-warn)", x:bx2, w:bx3-bx2},
-    {key:"bad",  color:"var(--bk-bad)",  x:bx3, w:W-bx3},
-  ].filter(b=>b.w>0.5);
 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
       <div className="pd-sharelbl">{t("Historische Landekurve","Historic Landing Curve")}</div>
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
-          <defs>
-            {bands.map(b=>(
-              <linearGradient key={b.key} id={uid+b.key} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stopColor={b.color} stopOpacity="0.42"/>
-                <stop offset="1" stopColor={b.color} stopOpacity="0.04"/>
-              </linearGradient>
-            ))}
-            {bands.map((b,i)=>(
-              <clipPath key={i} id={uid+"c"+i}><rect x={b.x} y="0" width={b.w} height={plotH}/></clipPath>
-            ))}
-          </defs>
-          {bands.map((b,i)=>(
-            <path key={i} d={area} fill={`url(#${uid}${b.key})`} clipPath={`url(#${uid}c${i})`}/>
-          ))}
-          <path d={line} fill="none" stroke="var(--pc)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+          <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor="var(--pc)" stopOpacity="0.40"/>
+            <stop offset="1" stopColor="var(--pc)" stopOpacity="0.04"/>
+          </linearGradient></defs>
+          <path d={area} fill={`url(#${uid})`}/>
+          <path d={line} fill="none" stroke="color-mix(in srgb, var(--ink) 48%, transparent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
         </svg>
         {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
         {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
