@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v223 -->
+<!-- build: v2026-06-16-v224 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3854,7 +3854,7 @@ function App(){
         <button className="iconbtn" onClick={()=>setTheme(tm=>tm==="light"?"dark":"light")} title={t("Heller / Dunkler Modus","Light / Dark mode")} aria-label={t("Heller / Dunkler Modus","Light / Dark mode")}>{theme==="light"?"🌙":"☀️"}</button>
         <button className="iconbtn lang" onClick={()=>setLang(l=>l==="de"?"en":"de")} title={t("Sprache wechseln","Switch language")} aria-label={t("Sprache wechseln","Switch language")}>{lang==="de"?"DE":"EN"}</button>
         {user ? <>
-          {streak>0 && <button className="chip streak" style={{cursor:"pointer"}} title="Täglicher Bonus" onClick={()=>{setTab("daily");setView({page:"daily"})}}>🔥 <RollingNumber value={streak} from0/></button>}
+          {streak>0 && <span className="chip streak" title={t("Anmelde-Streak","Login streak")}>🔥 <RollingNumber value={streak} from0/></span>}
           <span className="chip bal">€ <RollingNumber value={wallet}/></span>
           <button className="chip rank-chip" style={{cursor:"pointer"}} onClick={()=>{setTab("rank");setView({page:"home"})}} title="Ranking">🏆 {t("Ranking","Ranking")}</button>
           <button className="chip hide-mobile" style={{cursor:"pointer"}} onClick={()=>setTab("profile")} title="Meine Wetten & Statistik">🎫 {t("Meine Wetten","My bets")}</button>
@@ -3889,7 +3889,6 @@ function App(){
 
         <div className="menu-list">
           {user && <button className="menu-item" onClick={()=>{setTab("profile");setMenuOpen(false);}}><span className="mi-i">🎫</span>{t("Meine Wetten","My bets")}</button>}
-          {user && <button className="menu-item" onClick={()=>{setTab("daily");setView({page:"daily"});setMenuOpen(false);}}><span className="mi-i">📅</span>{t("Täglicher Bonus","Daily bonus")}</button>}
           <button className="menu-item" onClick={()=>{setTab("settings");setMenuOpen(false);}}><span className="mi-i">⚙️</span>{t("Einstellungen","Settings")}</button>
           <button className="menu-item" onClick={()=>{setTab("legal");setMenuOpen(false);}}><span className="mi-i">📄</span>{t("Impressum & Datenschutz","Legal & privacy")}</button>
           <button className="menu-item" onClick={()=>{setTab("about");setMenuOpen(false);}}><span className="mi-i">ℹ️</span>{t("Über uns","About")}</button>
@@ -4001,10 +4000,7 @@ function App(){
         </div>
       </div>
       </>}
-    </> : view.page==="daily" ? (
-      <DailyPage markets={dailyMarkets} total={total} betProps={betProps}
-        openDetail={id=>setView({page:"detail",id})}/>
-    ) : detailMarket ? (
+    </> : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
     ) : null}
 
