@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v221 -->
+<!-- build: v2026-06-16-v222 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -505,10 +505,13 @@ button{font-family:inherit}
 .rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
 .rbet-outcome{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
 .rbet-net{font-family:Archivo;font-weight:800;font-size:20px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
-.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:1px;font-weight:800}
+.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;font-weight:800;padding:3px 8px;border-radius:6px;line-height:1}
 .rbet-route{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
 .rbet-arrow{color:var(--muted);margin:0 2px}
-.rbet-idline{display:flex;align-items:baseline;flex-wrap:wrap}
+.rbet-ticket{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 62%,transparent)}
+.rbet-idline{display:flex;align-items:center;flex-wrap:wrap}
+.rbet-form{display:inline-flex;align-items:center;gap:3px;margin-left:8px}
+.rbet-fdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.92}
 .rbet-date{font-size:11px;color:var(--muted);font-weight:500;margin-top:3px}
 .rbet-cmp{display:flex;align-items:flex-end;gap:12px}
 .rbet-cmp-col{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -516,6 +519,9 @@ button{font-family:inherit}
 .rbet-cmp-h{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);font-weight:700}
 .rbet-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1.25}
 .rbet-bdot{width:7px;height:7px;border-radius:50%;flex:none}
+.rbet-slip{display:flex;gap:22px;align-items:baseline;border-top:1px dashed var(--line);padding-top:11px}
+.rbet-slip-k{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:7px}
+.rbet-slip-v{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:800;color:var(--ink)}
 .rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:13px}
 .rbet-times{display:flex;justify-content:space-between;gap:8px}
 .rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -3146,6 +3152,18 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const wtone = d => d<=-5?"cool":d<=5?"good":d<=20?"warn":"bad";
   const fmtT = iso => { if(!iso) return "—"; try{ return new Date(iso).toLocaleTimeString("de-DE",{timeZone:"Europe/Berlin",hour:"2-digit",minute:"2-digit",hour12:false}); }catch(e){ return "—"; } };
   const fmtCardDate = ymd => { if(!ymd) return ""; try{ return new Date(ymd+"T12:00:00").toLocaleDateString(LANG==="de"?"de-DE":"en-GB",{day:"2-digit",month:"short",year:"numeric"}); }catch(e){ return ymd; } };
+  // Stable per-bet ticket id (deterministic FNV-ish hash → "XXX-XXX").
+  const ticketCode = seed => { let h=2166136261>>>0; const s=String(seed); for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } const b=(h.toString(36).toUpperCase().replace(/[^A-Z0-9]/g,"")+"000000").slice(0,6); return b.slice(0,3)+"-"+b.slice(3,6); };
+  // Recent "form" of a flight number: its last up-to-5 closed instances as tone dots
+  // (oldest→newest). Cancelled / no-result flights show as a neutral dot.
+  const formByIdent = {};
+  for(const r of (settledRows||[])){ (formByIdent[r.ident]=formByIdent[r.ident]||[]).push(r); }
+  Object.keys(formByIdent).forEach(k=> formByIdent[k].sort((a,b)=>(a.date||"").localeCompare(b.date||"")));
+  const formFor = ident => (formByIdent[ident]||[]).slice(-5).map(r=>{
+    const cancelled = r.cancelled===1||r.cancelled===true;
+    if(cancelled || r.delayMin==null) return "void";
+    return wtone(r.delayMin);
+  });
   const resolved = (wallet.positions||[]).filter(p=>p.settled)
     .map(p=>({ p, row: settledByFid[p.flight_id] }))
     .sort((a,b)=>{ const da=(a.row&&a.row.date)||"", db=(b.row&&b.row.date)||""; return db.localeCompare(da); });
@@ -3209,15 +3227,25 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const pickCol = TONE[BTONE[p.outcome]] || "var(--ink)";
           const aWord = voided ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : statusLabel(wtone(d));
           const aMin = (voided||d==null) ? "" : " ("+(d>=0?"+":"")+d+"min)";
+          const oddsTxt = (win && (p.stake||0)>0) ? (p.payout/p.stake).toFixed(2)+"x" : "—";
+          const statusTxt = neutral ? "VOID" : win ? "PROFIT" : "LOSS";
+          const form = formFor(ident);
           return <div className={"rbet"+(neutral?" void":win?"":" loss")} key={i}>
+            <div className="rbet-ticket">TICKET #{ticketCode(p.flight_id+"_"+p.outcome)}</div>
             <div className="rbet-top">
               <div className="rbet-id">
-                <div className="rbet-idline"><span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>{al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}</div>
+                <div className="rbet-idline">
+                  <span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>
+                  {al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}
+                  {form.length>0 && <span className="rbet-form">{form.map((f,j)=><span key={j} className="rbet-fdot" style={{background: f==="void"?"var(--muted)":TONE[f]}}/>)}</span>}
+                </div>
                 {row && row.date && <div className="rbet-date">{fmtCardDate(row.date)}</div>}
               </div>
               <div className="rbet-outcome">
                 <div className="rbet-net" style={{color:outCol}}>{netTxt}</div>
-                <div className="rbet-status" style={{color: neutral ? "color-mix(in srgb,var(--muted) 70%,transparent)" : outCol}}>{neutral ? t("ERSTATTET","REFUNDED") : win?"PROFIT":"LOSS"}</div>
+                <div className="rbet-status" style={neutral
+                  ? {color:"color-mix(in srgb,var(--muted) 80%,transparent)", background:"color-mix(in srgb,var(--muted) 14%,transparent)"}
+                  : {color:outCol, background:`color-mix(in srgb, ${outCol} 14%, transparent)`}}>{statusTxt}</div>
               </div>
             </div>
             <div className="rbet-route">{t("Berlin","Berlin")} <span className="rbet-arrow">→</span> {row ? cityFor(row.dest) : "—"}</div>
@@ -3235,6 +3263,10 @@ function Profile({ wallet, user, streak, markets, onOpen }){
                   <span className="rbet-bdot" style={{background:aCol}}/>{aWord}{aMin}
                 </span>
               </div>
+            </div>
+            <div className="rbet-slip">
+              <span className="rbet-slip-i"><span className="rbet-slip-k">STAKE</span><span className="rbet-slip-v">{fmt(p.stake)} €</span></span>
+              <span className="rbet-slip-i"><span className="rbet-slip-k">ODDS</span><span className="rbet-slip-v">{oddsTxt}</span></span>
             </div>
             <div className="rbet-bottom">
               <div className="rbet-times">
