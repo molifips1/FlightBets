@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v204 -->
+<!-- build: v2026-06-16-v205 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1398,7 +1398,11 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   const projX = proj!=null ? Math.max(0,Math.min(W,xPix(proj))) : null;
   const zeroX = xPix(0);
   const tickStep = span<=45 ? 10 : span<=100 ? 20 : span<=200 ? 30 : 50;
-  const ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
+  let ticks=[]; for(let mm=Math.ceil(Mmin/tickStep)*tickStep; mm<=Mmax; mm+=tickStep) ticks.push(mm);
+  // Always keep a negative number on the left edge and a positive one on the right.
+  if(!ticks.some(mm=>mm<0)) ticks.unshift(Mmin);
+  if(!ticks.some(mm=>mm>0)) ticks.push(Mmax);
+  ticks=Array.from(new Set(ticks)).sort((a,b)=>a-b);
   const uid="dc"+Math.random().toString(36).slice(2,7);
 
   return (
