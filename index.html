@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v198 -->
+<!-- build: v2026-06-16-v200 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1508,9 +1508,14 @@ function favOutcome(outcomes, seed){
 // already carries names/ranges/odds).
 function PoolDist({ outcomes, seed, barOnly, pctLegend }){
   const S = seed || DEFAULT_SEED;
-  const eff = o => (o.pool||0)+(S[o.id]||0);
-  const vals = outcomes.map(eff);
-  const tot = vals.reduce((a,b)=>a+b,0)||1;
+  // Show the ACTUAL staked money — real users AND bots (all of it is winnable at
+  // settlement). The fixed house seed is only an odds-smoothing device, so it is left
+  // out of the share/€ display; fall back to seeded values only when there are no real
+  // bets yet (avoids an empty bar before bots/users have staked).
+  const realVals = outcomes.map(o => (o.pool||0));
+  const realTot = realVals.reduce((a,b)=>a+b,0);
+  const vals = realTot>0 ? realVals : outcomes.map(o => (o.pool||0)+(S[o.id]||0));
+  const tot = (realTot>0 ? realTot : vals.reduce((a,b)=>a+b,0)) || 1;
   const pcts = outcomes.map((_,i)=>Math.round(vals[i]/tot*100));
   const bar = (
     <div className="pd-bar">
@@ -1527,7 +1532,7 @@ function PoolDist({ outcomes, seed, barOnly, pctLegend }){
       {outcomes.map((o,i)=>
         <span key={o.id} className="pd-li">
           <span className="pd-lidot" style={{background:TONE[o.tone]}}/>
-          <span className="pd-lipct">{Math.round(vals[i])}€</span>
+          <span className="pd-lipct">{pcts[i]}%</span>
         </span>)}
     </div>
   ) : null;
