@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v194 -->
+<!-- build: v2026-06-16-v195 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -518,7 +518,7 @@ button{font-family:inherit}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:0}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:10px 0 4px}
-.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:7px 0 0}
+.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 8px}
 .dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
 .dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
@@ -1397,6 +1397,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
   return (
     <div className="dcurve" style={{"--pc": (delayUnknown && !ds)?"var(--muted)":col}}>
       <div className="pd-sharelbl">{t("Historische Landekurve","Historic Landing Curve")}</div>
+      {ds && <div className="dcurve-cap">{ds.n+" "+t("Flüge","flights")+" · "+t("90 Tage","90 days")}</div>}
       <div className="dcurve-plot">
         <svg className="dcurve-svg" viewBox={`0 0 ${W} ${plotH}`} preserveAspectRatio="none">
           <defs><linearGradient id={uid} x1="0" x2="0" y1="0" y2="1">
@@ -3531,7 +3532,11 @@ function App(){
   };
   const morningLine = useMorningLine();
   const closedFlights = useSettled(bump);
-  const liveMarkets = boardFlights.map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
+  // Only show flights we have REAL historic landing-delay stats for. Flights with no
+  // AeroDataBox coverage (or not yet fetched) are hidden from betting; their bets (if
+  // any) still settle server-side. The closed results table uses closedFlights, so it
+  // is unaffected.
+  const liveMarkets = boardFlights.filter(f => f.delayStats).map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
 
