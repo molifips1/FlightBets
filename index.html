@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v271 -->
+<!-- build: v2026-06-16-v273 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -315,9 +315,13 @@ button{font-family:inherit}
   .topr .chip.streak{display:none}
   .oddspanel .pooldist{display:none}
   .betbtn.wette.fc-betbtn{padding:14px 24px;font-size:15px;font-weight:800;letter-spacing:1.4px;border-radius:12px}
-  .app .subfilter{top:70px;gap:6px;margin:0 -18px 12px;padding:7px 18px;flex-wrap:nowrap;background:color-mix(in srgb,var(--bg) 84%, transparent)}
-  [data-theme="dark"] .app .subfilter{background:color-mix(in srgb,#0C1626 86%, transparent)}
+  .top{padding-top:6px;padding-bottom:6px;border-bottom:none;background:var(--bg);backdrop-filter:none}
+  [data-theme="dark"] .app .top{background:#0C1626;border-bottom-color:transparent}
+  .topr .iconbtn{width:34px;height:34px;border-radius:10px}
+  .app .subfilter{top:46px;gap:6px;margin:0 -18px 12px;padding:6px 18px;flex-wrap:nowrap;background:var(--bg);backdrop-filter:none}
+  [data-theme="dark"] .app .subfilter{background:#0C1626}
   .app .subfilter .subpill{flex:1;min-width:0;text-align:center;padding:7px 4px;font-size:12px;white-space:nowrap}
+  .app .subfilter .subpill:not(.on){background:transparent}
 }
 
 .oddspanel{display:flex;flex-direction:column;width:100%;background:none;border:none;border-radius:0;padding:0}
