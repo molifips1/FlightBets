@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v226 -->
+<!-- build: v2026-06-16-v227 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -497,6 +497,11 @@ button{font-family:inherit}
 .open-stake{font-weight:800;font-size:15px;color:var(--ink);margin-top:3px}
 /* Resolved bets as flight-ticket cards (grid, 4 per row) */
 .rbet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rbet-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.rbet-tab{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.rbet-tab:hover{border-color:var(--muted);color:var(--ink)}
+.rbet-tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.rbet-tabn{font-size:10px;font-weight:800;opacity:.75}
 .rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:color-mix(in srgb,var(--muted) 45%,var(--line))}
@@ -3128,6 +3133,7 @@ const cityFor = code => AIRPORTS[String(code||"").toUpperCase()] || code || "—
 
 function Profile({ wallet, user, streak, markets, onOpen }){
   const { rows: settledRows } = useSettled(0);   // hook must run before any early return
+  const [rbFilter, setRbFilter] = useState("all"); // resolved-bets filter: all | won | lost
   if(!user) return <div className="lb-empty">
     <div className="lb-emoji">👤</div>
     <div className="lb-et">Nicht angemeldet</div>
@@ -3165,6 +3171,20 @@ function Profile({ wallet, user, streak, markets, onOpen }){
   const resolved = (wallet.positions||[]).filter(p=>p.settled)
     .map(p=>({ p, row: settledByFid[p.flight_id] }))
     .sort((a,b)=>{ const da=(a.row&&a.row.date)||"", db=(b.row&&b.row.date)||""; return db.localeCompare(da); });
+  // Win / lose / void classification (void = cancelled or no delay result → refunded).
+  const classify = (p,row) => {
+    const net=(p.payout||0)-(p.stake||0);
+    const voided=!!(row&&(row.cancelled===1||row.cancelled===true));
+    const dd=(row&&row.delayMin!=null)?row.delayMin:null;
+    if(voided||dd==null) return "void";
+    return net>0?"win":"lose";
+  };
+  const cWon = resolved.filter(x=>classify(x.p,x.row)==="win").length;
+  const cLost = resolved.filter(x=>classify(x.p,x.row)==="lose").length;
+  const shownResolved = resolved.filter(x=>{
+    const c=classify(x.p,x.row);
+    return rbFilter==="won" ? c==="win" : rbFilter==="lost" ? c==="lose" : true;
+  });
 
   return <div>
     <div className="prof-head">
@@ -3206,8 +3226,15 @@ function Profile({ wallet, user, streak, markets, onOpen }){
 
     {resolved.length>0 && <div className="panelbox">
       <div className="sectlbl">{t("Abgerechnete Wetten","Resolved bets")} · {resolved.length}</div>
-      <div className="rbet-list">
-        {resolved.map(({p,row},i)=>{
+      <div className="rbet-tabs">
+        <button className={"rbet-tab"+(rbFilter==="all"?" on":"")} onClick={()=>setRbFilter("all")}>{t("Alle","All")} <span className="rbet-tabn">{resolved.length}</span></button>
+        <button className={"rbet-tab"+(rbFilter==="won"?" on":"")} onClick={()=>setRbFilter("won")}>{t("Gewonnen","Won")} <span className="rbet-tabn">{cWon}</span></button>
+        <button className={"rbet-tab"+(rbFilter==="lost"?" on":"")} onClick={()=>setRbFilter("lost")}>{t("Verloren","Lost")} <span className="rbet-tabn">{cLost}</span></button>
+      </div>
+      {shownResolved.length===0
+        ? <div className="prof-empty">{rbFilter==="won"?t("Noch keine gewonnenen Wetten.","No won bets yet."):t("Noch keine verlorenen Wetten.","No lost bets yet.")}</div>
+        : <div className="rbet-list">
+        {shownResolved.map(({p,row},i)=>{
           const ident = (row && row.ident) || (p.flight_id||"").split("_")[1] || p.flight_id;
           const al = splitIdent(ident);
           const net = (p.payout||0)-(p.stake||0);
@@ -3221,11 +3248,22 @@ function Profile({ wallet, user, streak, markets, onOpen }){
           const aCol = neutral ? "var(--muted)" : TONE[wtone(d)];
           const outCol = neutral ? "var(--muted)" : (win ? "var(--good)" : "var(--bad)");
           const netTxt = neutral ? "±0 €" : (net>0?"+":"")+fmt(net)+" €";
-          const picked = statusLabel(BTONE[p.outcome] || "good");
+          const picked = statusVerb(BTONE[p.outcome] || "good");
           const pickCol = TONE[BTONE[p.outcome]] || "var(--ink)";
-          const aWord = voided ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : statusLabel(wtone(d));
+          const aWord = voided ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : statusVerb(wtone(d));
           const aMin = (voided||d==null) ? "" : " ("+(d>=0?"+":"")+d+"min)";
-          const oddsTxt = (win && (p.stake||0)>0) ? (p.payout/p.stake).toFixed(2)+"x" : "—";
+          // Played odds: realized (payout/stake) for wins; for losses/voids the closing
+          // pool odds of the chosen bracket — computed from the final per-bracket pools the
+          // worker now returns, so a price is ALWAYS shown, win or lose.
+          const closeOddsFor = id => {
+            const pl = row && row.pools; if(!pl) return null;
+            const sd = DEFAULT_SEED;
+            let tot=0; const e={};
+            for(const k of ["a","b","c","d"]){ e[k]=(pl[k]||0)+(sd[k]||0); tot+=e[k]; }
+            return e[id]>0 ? tot/e[id] : null;
+          };
+          const playedOdds = (win && (p.stake||0)>0) ? (p.payout/p.stake) : closeOddsFor(p.outcome);
+          const oddsTxt = playedOdds!=null ? playedOdds.toFixed(2)+"x" : "—";
           const payoutTxt = fmt(p.payout||0)+" €";
           const payoutCol = win ? "var(--good)" : "var(--muted)";
           const statusTxt = neutral ? "VOID" : win ? "PROFIT" : "LOSS";
@@ -3278,7 +3316,7 @@ function Profile({ wallet, user, streak, markets, onOpen }){
             </div>
           </div>;
         })}
-      </div>
+      </div>}
     </div>}
   </div>;
 }
@@ -3916,14 +3954,8 @@ function App(){
     ) : tab==="legal" ? (
       <Legal/>
     ) : tab==="profile" ? (
-      <>
-        <div className="rankhead">
-          <h2>👤 Dein Profil</h2>
-          <p>Deine Wett-Statistik und offene Wetten.</p>
-        </div>
-        <Profile wallet={serverWallet} user={user} streak={streak} markets={allFindable}
-          onOpen={id=>{setTab("flights");setView({page:"detail",id});}}/>
-      </>
+      <Profile wallet={serverWallet} user={user} streak={streak} markets={allFindable}
+        onOpen={id=>{setTab("flights");setView({page:"detail",id});}}/>
     ) : tab==="rank" ? (
       <>
         <div className="rankhead">
