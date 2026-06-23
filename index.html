@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v299 -->
+<!-- build: v2026-06-16-v300 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -793,6 +793,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .modal-bg{position:fixed;inset:0;background:rgba(10,20,40,.45);backdrop-filter:blur(3px);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;width:100%;max-width:380px;box-shadow:0 24px 70px rgba(0,0,0,.25)}
 .modal-h{font-size:20px;font-weight:800;color:var(--ink);margin-bottom:14px}
+.ob-p{font-size:14.5px;line-height:1.6;color:var(--ink);margin:0 0 12px}
 .authtabs{display:flex;gap:6px;background:var(--card2);border-radius:12px;padding:5px;margin-bottom:16px}
 .authtabs button{flex:1;border:none;background:transparent;padding:9px 0;border-radius:9px;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--muted);cursor:pointer}
 .authtabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
@@ -2932,6 +2933,18 @@ function useWallet(bump, user){
   return w;
 }
 
+function OnboardingModal({ onClose }){
+  return <div className="modal-bg" onClick={onClose}>
+    <div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-h">{t("Willkommen bei flug.bet ✈️","Welcome to flug.bet ✈️")}</div>
+      <p className="ob-p">{t("Wir haben dir 1.000 € Spielgeld als Startguthaben aufgeladen.","We've credited your account with €1,000 in play money to start.")}</p>
+      <p className="ob-p"><b>{t("So funktioniert's:","How it works:")}</b> {t("Tippe auf die reale Landeverspätung echter BER-Flüge. Du spielst gegen die anderen User – wer richtig liegt, teilt sich den gesamten Einsatz-Pool (Parimutuel-System). Wetten schließen 1 Stunde vor Abflug.","Bet on the real landing delay of actual BER flights. You play against the other users – whoever is right shares the entire stake pool (parimutuel system). Betting closes 1 hour before departure.")}</p>
+      <p className="rules-net">{t("Hinweis: Dies ist ein reines Unterhaltungsprojekt. Es gibt kein echtes Geld und kein echtes Glücksspiel.","Note: this is purely an entertainment project. There is no real money and no real gambling.")}</p>
+      <button className="betbtn" style={{width:"100%",marginTop:14}} onClick={onClose}>{t("Verstanden, let's go!","Got it, let's go!")}</button>
+    </div>
+  </div>;
+}
+
 function AuthModal({ onClose }){
   const [mode,setMode]=useState("login"); // login | signup
   const [email,setEmail]=useState("");
@@ -3872,6 +3885,8 @@ function App(){
   const wallet = serverWallet.balance;
   const leaderboard = useLeaderboard(tab==="rank", bump);
   const [authOpen,setAuthOpen]=useState(false);
+  const [showOnboarding,setShowOnboarding]=useState(false);
+  useEffect(()=>{ if(user && !store.get("fb_onboarded_"+user.id,false)) setShowOnboarding(true); },[user]);
   const [feedbackOpen,setFeedbackOpen]=useState(false);
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
@@ -4127,6 +4142,7 @@ function App(){
     </>}
 
     {authOpen && <AuthModal onClose={()=>setAuthOpen(false)}/>}
+    {showOnboarding && user && <OnboardingModal onClose={()=>{ store.set("fb_onboarded_"+user.id,true); setShowOnboarding(false); }}/>}
     {feedbackOpen && <FeedbackModal onClose={()=>setFeedbackOpen(false)} user={user} setToast={setToast}/>}
 
     <main className="app-main">
