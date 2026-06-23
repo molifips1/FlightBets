@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v286 -->
+<!-- build: v2026-06-16-v287 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -688,7 +688,19 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 /* detail page */
 .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;margin:18px 0 14px;background:none;border:none}
 .dwrap{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
-@media(max-width:900px){.dwrap{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .dwrap{grid-template-columns:1fr}
+  .dcol-l{display:flex;flex-direction:column}
+  .dcol-l .db-flight{order:1}
+  .dcol-l .db-rules{order:2}
+  .dcol-l .rstats{order:3}
+  .dcol-l .db-predict{order:4}
+  .db-flight .chead{padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .db-flight .route{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:2px}
+  .d-statusline{display:none}
+  .d-arrstatus{display:inline-block;margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;white-space:nowrap}
+}
+.d-arrstatus{display:none}
 .panelbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
 .dhero{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dtitle{font-family:Archivo;font-weight:800;font-size:30px;letter-spacing:-.6px}
@@ -2231,14 +2243,15 @@ function Detail({m,total,back,initialPick,...bet}){
   // parimutuel payout estimate for the selected bracket at stake s
   const proj = (o,st)=>{ if(!o) return 0; const sd=seedOf(m); const np=o.pool+(sd[o.id]||0)+st, nt=total+seedSum(sd)+st; return np>0?(st/np)*nt:0; };
   const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
+  const st = delayStatusInfo({ status:m.neonTone||m.status, projDelay:m.projDelay, delayUnknown:m.delayUnknown, delayStats:m.delayStats });
 
   return <div>
     <button className="back" onClick={back}>{t("← Alle Märkte","← All markets")}</button>
     <div className="dwrap">
       {/* LEFT: flight info + brackets */}
-      <div>
+      <div className="dcol-l">
         {/* Flight info header — same data as the card front */}
-        <div className="panelbox">
+        <div className="panelbox db-flight">
           <div className="chead">
             <div className="codeline">
               <span className="code">{m.code}</span>
@@ -2264,15 +2277,15 @@ function Detail({m,total,back,initialPick,...bet}){
             <div className="stop arr">
               <div className="dotline"><span className="rdot end"/></div>
               <span className="flag">{m.to.flag}</span>
-              <span className="sname">{m.to.name}</span><span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
+              <span className="sname">{m.to.name}</span>{isFlight && <span className="d-arrstatus" style={{color:st.pc}}>{st.wordTxt} {st.valTxt}</span>}<span className="rtime arr">{m.to.arrRevised ? <><span className="old">{m.to.arr}</span><span className="new" style={{color:TONE[m.neonTone||m.status]}}>{m.to.arrRevised}</span></> : m.to.arr}</span>
             </div>
           </div> : <div className="scope" style={{margin:"12px 0 2px",color:"var(--muted)",fontSize:14}}>{m.scope}</div>}
-          <DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
+          <div className="d-statusline"><DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/></div>
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
 
         {/* Bracket list — pick your bracket, pools visible */}
-        <div className="panelbox">
+        <div className="panelbox db-predict">
           <div className="sectlbl">{t("Tippe die Landeverspätung","Predict the landing delay")} · {m.outcomes.length} {t("Optionen","options")}</div>
           <div className="brackets">
             {m.outcomes.map(o=>{
@@ -2301,7 +2314,7 @@ function Detail({m,total,back,initialPick,...bet}){
         {isFlight && m.code && <FlightStats ident={m.code}/>}
 
         {/* Market rules */}
-        <div className="panelbox">
+        <div className="panelbox db-rules">
           <div className="sectlbl">{t("Marktregeln","Market rules")}</div>
           <div className="rules">
             <p>{LANG==="de" ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges am Zielflughafen. Du setzt €-Spielgeld auf eine der vier Optionen — Wetten schließen 1 Stunde vor Abflug. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</> : <>Each market is a <b>parimutuel pool</b> on this flight's <b>landing delay</b> at the destination airport. You stake play-money € on one of four options — betting closes 1 hour before departure. At settlement, everyone who was right shares the whole pool in proportion to their stake — minus a {RAKE*100}% fee. The odds are an estimate from the current pool and shift the more is bet.</>}</p>
