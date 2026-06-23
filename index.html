@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v304 -->
+<!-- build: v2026-06-16-v305 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -175,9 +175,9 @@ button{font-family:inherit}
 .lbr-row.mine{background:color-mix(in srgb,var(--brand) 6%,transparent)}
 .lbr-l{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
 .lbr-rank{width:30px;flex:none;text-align:center;color:var(--muted);font-family:'Eszett','IBM Plex Mono',monospace;font-weight:800;font-size:13px}
-.lbr-row.top .lbr-rank{font-size:20px}
+.lbr-row.lbr-top .lbr-rank{font-size:20px}
 .lbr-av{width:36px;height:36px;flex:none;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:'Eszett',Archivo;font-weight:800;font-size:14px}
-.lbr-row.top .lbr-av{width:40px;height:40px;font-size:15px}
+.lbr-row.lbr-top .lbr-av{width:40px;height:40px;font-size:15px}
 .lbr-info{min-width:0}
 .lbr-name{font-weight:700;color:var(--ink);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lbr-handle{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3086,7 +3086,7 @@ function Leaderboard({ players, me, meName, meWallet }){
         const pr = p.profit||0;
         const prTxt = (pr>0?"+":pr<0?"-":"")+fmt(Math.abs(pr))+" €";
         const md = medal(i);
-        return <div className={"lbr-row"+(i<3?" top":"")+(i===0?" r1":"")+(mine?" mine":"")} key={p.userId}>
+        return <div className={"lbr-row"+(i<3?" lbr-top":"")+(i===0?" r1":"")+(mine?" mine":"")} key={p.userId}>
           <div className="lbr-l">
             <span className="lbr-rank">{md||(i+1)}</span>
             <span className="lbr-av" style={{background:lbAvatarBg(p.name||"?")}}>{lbInitials(p.name)}</span>
