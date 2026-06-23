@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v302 -->
+<!-- build: v2026-06-16-v303 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -167,9 +167,11 @@ button{font-family:inherit}
   0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--ucol) 35%,transparent),0 0 9px -3px var(--ucol)}
   50%{box-shadow:0 0 0 2px var(--ucol),0 0 var(--ublur,20px) var(--uspread,6px) color-mix(in srgb,var(--ucol) 85%,transparent)}
 }
-.flapboard{background:#141414;border:1px solid #050505;border-radius:14px;padding:20px 18px;overflow-x:auto;box-shadow:inset 0 0 28px rgba(0,0,0,.65)}
-[data-theme="dark"] .flapboard{background:#0e0e0e}
-.flapboard-h{display:flex;gap:16px;font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;color:#e0bb3e;letter-spacing:2px;padding:2px 0 16px;min-width:max-content;text-transform:uppercase}
+.flapboard{background:#1a1a1a;border:4px solid #b0b5b9;border-radius:12px;padding:16px 16px 12px;overflow-x:auto;box-shadow:0 10px 30px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.8)}
+[data-theme="dark"] .flapboard{background:#1a1a1a}
+.fb-title{display:flex;align-items:center;gap:9px;color:#FFD700;font-family:'Eszett',Archivo;font-weight:800;font-size:15px;letter-spacing:2px;text-transform:uppercase;padding:0 2px 12px;min-width:max-content}
+.fb-title .fb-plane{font-size:18px;line-height:1}
+.flapboard-h{display:flex;gap:16px;font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;color:#FFD700;letter-spacing:2px;padding:2px 0 16px;min-width:max-content;text-transform:uppercase}
 .flaprow{display:flex;gap:16px;align-items:center;padding:5px 0;min-width:max-content}
 .col-rank{width:60px;flex:none}
 .col-name{width:352px;flex:none}
@@ -196,6 +198,28 @@ button{font-family:inherit}
 .flaprow.top2 .flapc{color:#dfe5ee}
 .flaprow.top3 .flapc{color:#e6a96b}
 .flap-you{font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;color:#6ea8ff;letter-spacing:1px;flex:none}
+.lb-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.lb-rest{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:16px;overflow:hidden}
+.lbr-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.lbr-row:last-child{border-bottom:none}
+.lbr-row.mine{background:color-mix(in srgb,var(--brand) 8%,transparent)}
+.lbr-rank{width:36px;flex:none;color:var(--muted);font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;font-weight:700}
+.lbr-av{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:'Eszett',Archivo;font-weight:800;font-size:14px}
+.lbr-info{flex:1;min-width:0}
+.lbr-name{font-weight:700;color:var(--ink);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbr-handle{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbr-bal{flex:none;font-family:'Eszett',Archivo;font-weight:800;font-size:16px;color:var(--ink)}
+.lb-me{position:sticky;top:80px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 20px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.lb-me-av{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;color:#fff;font-family:'Eszett',Archivo;font-weight:800;font-size:25px;background:linear-gradient(135deg,var(--brand),var(--hot))}
+.lb-me-name{font-weight:800;font-size:18px;color:var(--ink)}
+.lb-me-rank{font-size:13px;color:var(--muted);margin-bottom:16px}
+.lb-me-bal{font-family:'Eszett',Archivo;font-weight:800;font-size:38px;color:var(--ink);line-height:1.05}
+.lb-me-ballbl{font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
+.lb-me-stats{display:flex;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.lb-me-stat{flex:1}
+.lb-me-stat .v{font-family:'Eszett',Archivo;font-weight:800;font-size:18px;color:var(--ink)}
+.lb-me-stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+@media(max-width:900px){.lb-wrap{grid-template-columns:1fr}.lb-me{position:static;order:-1}}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .pooldist{margin-top:12px}
 .cardspacer{flex:1 1 0;min-height:0}
@@ -3100,40 +3124,74 @@ function Flap({ text, width, align, delayBase=0, step=20, animate=true }){
     <FlapChar key={i} target={c} delay={delayBase + i*step} animate={animate}/>)}</span>;
 }
 
-function Leaderboard({ players, me }){
-  if(players===null) return <div className="lb-empty">Lade Ranking…</div>;
+function lbInitials(s){ s=(s||"").trim(); if(!s) return "?"; const caps=s.match(/[A-ZÄÖÜ]/g); if(caps&&caps.length>=2) return (caps[0]+caps[1]).toUpperCase(); const parts=s.split(/\s+/); if(parts.length>1&&parts[1]) return (parts[0][0]+parts[1][0]).toUpperCase(); return s.slice(0,2).toUpperCase(); }
+function lbHandle(s){ return ((s||"player").toLowerCase().replace(/[^a-z0-9]/g,"")||"player"); }
+function lbAvatarBg(s){ s=s||"?"; let h=0; for(let k=0;k<s.length;k++) h=(h*31+s.charCodeAt(k))>>>0; const hue=h%360; return `linear-gradient(135deg,hsl(${hue} 70% 52%),hsl(${(hue+40)%360} 70% 42%))`; }
+function Leaderboard({ players, me, meName, meWallet }){
+  if(players===null) return <div className="lb-empty">{t("Lade Ranking…","Loading ranking…")}</div>;
   if(!players.length) return <div className="lb-empty">
     <div className="lb-emoji">🏆</div>
     <div className="lb-et">{t("Noch kein Ranking","No ranking yet")}</div>
     <div className="lb-es">{t("Sobald Spieler ihre erste Wette platziert haben, erscheinen sie hier — sortiert nach Guthaben.","Once players place their first bet, they show up here — sorted by balance.")}</div>
   </div>;
-  const medal = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
-  return <div className="flapboard">
-    <div className="flapboard-h">
-      <span className="col-rank">#</span>
-      <span className="col-name">SPIELER</span>
-      <span className="col-bets">WETTEN</span>
-      <span className="col-hit">TREFFER</span>
-      <span className="col-bal">GUTHABEN</span>
-      <span className="col-profit">PROFIT</span>
+  const top10 = players.slice(0, 10);
+  const rest = players.slice(10);
+  const meIdx = me ? players.findIndex(p=>p.userId===me) : -1;
+  const meP = meIdx>=0 ? players[meIdx] : null;
+  return <div className="lb-wrap">
+    <div>
+      <div className="flapboard">
+        <div className="fb-title"><span className="fb-plane">✈</span>{t("TOP 10 RANKING","TOP 10 RANKING")}</div>
+        <div className="flapboard-h">
+          <span className="col-rank">#</span>
+          <span className="col-name">{t("SPIELER","PLAYER")}</span>
+          <span className="col-bal">{t("GUTHABEN","BALANCE")}</span>
+        </div>
+        {top10.map((p,i)=>{
+          const mine = me && p.userId===me;
+          const animate = i < 10;
+          const rd = i*42;
+          const top = i===0?" top1":i===1?" top2":i===2?" top3":"";
+          return <div className={"flaprow"+(mine?" mine":"")+top} key={p.userId}>
+            <span className="col-rank"><Flap text={String(i+1)} width={2} align="right" delayBase={rd} animate={animate}/></span>
+            <span className="col-name"><Flap text={p.name||"Anonym"} width={12} delayBase={rd} animate={animate}/></span>
+            <span className="col-bal"><Flap text={fmt(p.balance)} width={7} align="right" delayBase={rd} animate={animate}/></span>
+          </div>;
+        })}
+      </div>
+      {rest.length>0 && <div className="lb-rest">
+        {rest.map((p,i)=>{
+          const rank = i+11;
+          const mine = me && p.userId===me;
+          return <div className={"lbr-row"+(mine?" mine":"")} key={p.userId}>
+            <span className="lbr-rank">#{rank}</span>
+            <span className="lbr-av" style={{background:lbAvatarBg(p.name||"?")}}>{lbInitials(p.name)}</span>
+            <span className="lbr-info">
+              <div className="lbr-name">{p.name||t("Anonym","Anonymous")}</div>
+              <div className="lbr-handle">@{lbHandle(p.name)}</div>
+            </span>
+            <span className="lbr-bal">{fmt(p.balance)} €</span>
+          </div>;
+        })}
+      </div>}
     </div>
-    {players.map((p,i)=>{
-      const mine = me && p.userId===me;
-      const animate = i < 30;                 // cap the live flip to the top rows (perf)
-      const rd = i*42;                         // row-by-row settling wave
-      const top = i===0?" top1":i===1?" top2":i===2?" top3":"";
-      const pr = p.profit||0;
-      const prTxt = (pr>0?"+":pr<0?"-":"")+fmt(Math.abs(pr));
-      return <div className={"flaprow"+(mine?" mine":"")+top} key={p.userId}>
-        <span className="col-rank"><Flap text={String(i+1)} width={2} align="right" delayBase={rd} animate={animate}/></span>
-        <span className="col-name"><Flap text={p.name||"Anonym"} width={12} delayBase={rd} animate={animate}/></span>
-        <span className="col-bets"><Flap text={String(p.betsTotal||0)} width={4} align="right" delayBase={rd} animate={animate}/></span>
-        <span className="col-hit"><Flap text={(p.hitRate||0)+"%"} width={4} align="right" delayBase={rd} animate={animate}/></span>
-        <span className="col-bal"><Flap text={fmt(p.balance)} width={7} align="right" delayBase={rd} animate={animate}/></span>
-        <span className="col-profit"><Flap text={prTxt} width={7} align="right" delayBase={rd} animate={animate}/></span>
-        {mine && <span className="flap-you">◄ DU</span>}
-      </div>;
-    })}
+    <div className="lb-me">
+      {me ? <>
+        <div className="lb-me-av">{lbInitials((meP&&meP.name)||meName||"?")}</div>
+        <div className="lb-me-name">{(meP&&meP.name)||meName||t("Du","You")}</div>
+        <div className="lb-me-rank">{meIdx>=0 ? (t("Rang","Rank")+" #"+(meIdx+1)+t(" von "," of ")+players.length) : t("Noch nicht platziert","Not ranked yet")}</div>
+        <div className="lb-me-bal">{fmt(meP?meP.balance:(meWallet||0))} €</div>
+        <div className="lb-me-ballbl">{t("Guthaben","Balance")}</div>
+        <div className="lb-me-stats">
+          <div className="lb-me-stat"><div className="v">{meP?meP.betsTotal:0}</div><div className="l">{t("Wetten","Bets")}</div></div>
+          <div className="lb-me-stat"><div className="v">{(meP?meP.hitRate:0)}%</div><div className="l">Win Rate</div></div>
+        </div>
+      </> : <>
+        <div className="lb-me-av">?</div>
+        <div className="lb-me-name">{t("Nicht angemeldet","Not signed in")}</div>
+        <div className="lb-me-rank">{t("Melde dich an, um deinen Rang zu sehen.","Sign in to see your rank.")}</div>
+      </>}
+    </div>
   </div>;
 }
 
@@ -4163,7 +4221,7 @@ function App(){
           <h2>🏆 Ranking</h2>
           <p>{t("Beste Tipper nach Guthaben — wer aus den Start-925 € am meisten gemacht hat.","Top tipsters by balance — who made the most out of the starting €925.")}</p>
         </div>
-        <Leaderboard players={leaderboard} me={user?.id}/>
+        <Leaderboard players={leaderboard} me={user?.id} meName={displayName} meWallet={wallet}/>
       </>
     ) : view.page==="home" ? <>
       {dataStatus==="connecting" ? (
