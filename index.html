@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v297 -->
+<!-- build: v2026-06-16-v299 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -831,7 +831,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .rules-opts .ro-dot{width:8px;height:8px;border-radius:50%;flex:none;align-self:center}
 .rules-opts .ro-txt{flex:1}
 .rules-opts b{color:var(--ink)}
-.rules-opts .ro-rng{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.rules-opts .ro-rng{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--ink);font-weight:700;white-space:nowrap}
 .rules-net{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3px;color:var(--muted);margin-top:2px!important}
 .ph-upcoming,.ph-aktiv{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
 .ph-enroute,.ph-abgeflogen{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
@@ -2330,10 +2330,10 @@ function Detail({m,total,back,initialPick,...bet}){
 
             <p style={{marginBottom:6}}><b>{t("Die vier Optionen","The four options")}</b> {t("– gemessen an der Verspätung bei Ankunft:","– based on the delay at arrival:")}</p>
             <ul className="rules-opts">
-              <li><span className="ro-dot" style={{background:"var(--brand)"}}/><span className="ro-txt"><b>{t("Vorzeitig","Early")}</b> — {t("deutlich zu früh","well ahead")}</span><span className="ro-rng">≤ −5 min</span></li>
-              <li><span className="ro-dot" style={{background:"var(--good)"}}/><span className="ro-txt"><b>{t("Pünktlich","On time")}</b> — {t("rund um die Planzeit","around schedule")}</span><span className="ro-rng">−5…+5 min</span></li>
-              <li><span className="ro-dot" style={{background:"var(--warn)"}}/><span className="ro-txt"><b>{t("Verspätet","Late")}</b> — {t("spürbar zu spät","noticeably late")}</span><span className="ro-rng">+5…+20 min</span></li>
-              <li><span className="ro-dot" style={{background:"var(--bad)"}}/><span className="ro-txt"><b>{t("Stark verspätet","Very late")}</b> — {t("der BER-Klassiker","the BER classic")}</span><span className="ro-rng">&gt; +20 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--brand)"}}/><span className="ro-txt"><b>{t("Landet früh","Lands Early")}</b> — {t("deutlich zu früh","well ahead")}</span><span className="ro-rng">≤ −5 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--good)"}}/><span className="ro-txt"><b>{t("Landet pünktlich","Lands On time")}</b> — {t("rund um die Planzeit","around schedule")}</span><span className="ro-rng">−5…+5 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--warn)"}}/><span className="ro-txt"><b>{t("Landet spät","Lands Late")}</b> — {t("spürbar zu spät","noticeably late")}</span><span className="ro-rng">+5…+20 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--bad)"}}/><span className="ro-txt"><b>{t("Landet sehr spät","Lands Very Late")}</b> — {t("der BER-Klassiker","the BER classic")}</span><span className="ro-rng">&gt; +20 min</span></li>
             </ul>
 
             <p>{LANG==="de"
@@ -2368,12 +2368,18 @@ function Detail({m,total,back,initialPick,...bet}){
       {/* RIGHT: stake panel + discussion */}
       <div>
         <div className="panelbox">
-          <div className="sectlbl">{m.settled ? t("Abgerechnet · Wetten geschlossen","Settled · betting closed") : t("Live · Jetzt wetten","Live · bet now")}</div>
-          {m.settled ? <div className="closedbox">
-            <div className="closed-em">{m.phase==="cancelled"?"✕":"✓"}</div>
-            <div className="closed-t">{m.phase==="cancelled"?t("Flug annulliert","Flight cancelled"):t("Flug abgeflogen","Flight departed")}</div>
+          <div className="sectlbl">{m.settled ? t("Abgerechnet · Resultat","Settled · Result") : t("Live · Jetzt wetten","Live · bet now")}</div>
+          {m.settled ? (()=>{
+            // Winning bracket (4-way, same boundaries as the bets) from the actual landing delay.
+            const winTone = (m.delayUnknown || m.projDelay==null) ? null : (m.projDelay<=-5?"cool":m.projDelay<=5?"good":m.projDelay<=20?"warn":"bad");
+            return <div className="closedbox">
+            <div className="closed-em">{m.phase==="cancelled" ? <span style={{color:TONE.bad}}>✕</span>
+              : winTone ? <span style={{display:"inline-flex",alignItems:"center",gap:7,fontSize:16,fontWeight:800,padding:"7px 14px",borderRadius:999,color:TONE[winTone],background:`color-mix(in srgb, ${TONE[winTone]} 14%, transparent)`}}><span style={{width:9,height:9,borderRadius:"50%",background:TONE[winTone],flex:"none"}}/>{statusVerb(winTone)}</span>
+              : <span style={{color:"var(--muted)"}}>—</span>}</div>
+            <div className="closed-t">{m.phase==="cancelled"?t("Flug annulliert","Flight cancelled"):t("Flug gelandet","Flight landed")}</div>
             <div className="closed-s">{m.delayUnknown ? t("Ergebnis liegt nicht verlässlich vor.","No reliable result available.") : <>{t("Ergebnis: ","Result: ")}<b style={{color:TONE[m.status]}}>{m.delay}</b>. {t("Auf abgeschlossene Flüge kann nicht mehr gewettet werden.","Settled flights can no longer be bet on.")}</>}</div>
-          </div> : <>
+          </div>;
+          })() : <>
           {!pick && <div className="pickhint">{t("Wähle links eine Verspätungs-Option, um zu wetten.","Pick a delay option on the left to bet.")}</div>}
           {pick && <div className="stakebox">
             <div className="stakerow"><span className="stakelbl">{t("DEIN TIPP","YOUR PICK")}</span><span className="stakeval">{outLabel(sel.label)}</span></div>
