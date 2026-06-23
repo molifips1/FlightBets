@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v300 -->
+<!-- build: v2026-06-16-v301 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3886,7 +3886,7 @@ function App(){
   const leaderboard = useLeaderboard(tab==="rank", bump);
   const [authOpen,setAuthOpen]=useState(false);
   const [showOnboarding,setShowOnboarding]=useState(false);
-  useEffect(()=>{ if(user && !store.get("fb_onboarded_"+user.id,false)) setShowOnboarding(true); },[user]);
+  useEffect(()=>{ if(user && !store.get("fb_onboarded_"+user.id,false)){ store.set("fb_onboarded_"+user.id,true); setShowOnboarding(true); } },[user]);
   const [feedbackOpen,setFeedbackOpen]=useState(false);
   const [view,setView]=useState({page:"home"});
   const [openBet,setOpenBet]=useState(null);
