@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v305 -->
+<!-- build: v2026-06-16-v306 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -525,7 +525,7 @@ button{font-family:inherit}
 .stat-v{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .stat-l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
 .prof-empty{color:var(--muted);font-size:13.5px;padding:8px 2px}
-.open-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.open-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .open-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
 .open-row:hover{border-color:var(--brand)}
 .open-code{font-family:'Eszett',Archivo;font-weight:800;font-size:15px;color:var(--ink)}
@@ -541,6 +541,7 @@ button{font-family:inherit}
 .rbet{position:relative;background:var(--card2);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:color-mix(in srgb,var(--muted) 45%,var(--line))}
+.rbet.open{border-left-color:var(--brand)}
 .rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .rbet-code{font-family:'Eszett',Archivo;font-weight:800;font-size:15px;color:var(--ink)}
 .rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
@@ -566,7 +567,7 @@ button{font-family:inherit}
 .rbet-tlbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}
 .rbet-tval{font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
 @media(max-width:1000px){.rbet-list,.open-list{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}.open-list{grid-template-columns:repeat(2,1fr)}.rbet-list{grid-template-columns:1fr}}
+@media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}.rbet-list,.open-list{grid-template-columns:1fr}}
 .legal{max-width:680px;padding-bottom:20px}
 .legal-note{background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);
   border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.55;color:var(--ink);margin-bottom:20px}
@@ -3354,12 +3355,66 @@ function Profile({ wallet, user, streak, markets, onOpen }){
       <div className="sectlbl">{t("Offene Wetten","Open bets")} {open.length>0 && `· ${fmt(openStake)} € ${t("im Spiel","in play")}`}</div>
       {open.length===0
         ? <div className="prof-empty">{t("Keine offenen Wetten. Setz auf einen Flug, um loszulegen.","No open bets. Back a flight to get started.")}</div>
-        : <div className="open-list">{open.map((p,i)=>
-            <button className="open-row" key={i} onClick={()=>onOpen(p.flight_id)}>
-              <span className="open-code">{codeFor(p.flight_id)}</span>
-              <span className="open-tip">{OUT[p.outcome]||p.outcome}</span>
-              <span className="open-stake">{fmt(p.stake)} €</span>
-            </button>)}</div>}
+        : <div className="open-list">{open.map((p,i)=>{
+            const m = markets.find(x=>x.id===p.flight_id);
+            const ident = (p.flight_id||"").split("_")[1] || p.flight_id;
+            const al = splitIdent(ident);
+            const date = (p.flight_id||"").split("_")[2];
+            const o = (m && m.outcomes) ? m.outcomes.find(x=>x.id===p.outcome) : null;
+            const odds = (m && o) ? displayOdds(m.outcomes, o, m.seed) : null;
+            const oddsTxt = odds!=null ? odds.toFixed(2)+"×" : "—";
+            const estPay = odds!=null ? fmt(Math.round((p.stake||0)*odds))+" €" : "—";
+            const pickCol = TONE[BTONE[p.outcome]] || "var(--ink)";
+            const picked = statusVerb(BTONE[p.outcome] || "good");
+            const destName = (m && m.to && m.to.name) ? m.to.name.replace(/\s+[A-Z]{3}$/,"") : "—";
+            const dep = (m && m.from && m.from.dep) || "—";
+            const arr = (m && m.to && m.to.arr) || "—";
+            const form = formFor(ident);
+            return <div className="rbet open" key={i} onClick={()=>onOpen(p.flight_id)} style={{cursor:"pointer"}}>
+              <div className="rbet-ticket">TICKET #{ticketCode(p.flight_id+"_"+p.outcome)}</div>
+              <div className="rbet-top">
+                <div className="rbet-id">
+                  <div className="rbet-idline">
+                    <span className="rbet-code">{al.code}{al.num?" "+al.num:""}</span>
+                    {al.name!==al.code && <span className="rbet-air"> · {al.name}</span>}
+                    {form.length>0 && <span className="rbet-form">{form.map((f,j)=><span key={j} className="rbet-fdot" style={{background: f==="void"?"var(--muted)":TONE[f]}}/>)}</span>}
+                  </div>
+                  {date && <div className="rbet-date">{fmtCardDate(date)}</div>}
+                </div>
+                <div className="rbet-outcome">
+                  <div className="rbet-status" style={{color:"var(--brand)", background:"color-mix(in srgb,var(--brand) 14%,transparent)"}}>{t("IN PLAY","IN PLAY")}</div>
+                </div>
+              </div>
+              <div className="rbet-route">{t("Berlin","Berlin")} <span className="rbet-arrow">→</span> {destName}</div>
+              <div className="rbet-cmp">
+                <div className="rbet-cmp-col">
+                  <div className="rbet-cmp-h">{t("DEIN TIPP","YOUR PICK")}</div>
+                  <span className="rbet-badge" style={{color:pickCol, background:`color-mix(in srgb, ${pickCol} 13%, transparent)`}}>
+                    <span className="rbet-bdot" style={{background:pickCol}}/>{picked}
+                  </span>
+                </div>
+                <span className="rbet-cmp-arrow">→</span>
+                <div className="rbet-cmp-col">
+                  <div className="rbet-cmp-h">{t("ERGEBNIS","RESULT")}</div>
+                  <span className="rbet-badge" style={{color:"var(--muted)", background:"color-mix(in srgb,var(--muted) 13%,transparent)"}}>
+                    <span className="rbet-bdot" style={{background:"var(--muted)"}}/>{t("Ausstehend","Pending")}
+                  </span>
+                </div>
+              </div>
+              <div className="rbet-slip">
+                <div className="rbet-tcol"><div className="rbet-tlbl">{t("EINSATZ","STAKE")}</div><div className="rbet-tval">{fmt(p.stake)} €</div></div>
+                <div className="rbet-tcol"><div className="rbet-tlbl">{t("QUOTE","ODDS")}</div><div className="rbet-tval">{oddsTxt}</div></div>
+                <div className="rbet-tcol"><div className="rbet-tlbl">{t("AUSZAHLUNG","PAYOUT")}</div><div className="rbet-tval" style={{color:"var(--muted)"}}>{estPay}</div></div>
+              </div>
+              <div className="rbet-bottom">
+                <div className="rbet-times">
+                  <div className="rbet-tcol"><div className="rbet-tlbl">DEP</div><div className="rbet-tval">{dep}</div></div>
+                  <div className="rbet-tcol"><div className="rbet-tlbl">SCHED ARR</div><div className="rbet-tval">{arr}</div></div>
+                  <div className="rbet-tcol"><div className="rbet-tlbl">ARRIVED</div><div className="rbet-tval" style={{color:"var(--muted)"}}>—</div></div>
+                </div>
+              </div>
+            </div>;
+          })}</div>}
     </div>
 
     {resolved.length>0 && <div className="panelbox">
