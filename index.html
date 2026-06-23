@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v294 -->
+<!-- build: v2026-06-16-v297 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2701,6 +2701,24 @@ function boardToMarket(f){
   };
 }
 
+// Build a synthetic, fully-shaped "settled" market from a /api/settled row so the
+// results table can open the flight's detail page (with the market rules) even for
+// older flights that have rolled off the live board. Reuses boardToMarket so the
+// shape stays consistent with live markets.
+function settledRowToMarket(r){
+  const f = {
+    ident: r.ident, direction: "departure",
+    destination: { code: r.dest, code_iata: r.dest, name: r.dest },
+    origin: null,
+    status: r.cancelled ? "cancelled" : "arrived",
+    scheduledDep: r.schedDep || null, scheduledArr: r.schedArr || null,
+    actualDep: r.actualDep || null, actualArr: r.actualArr || null,
+    cancelled: !!r.cancelled, delayMin: r.delayMin, arrDelayMin: r.delayMin,
+    dataSource: "adb", delayStats: null,
+  };
+  return { ...boardToMarket(f), id: "bd_"+r.ident+"_"+r.date, settled: true, seed: DEFAULT_SEED };
+}
+
 function useBoard(){
   const [flights, setFlights] = useState([]);
   const [status, setStatus] = useState(CONFIG.API_BASE ? "connecting" : "demo");
@@ -3761,7 +3779,7 @@ function BetSheet({ market, initialOutcome, initialStake, wallet, onBet, onClose
 // history. Each row: flight + route, date, result (actual delay), and pool (if
 // the flight was bet on). Rows are informational (not clickable: many are older
 // flights no longer on the live board).
-function ClosedTable({ rows }){
+function ClosedTable({ rows, onOpen }){
   const [q,setQ]=useState("");
   const fmtDate = d => {
     if(!d) return "—";
@@ -3776,7 +3794,7 @@ function ClosedTable({ rows }){
   // Winning bracket from the actual landing delay — SAME boundaries as the bets:
   // ≤−5 Vorzeitig · −4..+5 Pünktlich · +6..+20 Verspätet · >+20 Stark Verspätet.
   const winnerTone = d => d<=-5 ? "cool" : d<=5 ? "good" : d<=20 ? "warn" : "bad";
-  const bucketLabel = d => statusLabel(winnerTone(d));
+  const bucketLabel = d => statusVerb(winnerTone(d));
   const query = q.trim().toLowerCase();
   const filtered = query
     ? rows.filter(r => (r.dest||"").toLowerCase().includes(query) || (r.ident||"").toLowerCase().includes(query))
@@ -3799,7 +3817,7 @@ function ClosedTable({ rows }){
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
             const wColor = (cancelled || d==null) ? "var(--muted)" : TONE[winnerTone(d)];
             const settled = r.poolTotal!=null;
-            return <tr key={(r.ident||"?")+"_"+r.date+"_"+i}>
+            return <tr key={(r.ident||"?")+"_"+r.date+"_"+i} onClick={()=>onOpen && onOpen(r)}>
               <td className="ct-code">{r.ident}</td>
               <td>{flagFor(r.dest)} {r.dest}</td>
               <td>{fmtDate(r.date)}</td>
@@ -4039,7 +4057,7 @@ function App(){
 
   const displayName = user ? (user.user_metadata?.name || user.email?.split("@")[0] || t("Konto","Account")) : null;
   const betProps={openBet,setOpenBet,pick,setPick,stake,setStake,wallet,onBet,ops,onSettle,onQuickBet,positions:serverWallet.positions};
-  const detailMarket=view.page==="detail"?allFindable.find(m=>m.id===view.id):null;
+  const detailMarket=view.page==="detail"?(allFindable.find(m=>m.id===view.id) || (view.settledRow ? settledRowToMarket(view.settledRow) : null)):null;
 
   return <div className="app">
     <div className="top">
@@ -4152,7 +4170,7 @@ function App(){
           if (closedFlights.rows.length===0) {
             return <div className="empty"><div className="e1">🏁</div><div className="e2">{t("Noch keine Ergebnisse","No results yet")}</div><div className="e3">{t("Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.","Once flights have landed and been recorded, they show up here — with the result and (if bets were placed) the pool.")}</div></div>;
           }
-          return <ClosedTable rows={closedFlights.rows}/>;
+          return <ClosedTable rows={closedFlights.rows} onOpen={(r)=>{ const id="bd_"+r.ident+"_"+r.date; const live=allFindable.find(m=>m.id===id); setView({page:"detail", id, settledRow: live?null:r}); }}/>;
         }
 
         // "Läuft": betting closed, flight under way, result still pending — the
@@ -4227,5 +4245,6 @@ function App(){
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b7d766b31c30421c930d0acd440d2ec9"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
