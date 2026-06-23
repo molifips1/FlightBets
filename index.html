@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v288 -->
+<!-- build: v2026-06-16-v293 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -50,13 +50,14 @@
   --mapsky1:#0B1E3A; --mapsky2:#10325C; --mapsky3:#16447A; --mapgrid:rgba(120,170,255,.14); --mapland:rgba(120,170,255,.05);
 }
 *{box-sizing:border-box}
+@font-face{font-family:'Eszett';src:local('Helvetica Neue'),local('HelveticaNeue'),local('Helvetica'),local('Segoe UI'),local('Roboto'),local('Arial');unicode-range:U+00DF;}
 html,body{margin:0;background:var(--bg);color:var(--ink);overflow-x:clip}
-body{font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
+body{font-family:'Eszett',Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
   font-feature-settings:"zero" 0;
   background:linear-gradient(180deg,#E9F0F8 0%,var(--bg) 420px) fixed}
 [data-theme="dark"] body{background:linear-gradient(180deg,#0C1626 0%,var(--bg) 420px) fixed}
-.mono{font-family:'IBM Plex Mono',monospace}
-.disp{font-family:Archivo,system-ui,sans-serif}
+.mono{font-family:'Eszett','IBM Plex Mono',monospace}
+.disp{font-family:'Eszett',Archivo,system-ui,sans-serif}
 button{font-family:inherit}
 .app{max-width:1400px;margin:0 auto;padding:0 18px;min-height:100vh;display:flex;flex-direction:column}
 .app-main{flex:1 0 auto;min-width:0}
@@ -66,7 +67,7 @@ button{font-family:inherit}
   backdrop-filter:saturate(1.4) blur(10px);display:flex;align-items:center;justify-content:space-between;
   margin:0 calc(50% - 50vw);padding:16px calc(50vw - 50% + 2px);border-bottom:1px solid var(--line)}
 [data-theme="dark"] .top{background:color-mix(in srgb,#0C1626 86%, transparent);border-bottom-color:transparent}
-.wm{font-family:Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
+.wm{font-family:'Eszett',Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
 .wm .wmtxt{white-space:nowrap}
 .wm .pin{color:var(--hot)}
 .wm .plane{font-size:17px;transform:translateY(-1px);display:inline-block;transition:transform .35s cubic-bezier(.3,.7,.3,1)}
@@ -74,9 +75,9 @@ button{font-family:inherit}
 .topr{display:flex;align-items:center;gap:10px}
 .iconbtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card);
   display:grid;place-items:center;cursor:pointer;color:var(--ink);font-size:16px}
-.iconbtn.lang{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:800;letter-spacing:.4px}
+.iconbtn.lang{font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;font-weight:800;letter-spacing:.4px}
 .iconbtn:hover{border-color:var(--ink)}
-.chip{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;
+.chip{display:flex;align-items:center;gap:6px;font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;font-weight:600;
   border:1px solid var(--line);background:var(--card);border-radius:11px;padding:9px 12px;color:var(--ink)}
 .chip.bal{background:var(--ink);color:#fff;border-color:var(--ink)}
 [data-theme="dark"] .chip.bal{background:var(--brand);border-color:var(--brand)}
@@ -136,11 +137,11 @@ button{font-family:inherit}
 [data-theme="dark"] .ticker{background:#060B13;border-color:#16233a}
 .ticker::before{content:"DEPARTURES";position:absolute;left:0;top:0;bottom:0;z-index:2;display:flex;align-items:center;
   padding:0 12px;background:#0B1118;border-right:1px solid #1B2737;color:#5d6f85;
-  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:2px}
+  font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:2px}
 .ticker-track{display:flex;gap:34px;white-space:nowrap;animation:scroll 38s linear infinite;padding-left:118px}
 .ticker:hover .ticker-track{animation-play-state:paused}
 @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.tk{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#F2B441;display:flex;align-items:center;gap:8px;text-shadow:0 0 6px rgba(242,180,65,.25)}
+.tk{font-family:'Eszett','IBM Plex Mono',monospace;font-size:12.5px;color:#F2B441;display:flex;align-items:center;gap:8px;text-shadow:0 0 6px rgba(242,180,65,.25)}
 .tk b{color:#FFD98C;font-weight:500}.tk .win{color:#46d39a;font-weight:600;text-shadow:0 0 6px rgba(70,211,154,.3)}
 
 /* controls */
@@ -167,7 +168,7 @@ button{font-family:inherit}
 }
 .flapboard{background:#141414;border:1px solid #050505;border-radius:14px;padding:20px 18px;overflow-x:auto;box-shadow:inset 0 0 28px rgba(0,0,0,.65)}
 [data-theme="dark"] .flapboard{background:#0e0e0e}
-.flapboard-h{display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#e0bb3e;letter-spacing:2px;padding:2px 0 16px;min-width:max-content;text-transform:uppercase}
+.flapboard-h{display:flex;gap:16px;font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;color:#e0bb3e;letter-spacing:2px;padding:2px 0 16px;min-width:max-content;text-transform:uppercase}
 .flaprow{display:flex;gap:16px;align-items:center;padding:5px 0;min-width:max-content}
 .col-rank{width:60px;flex:none}
 .col-name{width:352px;flex:none}
@@ -176,7 +177,7 @@ button{font-family:inherit}
 .flap{display:inline-flex;gap:3px}
 .flapc{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;
   width:26px;height:36px;border-radius:4px;color:#fff;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22px;
+  font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:22px;
   background:linear-gradient(180deg,#2b2f35 0%,#1d2127 50%,#15181d 50%,#0d0f12 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 1px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.6)}
 .flapc-in{display:block;line-height:1;position:relative;z-index:1;animation:flapIn .1s ease-out}
@@ -193,7 +194,7 @@ button{font-family:inherit}
 .flaprow.top1 .flapc{color:#ffd86b}
 .flaprow.top2 .flapc{color:#dfe5ee}
 .flaprow.top3 .flapc{color:#e6a96b}
-.flap-you{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6ea8ff;letter-spacing:1px;flex:none}
+.flap-you{font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;color:#6ea8ff;letter-spacing:1px;flex:none}
 .cbk-head{font-size:11px;color:var(--muted);margin:12px 0 6px;font-weight:600;line-height:1.3}
 .pooldist{margin-top:12px}
 .cardspacer{flex:1 1 0;min-height:0}
@@ -220,8 +221,8 @@ button{font-family:inherit}
 .feed-row:hover{background:var(--card2)}
 .feed-row:last-child{border-bottom:none}
 .feed-code{font-weight:800;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.feed-dest{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
-.feed-time{font-size:10.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace;white-space:nowrap;font-variant-numeric:tabular-nums}
+.feed-dest{font-size:11px;color:var(--muted);font-family:'Eszett','IBM Plex Mono',monospace;white-space:nowrap}
+.feed-time{font-size:10.5px;color:var(--muted);font-family:'Eszett','IBM Plex Mono',monospace;white-space:nowrap;font-variant-numeric:tabular-nums}
 .feed-status{text-align:left;font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed-empty{font-size:12px;color:var(--muted);padding:14px 2px}
 
@@ -232,23 +233,23 @@ button{font-family:inherit}
 .lt-row{display:flex;align-items:baseline;gap:6px;font-size:12px}
 .lt-user{font-weight:800;color:#e0bb3e;white-space:nowrap}
 .lt-mid{color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lt-amt{font-weight:800;color:var(--good);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.lt-amt{font-weight:800;color:var(--good);font-family:'Eszett','IBM Plex Mono',monospace;white-space:nowrap}
 
 .wz-card{background:var(--card);border:1px solid color-mix(in srgb,var(--brand) 35%,var(--line));border-radius:14px;padding:16px;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--brand) 18%,transparent),0 0 18px -6px color-mix(in srgb,var(--brand) 35%,transparent),var(--shadow)}
 .wz-title{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:12px}
 .wz-flight{margin-bottom:13px}
 .wz-fl-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.wz-code{font-family:Archivo;font-weight:800;font-size:18px;color:var(--ink)}
+.wz-code{font-family:'Eszett',Archivo;font-weight:800;font-size:18px;color:var(--ink)}
 .wz-closed{font-size:11px;color:var(--muted);font-weight:700}
 .wz-route{font-size:12.5px;color:var(--muted);margin-top:3px}
 .wz-tip{font-size:15px;color:var(--muted);margin-bottom:15px}
 .wz-tip b{font-weight:800;font-size:16px}
-.wz-tip-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink)}
+.wz-tip-odds{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;color:var(--ink)}
 .wz-stakebox{margin-bottom:13px}
 .wz-stakerow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
 .wz-stakelbl{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.wz-stakein{flex:1;min-width:0;background:none;border:none;outline:none;font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:18px;color:var(--ink);text-align:right}
+.wz-stakein{flex:1;min-width:0;background:none;border:none;outline:none;font-family:'Eszett','IBM Plex Mono',monospace;font-weight:800;font-size:18px;color:var(--ink);text-align:right}
 .wz-stakein::-webkit-outer-spin-button,.wz-stakein::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .wz-eur{font-weight:800;color:var(--ink)}
 .wz-chips{display:flex;gap:7px;margin-top:8px}
@@ -266,7 +267,7 @@ button{font-family:inherit}
 .fc-plane{color:var(--neon,var(--brand));font-size:17px;margin-right:1px}
 .fc-flag{font-size:16px;margin:0 2px}
 .myeinsatz{font-size:13px;color:var(--muted);white-space:nowrap}
-.myeinsatz b{color:var(--ink);font-family:Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
+.myeinsatz b{color:var(--ink);font-family:'Eszett',Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
 .fc-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
 .mystake{font-size:11.5px;color:var(--muted);font-weight:500}
 .mystake b{color:var(--ink);font-weight:700}
@@ -276,16 +277,16 @@ button{font-family:inherit}
 .fc-subhead{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .fc-subhead .dcurve-head{justify-content:flex-start;gap:7px;margin:7px 0 0}
 .fc-subhead .dcurve-w{font-size:14px;font-weight:700}
-.fc-subhead .dcurve-v{font-size:14px;font-family:'IBM Plex Mono',monospace;font-weight:700}
+.fc-subhead .dcurve-v{font-size:14px;font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700}
 .fc-status{display:flex;align-items:baseline;margin-top:7px;font-size:14px}
 .fc-status-label{color:var(--muted);font-weight:600;margin-right:6px}
 .fc-status-w{font-weight:700}
-.fc-status-v{font-family:'IBM Plex Mono',monospace;font-weight:700;margin-left:6px}
-.fc-status-t{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right}
+.fc-status-v{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;margin-left:6px}
+.fc-status-t{margin-left:auto;font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;text-align:right}
 .fc-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:0;align-items:stretch;flex:1 1 auto}
 .fc-left{display:flex;flex-direction:column;min-width:0;padding-right:24px}
 .oddspanel .pooldist{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
-.hist-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 9px}
+.hist-cap{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 9px}
 .fc-right{display:flex;flex-direction:column;min-width:0;padding-left:24px;border-left:1px solid var(--line)}
 .fc-right .oddspanel{flex:1 1 auto;height:100%}
 @media(max-width:820px){.fc-grid{grid-template-columns:1fr;gap:0}.fc-left{padding-right:0;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}.fc-right{padding-left:0;border-left:none}}
@@ -332,7 +333,7 @@ button{font-family:inherit}
 .op-dot{width:10px;height:10px;border-radius:50%;flex:none;align-self:center}
 .op-name{font-weight:800;font-size:12.5px;white-space:nowrap}
 .op-range{font-size:9.5px;color:var(--muted);white-space:nowrap}
-.op-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);flex:none;text-align:right;white-space:nowrap;min-width:46px}
+.op-odds{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;color:var(--ink);flex:none;text-align:right;white-space:nowrap;min-width:46px}
 .op-fin{margin-top:auto;padding-top:12px;display:flex;justify-content:flex-end;gap:10px;font-size:11.5px;font-weight:500;color:var(--muted)}
 .op-fin b{font-weight:700;color:var(--ink)}
 .op-bet.betbtn.wette{margin-top:8px}
@@ -404,11 +405,11 @@ button{font-family:inherit}
 .cheadr{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none}
 .cheadr .betcd{white-space:nowrap}
 .codeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.code{font-family:Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
-.subcode{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);font-weight:500}
+.code{font-family:'Eszett',Archivo;font-weight:800;font-size:21px;letter-spacing:-.4px}
+.subcode{font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;color:var(--muted);font-weight:500}
 .cn{display:inline-flex;align-items:center;gap:5px;background:color-mix(in srgb,var(--hot) 13%,transparent);
   color:var(--hot);font-size:11.5px;font-weight:600;border-radius:999px;padding:3px 9px}
-.pool{font-family:Archivo;font-weight:800;font-size:20px;white-space:nowrap}
+.pool{font-family:'Eszett',Archivo;font-weight:800;font-size:20px;white-space:nowrap}
 
 /* route */
 .route{margin:0}
@@ -421,9 +422,9 @@ button{font-family:inherit}
 .rconn{position:absolute;top:50%;left:50%;transform:translateX(-50%);width:2px;height:calc(1.3em + 7px);background:var(--line);z-index:0}
 .stop.arr .dotline{height:1.3em;justify-content:center}
 .flag{font-size:13px;width:18px;flex:none;display:inline-block;text-align:left}
-.cc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-right:2px}
+.cc{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;margin-right:2px}
 .sname{font-weight:600}
-.rtime{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:14px;text-align:right}
+.rtime{margin-left:auto;font-family:'Eszett','IBM Plex Mono',monospace;font-size:14px;text-align:right}
 .rtime .old{color:var(--muted);text-decoration:line-through;display:block}
 .rtime .new{display:block;font-weight:700}
 .rtime .rt1{display:block}
@@ -431,13 +432,13 @@ button{font-family:inherit}
 .rtime.dep{color:var(--muted);font-weight:500}                 /* departure dimmed */
 .rtime.arr{font-weight:700}                                    /* arrival emphasized */
 .rtime.arr .rt1{color:var(--ink);font-weight:700}             /* plain arrival → bold + dark */
-.haltes{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+.haltes{display:inline-flex;align-items:center;gap:5px;font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
   border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 0}
 
 /* status + curve */
 .statusline{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px}
 .statlbl{font-weight:700;font-size:14px;transition:color .5s ease}
-.statdelay{font-family:Archivo;font-weight:800;font-size:21px;transition:color .5s ease}
+.statdelay{font-family:'Eszett',Archivo;font-weight:800;font-size:21px;transition:color .5s ease}
 .curvewrap{margin:6px 0 4px;position:relative}
 .curve{display:block;width:100%;height:84px;overflow:visible}
 .oll{display:flex;align-items:stretch;gap:6px;width:100%}
@@ -447,8 +448,8 @@ button{font-family:inherit}
 .oll-dot{position:absolute;right:0;width:8px;height:8px;border-radius:50%;transform:translate(50%,-50%);
   box-shadow:0 0 0 2px var(--card),0 0 8px 1px var(--dc);pointer-events:none}
 .oll-yax{width:26px;flex:none;display:flex;flex-direction:column;justify-content:space-between;
-  font-family:'IBM Plex Mono',monospace;font-size:9px;line-height:1;color:var(--muted);text-align:right;padding:1px 0}
-.axis{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+  font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;line-height:1;color:var(--muted);text-align:right;padding:1px 0}
+.axis{display:flex;justify-content:space-between;font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
 
 /* risk + breakdown */
 .riskt{font-size:12.5px;color:var(--muted);margin:12px 0 7px;font-weight:500}
@@ -529,13 +530,13 @@ button{font-family:inherit}
 .open-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .open-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);cursor:pointer;text-align:left;width:100%}
 .open-row:hover{border-color:var(--brand)}
-.open-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
+.open-code{font-family:'Eszett',Archivo;font-weight:800;font-size:15px;color:var(--ink)}
 .open-tip{color:var(--muted);font-size:12.5px}
 .open-stake{font-weight:800;font-size:15px;color:var(--ink);margin-top:3px}
 /* Resolved bets as flight-ticket cards (grid, 4 per row) */
 .rbet-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .rbet-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.rbet-tab{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.rbet-tab{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .rbet-tab:hover{border-color:var(--muted);color:var(--ink)}
 .rbet-tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .rbet-tabn{font-size:10px;font-weight:800;opacity:.75}
@@ -543,14 +544,14 @@ button{font-family:inherit}
 .rbet.loss{border-left-color:var(--bad)}
 .rbet.void{border-left-color:color-mix(in srgb,var(--muted) 45%,var(--line))}
 .rbet-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.rbet-code{font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink)}
+.rbet-code{font-family:'Eszett',Archivo;font-weight:800;font-size:15px;color:var(--ink)}
 .rbet-air{font-size:11.5px;color:var(--muted);font-weight:600}
 .rbet-outcome{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap}
-.rbet-net{font-family:Archivo;font-weight:800;font-size:20px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
-.rbet-status{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;font-weight:800;padding:3px 8px;border-radius:6px;line-height:1}
+.rbet-net{font-family:'Eszett',Archivo;font-weight:800;font-size:20px;letter-spacing:-.5px;white-space:nowrap;line-height:1}
+.rbet-status{font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;font-weight:800;padding:3px 8px;border-radius:6px;line-height:1}
 .rbet-route{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.3px}
 .rbet-arrow{color:var(--muted);margin:0 2px}
-.rbet-ticket{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 62%,transparent)}
+.rbet-ticket{font-family:'Eszett','IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 62%,transparent)}
 .rbet-idline{display:flex;align-items:center;flex-wrap:wrap}
 .rbet-form{display:inline-flex;align-items:center;gap:3px;margin-left:8px}
 .rbet-fdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.92}
@@ -558,14 +559,14 @@ button{font-family:inherit}
 .rbet-cmp{display:flex;align-items:flex-end;gap:12px}
 .rbet-cmp-col{display:flex;flex-direction:column;gap:6px;min-width:0}
 .rbet-cmp-arrow{font-size:18px;font-weight:700;line-height:1;flex:none;padding-bottom:5px;color:color-mix(in srgb,var(--muted) 50%,transparent)}
-.rbet-cmp-h{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.rbet-cmp-h{font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);font-weight:700}
 .rbet-badge{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;max-width:100%;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:800;line-height:1.25}
 .rbet-bdot{width:7px;height:7px;border-radius:50%;flex:none}
 .rbet-slip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px dashed var(--line);padding-top:11px}
 .rbet-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:13px}
 .rbet-times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rbet-tlbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}
-.rbet-tval{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
+.rbet-tlbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}
+.rbet-tval{font-family:'Eszett','IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);margin-top:2px}
 @media(max-width:1000px){.rbet-list,.open-list{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}.open-list{grid-template-columns:repeat(2,1fr)}.rbet-list{grid-template-columns:1fr}}
 .legal{max-width:680px;padding-bottom:20px}
@@ -593,10 +594,10 @@ button{font-family:inherit}
 .fc-left .dcurve{flex:1 1 auto;display:flex;flex-direction:column;min-height:130px;margin:0}
 .fc-left .dcurve-plot{flex:1 1 auto;height:auto;min-height:104px}
 .dcurve-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:10px 0 4px}
-.dcurve-cap{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 8px}
-.dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:Archivo}
+.dcurve-cap{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.02em;margin:-2px 0 8px}
+.dcurve-at{font-size:12px;color:var(--muted);font-weight:600;font-family:'Eszett',Archivo}
 .dcurve-w{font-weight:800;font-size:14px;color:var(--pc)}
-.dcurve-v{font-weight:800;font-size:18px;font-family:Archivo;color:var(--pc)}
+.dcurve-v{font-weight:800;font-size:18px;font-family:'Eszett',Archivo;color:var(--pc)}
 .dcurve-plot{position:relative;height:52px}
 .dcurve-svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .dcurve-peak{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--card);
@@ -608,7 +609,7 @@ button{font-family:inherit}
   transform:translate(-50%,50%) rotate(45deg);pointer-events:none}
 .dcurve-axis{position:relative;height:14px;margin-top:3px}
 .dcurve-axis span{position:absolute;transform:translateX(-50%);font-size:9.5px;color:color-mix(in srgb,var(--ink) 60%,transparent);
-  font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+  font-family:'Eszett','IBM Plex Mono',monospace;white-space:nowrap}
 .poolwrap{margin:8px 0 4px}
 .poolbar{display:flex;gap:2px;height:26px;border-radius:8px;overflow:hidden}
 .poolseg{display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;
@@ -637,15 +638,15 @@ button{font-family:inherit}
   display:grid;place-items:center;cursor:pointer;font-size:15px;color:var(--ink)}
 .ico.boost{background:var(--ink);color:#fff;border-color:var(--ink)}
 .betbtn{margin-left:auto;border:none;cursor:pointer;font-weight:700;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;
-  font-family:'IBM Plex Mono',monospace;background:var(--brand);color:var(--brandink);
+  font-family:'Eszett','IBM Plex Mono',monospace;background:var(--brand);color:var(--brandink);
   border-radius:10px;padding:12px 24px;transition:filter .15s,transform .1s}
 .betbtn:hover{filter:brightness(1.08)}.betbtn:active{transform:scale(.98)}
 .betbtn.ghost{background:var(--card2);color:var(--brand);border:1px solid var(--line)}
 .betbtn:disabled{background:var(--line);color:var(--muted);cursor:default}
 
 /* daily card */
-.daily .q{font-family:Archivo;font-weight:700;font-size:18px;margin:2px 0 4px;line-height:1.25}
-.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.5px;color:var(--good);
+.daily .q{font-family:'Eszett',Archivo;font-weight:700;font-size:18px;margin:2px 0 4px;line-height:1.25}
+.tag{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.5px;color:var(--good);
   border:1px solid color-mix(in srgb,var(--good) 35%,transparent);border-radius:6px;padding:3px 7px}
 .metaline{display:flex;gap:14px;align-items:center;color:var(--muted);font-size:12.5px;margin:8px 0 12px;flex-wrap:wrap}
 .bonus{color:var(--warn);font-weight:600}
@@ -653,7 +654,7 @@ button{font-family:inherit}
   border-radius:12px;padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
 .ans:hover{border-color:var(--brand)}
 .ans .al{font-weight:600;display:flex;align-items:center;gap:8px}
-.ans .ap{font-family:Archivo;font-weight:800;font-size:17px}
+.ans .ap{font-family:'Eszett',Archivo;font-weight:800;font-size:17px}
 
 /* discussion card */
 .disc .dh{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
@@ -666,8 +667,8 @@ button{font-family:inherit}
 /* bet panel */
 /* bet panel */
 .flightmap{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px;background:var(--mapsky2);box-shadow:inset 0 0 30px rgba(0,0,0,.12)}
-.fm-code{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;fill:#fff;letter-spacing:.8px;paint-order:stroke;stroke:rgba(0,0,0,.18);stroke-width:2px}
-.fm-status{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
+.fm-code{font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;font-weight:700;fill:#fff;letter-spacing:.8px;paint-order:stroke;stroke:rgba(0,0,0,.18);stroke-width:2px}
+.fm-status{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
 .fm-status .fm-live{color:var(--good);font-weight:600}
 .panelbox .flightmap{margin-bottom:0}
 .betpanel{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
@@ -676,14 +677,14 @@ button{font-family:inherit}
 .opt.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--card))}
 .opt .ol{font-size:13px;font-weight:600;margin-bottom:5px}
 .opt .ox{display:flex;align-items:baseline;justify-content:space-between}
-.opt .om{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:16px;color:var(--brand)}
-.opt .op{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
+.opt .om{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:600;font-size:16px;color:var(--brand)}
+.opt .op{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted)}
 .stake{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-top:11px}
 input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:4px;background:var(--line);margin:13px 0}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--brand);cursor:pointer;border:2px solid var(--card);box-shadow:0 1px 3px rgba(0,0,0,.25)}
 input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--brand);cursor:pointer;border:2px solid var(--card)}
-.ret{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:18px;color:var(--good)}
-.note{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);line-height:1.7;margin-top:9px}
+.ret{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:600;font-size:18px;color:var(--good)}
+.note{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);line-height:1.7;margin-top:9px}
 
 /* detail page */
 .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;margin:18px 0 14px;background:none;border:none}
@@ -698,24 +699,24 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   .db-flight .chead{padding-bottom:12px;border-bottom:1px solid var(--line)}
   .db-flight .route{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:2px}
   .d-statusline{display:none}
-  .d-arrstatus{display:inline-block;margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;white-space:nowrap}
+  .d-arrstatus{display:inline-block;margin-left:auto;font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:13px;white-space:nowrap}
 }
 .d-arrstatus{display:none}
 .panelbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px}
 .dhero{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.dtitle{font-family:Archivo;font-weight:800;font-size:30px;letter-spacing:-.6px}
-.fares{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+.dtitle{font-family:'Eszett',Archivo;font-weight:800;font-size:30px;letter-spacing:-.6px}
+.fares{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
 .grade{display:flex;align-items:center;gap:13px;background:var(--card2);border-radius:14px;padding:13px 15px;margin-top:14px}
 .grade .em{font-size:30px}
-.grade .gw{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.5px}
+.grade .gw{font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.5px}
 .grade .gb{font-weight:600;font-size:15px;margin-top:2px}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-radius:14px;overflow:hidden;margin-top:14px}
 .tile{background:var(--card);padding:15px;text-align:center}
-.tile .tl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
-.tile .tv{font-family:Archivo;font-weight:800;font-size:24px;margin-top:6px}
-.sectlbl{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:0 0 10px}
+.tile .tl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.tile .tv{font-family:'Eszett',Archivo;font-weight:800;font-size:24px;margin-top:6px}
+.sectlbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:0 0 10px}
 .leader{display:flex;align-items:center;gap:12px;padding:9px 0}
-.rank{font-family:Archivo;font-weight:800;font-size:16px;color:var(--muted);width:18px}
+.rank{font-family:'Eszett',Archivo;font-weight:800;font-size:16px;color:var(--muted);width:18px}
 .lav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--hot))}
 .lname{font-weight:700;font-size:14px}.lsub{color:var(--muted);font-size:12px}
 .hist{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line2)}
@@ -733,7 +734,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .fab{width:56px;height:56px;border-radius:50%;background:var(--brand);color:#fff;border:none;display:grid;place-items:center;
   font-size:22px;margin-top:-26px;box-shadow:0 8px 22px color-mix(in srgb,var(--brand) 50%,transparent);cursor:pointer;flex:0 0 auto}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;
-  font-family:'IBM Plex Mono',monospace;font-size:12px;padding:11px 17px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:60;max-width:92vw;text-align:center}
+  font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;padding:11px 17px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:60;max-width:92vw;text-align:center}
 [data-theme="dark"] .toast{background:#fff;color:#0A1019}
 .empty{text-align:center;color:var(--muted);padding:26px 10px}
 .empty .e1{font-size:30px}.empty .e2{font-weight:700;margin-top:8px;color:var(--ink)}.empty .e3{font-size:13px;margin-top:3px}
@@ -741,13 +742,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 
 /* airports page */
 .airports-hero{padding:18px 2px 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.apsuper{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.apsuper{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
 .berhero{margin:14px 0 4px;padding:18px 20px;border-radius:16px;color:#fff;position:relative;overflow:hidden;
   background:linear-gradient(120deg,#C8102E,#7A0A1C)}
 [data-theme="dark"] .berhero{background:linear-gradient(120deg,#A50D26,#4E0712)}
 .berhero::after{content:"✈";position:absolute;right:14px;top:6px;font-size:74px;opacity:.10;transform:rotate(-18deg)}
-.berhero-k{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:2px;opacity:.85}
-.berhero-t{font-family:Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
+.berhero-k{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:2px;opacity:.85}
+.berhero-t{font-family:'Eszett',Archivo;font-weight:800;font-size:24px;letter-spacing:-.5px;margin-top:6px;line-height:1.1}
 .berhero-s{font-size:13px;opacity:.9;margin-top:6px}
 .emptyboard{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:14px}
 .plane-load-wrap{display:flex;align-items:center;justify-content:center;width:100%;min-height:64vh}
@@ -762,7 +763,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .spin-d{width:13px;height:13px}
 @keyframes spinrot{to{transform:rotate(360deg)}}
 .segmented{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:16px}
-.phase{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.4px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.phase{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.4px;padding:3px 8px;border-radius:999px;white-space:nowrap}
 
 /* ---- Detail: bracket list ---- */
 .brackets{display:flex;flex-direction:column;gap:8px;margin-top:4px}
@@ -773,13 +774,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .bracket.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--card))}
 .bk-l{display:flex;align-items:center;gap:9px}
 .bk-name{font-weight:800;font-size:16px;color:var(--ink)}
-.bk-sel{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.5px;
+.bk-sel{font-family:'Eszett','IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.5px;
   background:var(--brand);color:#fff;padding:3px 7px;border-radius:999px}
 .bk-mid{min-width:0}
 .bk-pool{font-size:13px;color:var(--muted);margin-bottom:6px}
 .bk-bar{height:5px;border-radius:999px;background:var(--line);overflow:hidden}
 .bk-bar span{display:block;height:100%;background:var(--brand);border-radius:999px;min-width:2px;transition:width .6s cubic-bezier(.2,.8,.3,1)}
-.bk-odds{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);justify-self:end}
+.bk-odds{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);justify-self:end}
 
 /* ---- Detail: stake box ---- */
 .pickhint{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.5}
@@ -810,11 +811,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .authlink{width:100%;background:none;border:none;color:var(--brand);font-family:inherit;font-size:13px;font-weight:600;margin-top:10px;cursor:pointer}
 .stakebox{margin-top:12px}
 .stakerow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.stakelbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
+.stakelbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.4px}
 .stakeval{font-weight:800;font-size:15px;color:var(--ink)}
 .quickadd{display:flex;gap:7px;margin:10px 0 4px}
 .quickadd button{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 0;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;transition:background .15s}
+  font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;transition:background .15s}
 .quickadd button:hover{background:var(--line)}
 .payrow{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
   padding-top:14px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
@@ -825,7 +826,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .rules{margin-top:4px}
 .rules p{font-size:13.5px;line-height:1.6;color:var(--muted);margin:0 0 11px}
 .rules b{color:var(--ink)}
-.rules-net{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3px;color:var(--muted);margin-top:2px!important}
+.rules-opts{list-style:none;margin:7px 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.rules-opts li{display:flex;align-items:baseline;gap:8px;font-size:13px;line-height:1.4;color:var(--muted)}
+.rules-opts .ro-dot{width:8px;height:8px;border-radius:50%;flex:none;align-self:center}
+.rules-opts .ro-txt{flex:1}
+.rules-opts b{color:var(--ink)}
+.rules-opts .ro-rng{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+.rules-net{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3px;color:var(--muted);margin-top:2px!important}
 .ph-upcoming,.ph-aktiv{background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
 .ph-enroute,.ph-abgeflogen{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
 .ph-landed,.ph-gelandet{background:var(--card2);color:var(--muted)}
@@ -848,7 +855,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .subpill:hover{color:var(--ink)}
 .subpill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 [data-theme="dark"] .subpill.on{background:var(--brand);border-color:var(--brand)}
-.aphead{font-family:Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
+.aphead{font-family:'Eszett',Archivo;font-weight:800;font-size:32px;letter-spacing:-.6px;margin-top:4px}
 .apsub{color:var(--muted);font-size:14px;margin-top:6px;max-width:520px;line-height:1.55}
 .sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .sortpill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
@@ -862,11 +869,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .aprow:hover .apchev{color:var(--brand);transform:translateX(2px)}
 .apchev{color:var(--muted);font-size:22px;text-align:right;transition:color .15s,transform .15s}
 .apflag{font-size:22px}
-.apnames .apcode{font-family:Archivo;font-weight:800;font-size:18px;letter-spacing:-.3px}
+.apnames .apcode{font-family:'Eszett',Archivo;font-weight:800;font-size:18px;letter-spacing:-.3px}
 .apnames .apname{color:var(--muted);font-size:12.5px;margin-top:1px}
 .apstat{text-align:right}
-.apstat .aplbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
-.apstat .apval{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;margin-top:2px}
+.apstat .aplbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.apstat .apval{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:15px;margin-top:2px}
 .val-good{color:var(--good)}.val-mid{color:var(--mid)}.val-warn{color:var(--warn)}.val-bad{color:var(--bad)}.val-muted{color:var(--muted)}
 @media(max-width:660px){
   .aprow{grid-template-columns:32px 1fr 78px 78px 18px;padding:13px 12px}
@@ -877,8 +884,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .daily-hero{background:linear-gradient(135deg,var(--ink),var(--brand));color:#fff;border-radius:20px;padding:24px;box-shadow:0 12px 40px rgba(14,42,71,.18);position:relative;overflow:hidden}
 [data-theme="dark"] .daily-hero{background:linear-gradient(135deg,#0F1825,var(--brand))}
 .daily-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 70%)}
-.dh-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#FFD18A;margin-bottom:10px;position:relative;z-index:1}
-.dh-q{font-family:Archivo;font-weight:800;font-size:26px;line-height:1.2;letter-spacing:-.4px;margin-bottom:12px;position:relative;z-index:1}
+.dh-tag{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#FFD18A;margin-bottom:10px;position:relative;z-index:1}
+.dh-q{font-family:'Eszett',Archivo;font-weight:800;font-size:26px;line-height:1.2;letter-spacing:-.4px;margin-bottom:12px;position:relative;z-index:1}
 .dh-meta{display:flex;gap:18px;align-items:center;font-size:13px;opacity:.85;margin-bottom:18px;position:relative;z-index:1;flex-wrap:wrap}
 .dh-bonus{color:#FFD18A;font-weight:600;opacity:1}
 .dh-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;position:relative;z-index:1}
@@ -886,8 +893,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .dh-opt:hover{background:rgba(255,255,255,.18)}
 .dh-opt:active{transform:scale(.98)}
 .dh-l{font-weight:600;font-size:14px}
-.dh-p{font-family:Archivo;font-weight:800;font-size:20px}
-.dh-place{background:#fff;color:var(--ink);border:none;border-radius:10px;padding:13px 24px;font-weight:700;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;cursor:pointer;position:relative;z-index:1;transition:transform .1s}
+.dh-p{font-family:'Eszett',Archivo;font-weight:800;font-size:20px}
+.dh-place{background:#fff;color:var(--ink);border:none;border-radius:10px;padding:13px 24px;font-weight:700;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-family:'Eszett','IBM Plex Mono',monospace;cursor:pointer;position:relative;z-index:1;transition:transform .1s}
 .dh-place:hover{transform:translateY(-1px)}
 /* ---- Quick-bet bottom sheet ---- */
 .sheet-bg{position:fixed;inset:0;background:rgba(10,20,40,.45);backdrop-filter:blur(3px);z-index:210;display:flex;align-items:flex-end;justify-content:center}
@@ -899,20 +906,20 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 @keyframes sheetPop{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .sheet-grip{width:40px;height:5px;border-radius:999px;background:var(--line);margin:0 auto 14px}
 .sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.sheet-code{font-family:Archivo;font-weight:800;font-size:21px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sheet-code{font-family:'Eszett',Archivo;font-weight:800;font-size:21px;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sheet-route{font-size:13px;color:var(--muted);margin-top:3px}
 .sheet-x{width:34px;height:34px;border-radius:50%;border:none;background:var(--card2);color:var(--ink);font-size:14px;cursor:pointer;flex:none}
-.sheet-lbl{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+.sheet-lbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
 .chips-row{display:flex;gap:7px;margin-bottom:18px}
 .chip-coin{flex:1;aspect-ratio:1;border-radius:14px;border:2px solid var(--line);background:var(--card2);
-  font-family:Archivo;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;
+  font-family:'Eszett',Archivo;font-weight:800;font-size:15px;color:var(--ink);cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:1px;transition:transform .1s,border-color .15s,background .15s,color .15s}
 .chip-coin small{font-size:9px;font-weight:700;opacity:.7}
 .chip-coin.on{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,var(--card));color:var(--ink);transform:translateY(-2px)}
 .chip-coin.dis{opacity:.35;cursor:default}
 .chip-custom{flex:1.4;display:flex;align-items:center;justify-content:center;gap:1px;border-radius:14px;border:2px solid var(--line);
   background:color-mix(in srgb,var(--ink) 6%,var(--card));box-shadow:inset 0 2px 5px color-mix(in srgb,var(--ink) 12%,transparent);
-  color:var(--ink);font-family:Archivo;font-weight:800;padding:0 6px;cursor:text;transition:border-color .15s,box-shadow .15s,background .15s}
+  color:var(--ink);font-family:'Eszett',Archivo;font-weight:800;padding:0 6px;cursor:text;transition:border-color .15s,box-shadow .15s,background .15s}
 .chip-custom input{width:100%;min-width:0;border:none;background:transparent;color:inherit;font-family:inherit;font-size:15px;font-weight:800;text-align:center;outline:none;padding:0;-moz-appearance:textfield}
 .chip-custom input::-webkit-outer-spin-button,.chip-custom input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .chip-custom input::placeholder{color:var(--muted);opacity:.7}
@@ -926,12 +933,12 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .sheet-bk.on{border-color:var(--bk);background:color-mix(in srgb,var(--bk) 16%,var(--card));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bk) 30%,transparent)}
 .sheet-bk-dot{width:10px;height:10px;border-radius:50%;flex:none}
 .sheet-bk-name{font-weight:700}
-.sheet-bk-odds{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
+.sheet-bk-odds{margin-left:auto;font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-variant-numeric:tabular-nums}
 .sheet-pay{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 .sheet-payhint{font-size:10.5px;line-height:1.35;color:var(--muted);margin:-4px 0 10px}
 .sheet-pay b{font-size:20px;color:var(--good)}
 .sheet-place{width:100%;border:none;border-radius:14px;padding:15px 14px;margin-top:6px;cursor:pointer;text-align:center;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;letter-spacing:.2px;
+  font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:12px;letter-spacing:.2px;
   background:var(--brand);color:#fff;transition:filter .15s,transform .1s}
 .sheet-place:hover{filter:brightness(1.06)}.sheet-place:active{transform:scale(.99)}
 .sheet-place:disabled{background:var(--line);color:var(--muted);cursor:default}
@@ -1009,52 +1016,52 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 /* ---- Closed flights table ---- */
 .ctable-wrap{margin-top:6px;overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
 .ctable{width:100%;border-collapse:collapse;font-size:13.5px}
-.ctable th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--card2);white-space:nowrap}
+.ctable th{text-align:left;font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);background:var(--card2);white-space:nowrap}
 .ctable th.ta-r,.ctable td.ta-r{text-align:right}
 .ctable td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink);white-space:nowrap}
 .ctable tbody tr{cursor:pointer;transition:background .12s}
 .ctable tbody tr:hover{background:var(--card2)}
 .ctable tbody tr:last-child td{border-bottom:none}
-.ct-code{font-family:Archivo;font-weight:800;font-size:14.5px}
+.ct-code{font-family:'Eszett',Archivo;font-weight:800;font-size:14.5px}
 .ct-route{font-size:11.5px;color:var(--muted);margin-top:1px}
 .ct-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
-.ct-res{font-weight:800;font-family:'IBM Plex Mono',monospace}
+.ct-res{font-weight:800;font-family:'Eszett','IBM Plex Mono',monospace}
 .ct-state{font-size:10.5px;color:var(--muted);margin-top:2px}
 .ctable-search{margin:6px 0 8px}
 .ctable-input{width:100%;box-sizing:border-box;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font-family:inherit;font-size:14px;outline:none}
 .ctable-input:focus{border-color:var(--brand)}
 .ct-none{text-align:center;color:var(--muted);padding:22px 14px;font-style:italic}
-.about-tag{font-family:Archivo;font-weight:800;font-size:18px;color:var(--brand);margin:0 0 14px}
+.about-tag{font-family:'Eszett',Archivo;font-weight:800;font-size:18px;color:var(--brand);margin:0 0 14px}
 /* ---- About page ---- */
 .about{max-width:760px;margin:0 auto}
 .about-hero{position:relative;overflow:hidden;border-radius:20px;padding:30px 24px;color:#fff;margin-top:6px;
   background:linear-gradient(120deg,#C8102E,#7A0A1C)}
 [data-theme="dark"] .about-hero{background:linear-gradient(120deg,#A50D26,#4E0712)}
 .about-hero::after{content:"✈";position:absolute;right:-8px;top:-16px;font-size:128px;opacity:.10;transform:rotate(-18deg)}
-.about-hero-k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:2px;opacity:.85}
-.about-hero-t{font-family:Archivo;font-weight:800;font-size:27px;line-height:1.14;letter-spacing:-.5px;margin:10px 0 16px;max-width:20ch;position:relative}
+.about-hero-k{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:2px;opacity:.85}
+.about-hero-t{font-family:'Eszett',Archivo;font-weight:800;font-size:27px;line-height:1.14;letter-spacing:-.5px;margin:10px 0 16px;max-width:20ch;position:relative}
 .about-hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.16);
   border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:7px 14px;
-  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;letter-spacing:.5px}
+  font-family:'Eszett','IBM Plex Mono',monospace;font-weight:700;font-size:12.5px;letter-spacing:.5px}
 .about-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
 @media(max-width:520px){.about-stats{grid-template-columns:repeat(2,1fr)}}
 .about-stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 10px;text-align:center}
-.as-v{display:block;font-family:Archivo;font-weight:800;font-size:23px;color:var(--brand);line-height:1}
+.as-v{display:block;font-family:'Eszett',Archivo;font-weight:800;font-size:23px;color:var(--brand);line-height:1}
 .as-star{font-size:14px}
 .as-l{display:block;font-size:11px;color:var(--muted);margin-top:6px}
 .about-body{margin:20px 2px}
 .about-body p{font-size:15.5px;line-height:1.62;color:var(--ink);margin:0 0 15px}
 .about-body p:first-child{font-size:16.5px}
 .about-quote{margin:22px 0;padding:6px 0 6px 18px;border-left:3px solid var(--brand);
-  font-family:Archivo;font-weight:800;font-size:20px;line-height:1.35;color:var(--ink)}
+  font-family:'Eszett',Archivo;font-weight:800;font-size:20px;line-height:1.35;color:var(--ink)}
 .about-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:14px 0}
 .about-card-icon{font-size:26px;margin-bottom:8px;line-height:1}
-.about-card h3{font-family:Archivo;font-weight:800;font-size:19px;margin:0 0 9px;color:var(--ink)}
+.about-card h3{font-family:'Eszett',Archivo;font-weight:800;font-size:19px;margin:0 0 9px;color:var(--ink)}
 .about-card p{font-size:14.5px;line-height:1.6;color:var(--muted);margin:0}
 .about-sources{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-.about-src{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink);
+.about-src{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--ink);
   background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px 11px}
-.about-foot{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
+.about-foot{text-align:center;font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;
   text-transform:uppercase;color:var(--muted);margin:24px 0 6px}
 </style>
 </head>
@@ -1153,7 +1160,7 @@ if (sb && !_processOAuthHash()) {
   window.addEventListener("hashchange", _processOAuthHash);
 }
 
-const RAKE=0.05;
+const RAKE=0; // flug.bet takes no rake
 // DISPLAY-ONLY opening liquidity ("morning line") so the odds (×) never show "—"
 // on an empty market. These euros are NOT real money and are NOT used for payouts
 // (the worker settles on the real pools only) — they only make the × look alive
@@ -2317,9 +2324,42 @@ function Detail({m,total,back,initialPick,...bet}){
         <div className="panelbox db-rules">
           <div className="sectlbl">{t("Marktregeln","Market rules")}</div>
           <div className="rules">
-            <p>{LANG==="de" ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges am Zielflughafen. Du setzt €-Spielgeld auf eine der vier Optionen — Wetten schließen 1 Stunde vor Abflug. Bei Abrechnung teilen sich alle, die richtig lagen, den gesamten Pool im Verhältnis zu ihrem Einsatz — abzüglich {RAKE*100}% Gebühr. Die Quote ist eine Schätzung aus dem aktuellen Pool und verschiebt sich, je mehr gewettet wird.</> : <>Each market is a <b>parimutuel pool</b> on this flight's <b>landing delay</b> at the destination airport. You stake play-money € on one of four options — betting closes 1 hour before departure. At settlement, everyone who was right shares the whole pool in proportion to their stake — minus a {RAKE*100}% fee. The odds are an estimate from the current pool and shift the more is bet.</>}</p>
-            <p><b>{t("Abrechnung:","Settlement:")}</b> {t("über die offizielle erfasste Ankunfts-/Abflugzeit.","via the official recorded arrival/departure time.")} {m.settles?(t("Quelle: ","Source: ")+m.settles+"."):""}</p>
-            <p>{LANG==="de" ? <><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze zurückerstattet.</> : <><b>Void &amp; refund:</b> if the flight is cancelled or no reliable data is available for settlement, the market is declared <b>void</b> and all stakes are refunded.</>}</p>
+            <p>{LANG==="de"
+              ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges – die Differenz zwischen geplanter und tatsächlicher Ankunft am Ziel-Gate. Alle Einsätze einer Option wandern in einen gemeinsamen Topf; es gibt keine festen Quoten, du wettest gegen die anderen Tipper, nicht gegen das Haus.</>
+              : <>Each market is a <b>parimutuel pool</b> on this flight&apos;s <b>landing delay</b> – the gap between scheduled and actual arrival at the destination gate. Every stake on an option goes into one shared pot; there are no fixed odds, you bet against the other punters, not against the house.</>}</p>
+
+            <p style={{marginBottom:6}}><b>{t("Die vier Optionen","The four options")}</b> {t("– gemessen an der Verspätung bei Ankunft:","– based on the delay at arrival:")}</p>
+            <ul className="rules-opts">
+              <li><span className="ro-dot" style={{background:"var(--brand)"}}/><span className="ro-txt"><b>{t("Vorzeitig","Early")}</b> — {t("deutlich zu früh","well ahead")}</span><span className="ro-rng">≤ −5 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--good)"}}/><span className="ro-txt"><b>{t("Pünktlich","On time")}</b> — {t("rund um die Planzeit","around schedule")}</span><span className="ro-rng">−5…+5 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--warn)"}}/><span className="ro-txt"><b>{t("Verspätet","Late")}</b> — {t("spürbar zu spät","noticeably late")}</span><span className="ro-rng">+5…+20 min</span></li>
+              <li><span className="ro-dot" style={{background:"var(--bad)"}}/><span className="ro-txt"><b>{t("Stark verspätet","Very late")}</b> — {t("der BER-Klassiker","the BER classic")}</span><span className="ro-rng">&gt; +20 min</span></li>
+            </ul>
+
+            <p>{LANG==="de"
+              ? <><b>Quoten:</b> die angezeigte Quote ist eine Live-Schätzung aus der aktuellen Pool-Verteilung und verschiebt sich mit jeder Wette – je mehr auf eine Option gesetzt wird, desto kleiner ihre Quote.</>
+              : <><b>Odds:</b> the odds you see are a live estimate from the current pool split and shift with every bet – the more that is staked on an option, the lower its odds.</>}</p>
+
+            <p>{LANG==="de"
+              ? <><b>Datenquellen:</b> <b>AeroDataBox</b> liefert den Flugplan – welche Maschinen ab BER starten, die geplanten Ab- und Ankunftszeiten sowie die historischen Verspätungen für die Landekurve. <b>FlightAware</b> liefert die Live-Daten jedes Fluges bis hin zur tatsächlichen Landezeit.</>
+              : <><b>Data sources:</b> <b>AeroDataBox</b> provides the flight plan – which aircraft depart from BER, the scheduled departure and arrival times, plus the historical delays for the landing curve. <b>FlightAware</b> supplies each flight&apos;s live data, right down to the actual landing time.</>}</p>
+
+            <p>{LANG==="de"
+              ? <><b>Schließung &amp; Abrechnung:</b> Wetten schließen 1&nbsp;Stunde vor dem planmäßigen Abflug. Abgerechnet wird über <b>FlightAware</b>: die tatsächliche Landezeit gegen die geplante Ankunft ergibt die Landeverspätung – und damit die Gewinner-Option.</>
+              : <><b>Close &amp; settlement:</b> betting closes 1&nbsp;hour before scheduled departure. Settlement runs via <b>FlightAware</b>: the actual landing time against the scheduled arrival gives the landing delay – and with it the winning option.</>}</p>
+
+            <p>{LANG==="de"
+              ? <><b>Automatische Abrechnung:</b> Ein Hintergrundprozess läuft <b>jede Stunde</b>, zieht die aktuellen Flughafen- und Flugdaten (sparsam, im Rahmen der API-Kontingente) und rechnet jeden Flug ab, der seit dem letzten Lauf gelandet ist – ganz ohne dass jemand die App offen haben muss. Die meisten Flüge werden direkt aus der Flughafentafel von AeroDataBox erledigt; einzelne Nachzügler, die schon von der Tafel gerollt sind, fragt der Prozess gezielt bei FlightAware nach. Sobald die Landeverspätung feststeht, wird der Pool ausgezahlt und dein Guthaben aktualisiert.</>
+              : <><b>Automatic settlement:</b> A background job runs <b>every hour</b>, pulls the latest airport and flight data (sparingly, within the API quotas) and settles every flight that has landed since the last run – without anyone needing to have the app open. Most flights are cleared straight from the AeroDataBox airport board; the odd straggler that has already rolled off the board is looked up directly via FlightAware. As soon as the landing delay is locked in, the pool pays out and your balance updates.</>}</p>
+
+            <p>{LANG==="de"
+              ? <><b>Auszahlung:</b> bei Abrechnung teilen sich alle Gewinner den gesamten Pool im Verhältnis ihres Einsatzes – <b>ohne Gebühr, ohne Hausanteil</b>. Die angezeigte mögliche Auszahlung ist eine Schätzung aus dem aktuellen Pool und kann sich bis zum Schließen noch ändern.</>
+              : <><b>Payout:</b> at settlement all winners share the entire pool in proportion to their stake – <b>no fee, no house cut</b>. The potential payout shown is an estimate from the current pool and can still change until betting closes.</>}</p>
+
+            <p>{LANG==="de"
+              ? <><b>Void &amp; Rückgabe:</b> wird der Flug annulliert oder liegen für die Abrechnung keine verlässlichen Daten vor, wird der Markt für <b>ungültig</b> erklärt und alle Einsätze vollständig zurückerstattet.</>
+              : <><b>Void &amp; refund:</b> if the flight is cancelled or no reliable data is available for settlement, the market is declared <b>void</b> and all stakes are fully refunded.</>}</p>
+
             <p className="rules-net">{t("Spielgeld · keine echten Einsätze · DACH-Region","Play money · no real stakes · DACH region")}</p>
           </div>
         </div>
@@ -3503,21 +3543,21 @@ function Legal(){
       <p>{t("Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz):","Information pursuant to § 5 DDG (German Digital Services Act):")}</p>
       <p>
         Matteo Weber<br/>
-        Carrer de Bailèn, 79, Eixample<br/>
-        08009 Barcelona<br/>
+        Calle Mayor, 5, Centro<br/>
+        28013 Madrid<br/>
         {t("Spanien","Spain")}
       </p>
-      <p><b>{t("Kontakt:","Contact:")}</b><br/>{t("E-Mail:","Email:")} matteo.s@gmail.com</p>
+      <p><b>{t("Kontakt:","Contact:")}</b><br/>{t("E-Mail:","Email:")} matteoweber.fb@gmail.com</p>
       {LANG==="de"
-        ? <p><b>Verantwortlich für den Inhalt</b> (gem. § 18 Abs. 2 MStV): Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien</p>
-        : <p><b>Responsible for the content</b> (pursuant to § 18 (2) MStV): Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spain</p>}
+        ? <p><b>Verantwortlich für den Inhalt</b> (gem. § 18 Abs. 2 MStV): Matteo Weber, Calle Mayor, 5, Centro, 28013 Madrid, Spanien</p>
+        : <p><b>Responsible for the content</b> (pursuant to § 18 (2) MStV): Matteo Weber, Calle Mayor, 5, Centro, 28013 Madrid, Spain</p>}
     </section>
 
     <section className="legal-sec">
       <h3>{t("Datenschutzerklärung","Privacy policy")}</h3>
 
       <h4>{t("1. Verantwortlicher","1. Controller")}</h4>
-      <p>{t("Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spanien, erreichbar unter matteo.s@gmail.com.","Matteo Weber, Carrer de Bailèn, 79, Eixample, 08009 Barcelona, Spain, reachable at matteo.s@gmail.com.")}</p>
+      <p>{t("Matteo Weber, Calle Mayor, 5, Centro, 28013 Madrid, Spanien, erreichbar unter matteoweber.fb@gmail.com.","Matteo Weber, Calle Mayor, 5, Centro, 28013 Madrid, Spain, reachable at matteoweber.fb@gmail.com.")}</p>
 
       <h4>{t("2. Welche Daten wir verarbeiten","2. What data we process")}</h4>
       {LANG==="de"
@@ -3544,10 +3584,10 @@ function Legal(){
       <p>{t("Wir speichern deine Daten, solange dein Konto besteht. Bei Löschung deines Kontos werden deine personenbezogenen Daten unwiderruflich gelöscht.","We store your data for as long as your account exists. When you delete your account, your personal data is irrevocably deleted.")}</p>
 
       <h4>{t("6. Deine Rechte","6. Your rights")}</h4>
-      <p>{t("Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Zur Löschung deines Kontos nutze die Lösch-Funktion direkt in deinem Profil. Bei weiteren Fragen wende dich an matteo.s@gmail.com.","You have the right to access, rectification, erasure, restriction of processing, data portability and objection (Art. 15–21 GDPR), as well as the right to lodge a complaint with a supervisory authority. To delete your account, use the delete function directly in your profile. For any further questions, contact matteo.s@gmail.com.")}</p>
+      <p>{t("Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO) sowie ein Beschwerderecht bei einer Aufsichtsbehörde. Zur Löschung deines Kontos nutze die Lösch-Funktion direkt in deinem Profil. Bei weiteren Fragen wende dich an matteoweber.fb@gmail.com.","You have the right to access, rectification, erasure, restriction of processing, data portability and objection (Art. 15–21 GDPR), as well as the right to lodge a complaint with a supervisory authority. To delete your account, use the delete function directly in your profile. For any further questions, contact matteoweber.fb@gmail.com.")}</p>
 
       <h4>{t("7. Kontakt für Datenschutz","7. Privacy contact")}</h4>
-      <p>matteo.s@gmail.com</p>
+      <p>matteoweber.fb@gmail.com</p>
     </section>
   </div>;
 }
@@ -3571,17 +3611,18 @@ function About(){
     </div>
 
     <div className="about-body">
-      <p>{t("Mein Leben spielt sich aktuell zwischen meinem Studium im sonnigen Barcelona und meiner Heimat Berlin ab. Wer viel fliegt, kennt das Problem, aber wer ab Berlin fliegt, kennt den „Pannenflughafen“.","My life right now plays out between my studies in sunny Barcelona and my home town of Berlin. Anyone who flies a lot knows the problem — but anyone flying out of Berlin knows the “disaster airport”.")}</p>
-      <p>{t("Alles begann nach meiner wiederholten Rekordverspätung am BER. Während ich geschlagene vier Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich abzuheben, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf wetten. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut.","It all started after my repeated record delay at BER. While I wasted a solid four hours on the uncomfortable metal seats at the gates, I thought to myself: the odds of taking off on time here feel worse than a coin flip. We might as well bet on it. Since the airport won't give me back the lifetime I lost, I built flug.bet.")}</p>
+      <p>{t("Mein Leben spielt sich aktuell zwischen meinem Master in Madrid und Berlin ab – dort habe ich früher gewohnt und gearbeitet und pendle bis heute regelmäßig hin. Wer viel fliegt, kennt das Problem. Aber wer über Berlin fliegt, kennt den „Pannenflughafen“.","My life right now plays out between my master’s degree in Madrid and Berlin — where I used to live and work, and still commute back regularly. Anyone who flies a lot knows the problem. But anyone flying via Berlin knows the “disaster airport”.")}</p>
+      <p>{t("Alles begann nach meiner x-ten Rekordverspätung am BER. Während ich Stunden auf den unbequemen Metallsitzen an den Gates vergeudete, dachte ich mir: Die Wahrscheinlichkeit, hier pünktlich wegzukommen, ist gefühlt geringer als bei einem Münzwurf. Da könnten wir auch gleich darauf tippen. Da der Flughafen mir die verlorene Lebenszeit nicht zurückgibt, habe ich flug.bet gebaut.","It all started after my umpteenth record delay at BER. While I wasted hours on the uncomfortable metal seats at the gates, I thought to myself: the odds of getting out of here on time feel lower than a coin flip. We might as well bet on it. Since the airport won’t give me back the lifetime I lost, I built flug.bet.")}</p>
       <blockquote className="about-quote">{t("Mein persönliches Frustventil.","My personal frustration valve.")}</blockquote>
-      <p>{t("Der offizielle Name lautet Flughafen Berlin Brandenburg „Willy Brandt“. Doch nach jahrelangen Verzögerungen und massiven Baumängeln startete er als „Bauruine“ und Treppenwitz der Nation. Er hat Legenden wie Tegel und Tempelhof abgelöst, nur um sich stolze 1,3 Sterne auf Trustpilot zu verdienen. Schon paradox: Jetzt baut ein einzelner Student aus der Ferne mit zwei APIs ein schonungsloseres Verspätungstracking als der Hauptstadtflughafen mit seinen Millionenbudgets.","Its official name is Berlin Brandenburg Airport “Willy Brandt”. But after years of delays and massive construction defects, it opened as an “unfinished ruin” and the running joke of the nation. It replaced legends like Tegel and Tempelhof — only to earn itself a proud 1.3 stars on Trustpilot. Quite the paradox: a single student, from afar and with two APIs, now builds more merciless delay tracking than the capital's airport with its multi-million budgets.")}</p>
-      <p>{t("Die Flugdaten und Verspätungen in dieser App stammen knallhart aus der Realität. Dein Kontostand hingegen ist pure Fantasie. Ein legales Wettbüro aufzuziehen, erfordert massiv Bürokratie. Deshalb starten wir dieses Projekt als reines Sozialexperiment mit striktem Spielgeld. Lade deine Freunde ein und schließe Wetten darauf ab, ob der Flieger pünktlich abhebt oder dem Namen „Pannenflughafen“ wieder alle Ehre macht. Letzteres ist wahrscheinlicher, aber so macht das Warten wenigstens Spaß.","The flight data and delays in this app are taken straight from reality. Your account balance, on the other hand, is pure fantasy. Running a legal betting shop takes a mountain of bureaucracy. So we're launching this project as a pure social experiment with strict play money. Invite your friends and bet on whether the plane takes off on time — or lives up to the “disaster airport” name all over again. The latter is more likely, but at least it makes the waiting fun.")}</p>
+      <p>{t("Der offizielle Name lautet Flughafen Berlin Brandenburg „Willy Brandt“. Doch nach jahrelangen Verzögerungen und massiven Baumängeln startete er als „Bauruine“ und Treppenwitz der Nation. Er hat Legenden wie Tegel und Tempelhof abgelöst – nur um sich stolze 1,3 Sterne auf Trustpilot zu verdienen. Schon paradox: Ein einzelner Student baut aus der Ferne mit zwei APIs ein schonungsloseres Verspätungstracking als der Hauptstadtflughafen mit seinen Millionenbudgets.","Its official name is Berlin Brandenburg Airport “Willy Brandt”. But after years of delays and massive construction defects, it opened as an “unfinished ruin” and the running joke of the nation. It replaced legends like Tegel and Tempelhof — only to earn itself a proud 1.3 stars on Trustpilot. Quite the paradox: a single student, from afar and with two APIs, builds more merciless delay tracking than the capital’s airport with its multi-million budgets.")}</p>
+      <p>{t("Das Perfide: Airlines bauen längst Verspätungspuffer in ihre Flugzeiten ein, und als verspätet gilt ein Flug ohnehin erst ab 15 Minuten nach Plan. Das System rechnet sich doppelt schön – und der BER scheitert mit 30,75 % Verspätungsquote (1. Halbjahr 2025) trotzdem an fast jedem dritten Flug.","The insidious part: airlines have long built delay buffers into their flight times, and a flight only counts as delayed once it’s 15 minutes behind schedule anyway. The system makes itself look good twice over — and yet, with a 30.75% delay rate (first half of 2025), BER still fails on almost every third flight.")}</p>
+      <p>{t("Die Flugdaten und Verspätungen in dieser App stammen knallhart aus der Realität. Dein Kontostand hingegen ist pure Fantasie. Ein legales Wettbüro aufzuziehen erfordert massiv Bürokratie. Deshalb starten wir flug.bet als reines Sozialexperiment mit striktem Spielgeld – als satirischen Prediction Market. Lade deine Freunde ein und tippt darauf, ob ihr pünktlich am Ziel ankommt oder der BER dem Namen „Pannenflughafen“ wieder alle Ehre macht. Letzteres ist wahrscheinlicher, aber so macht das Warten wenigstens Spaß.","The flight data and delays in this app are brutally real. Your account balance, on the other hand, is pure fantasy. Setting up a legal betting shop takes a mountain of bureaucracy. So we’re launching flug.bet as a pure social experiment with strict play money — as a satirical prediction market. Invite your friends and bet on whether you’ll arrive on time, or whether BER lives up to the “disaster airport” name all over again. The latter is more likely, but at least it makes the waiting fun.")}</p>
     </div>
 
     <div className="about-card">
       <div className="about-card-icon">📡</div>
       <h3>{t("Eiskalte Radarfakten","Ice-cold radar facts")}</h3>
-      <p>{t("Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radardaten und Flughafendaten ab. Wenn du deinen Einsatz auf eine bestimmte Maschine von Berlin nach Frankfurt setzt, tracken wir exakt diesen Flugverkehr. Unser Fokus liegt dabei auf der DACH-Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.","Nothing here is simulated or estimated. We pull the unfiltered radar and airport data in real time. When you place your stake on a specific aircraft from Berlin to Frankfurt, we track exactly that flight. Our focus is the DACH region, and especially our Berlin problem child, which reliably feeds us absurdly long waiting times.")}</p>
+      <p>{t("Hier wird nichts simuliert oder geschätzt. Wir greifen in Echtzeit die ungefilterten Radar- und Flughafendaten ab. Wenn du deinen Einsatz auf einen bestimmten Flug setzt, tracken wir exakt diese Maschine bis zur Ankunft am Ziel. Unser Fokus liegt auf der DACH-Region und speziell auf unserem Berliner Sorgenkind, das uns zuverlässig mit absurd langen Wartezeiten füttert.","Nothing here is simulated or estimated. We pull the unfiltered radar and airport data in real time. When you place your stake on a specific flight, we track exactly that aircraft all the way to its arrival. Our focus is the DACH region, and especially our Berlin problem child, which reliably feeds us absurdly long waiting times.")}</p>
       <div className="about-sources">
         <span className="about-src">AeroDataBox</span>
         <span className="about-src">FlightAware</span>
@@ -3591,7 +3632,7 @@ function About(){
     <div className="about-card">
       <div className="about-card-icon">💸</div>
       <h3>{t("Frust als Währung","Frustration as currency")}</h3>
-      <p>{t("Wir verpacken den Flughafenwahnsinn im Gewand einer Wettplattform, um die ständigen Ausfälle sichtbarer zu machen. Auf flug.bet fließen keine echten Euros. Du spielst ausschließlich mit fiktivem Guthaben, kannst nichts einzahlen und dir nichts auszahlen lassen. Es geht einfach darum, dem Frust ein Ventil zu geben und das Warten am Gate zu gamifizieren. Wer echten Nervenkitzel mit finanziellem Risiko sucht, bucht am besten einfach ein reguläres Ticket ab Berlin.","We dress the airport madness up as a betting platform to make the constant disruptions more visible. No real euros change hands on flug.bet. You play purely with fictional credit — you can't deposit anything and can't cash anything out. It's simply about giving frustration an outlet and gamifying the wait at the gate. Anyone after a real thrill with financial risk is better off just booking a regular ticket out of Berlin.")}</p>
+      <p>{t("Wir verpacken den Flughafenwahnsinn im Gewand eines Prediction Markets, um die ständigen Ausfälle sichtbarer zu machen. Auf flug.bet fließen keine echten Euros. Du spielst ausschließlich mit fiktivem Guthaben, kannst nichts einzahlen und dir nichts auszahlen lassen. Es geht einfach darum, dem Frust ein Ventil zu geben und das Warten am Gate zu gamifizieren. Wer echten Nervenkitzel mit finanziellem Risiko sucht, bucht am besten einfach ein reguläres Ticket über Berlin.","We dress the airport madness up as a prediction market to make the constant disruptions more visible. No real euros change hands on flug.bet. You play purely with fictional credit — you can’t deposit anything and can’t cash anything out. It’s simply about giving frustration an outlet and gamifying the wait at the gate. Anyone after a real thrill with financial risk is better off just booking a regular ticket via Berlin.")}</p>
     </div>
 
     <div className="about-foot">{t("flug.bet · Spielgeld · keine echten Einsätze","flug.bet · play money · no real stakes")}</div>
