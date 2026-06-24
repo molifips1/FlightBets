@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v307 -->
+<!-- build: v2026-06-16-v309 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -3918,7 +3918,7 @@ function App(){
     poolChan.current = ch;
     return ()=>{ try{ sb.removeChannel(ch); }catch(_){} poolChan.current=null; };
   },[]);
-  const [tab,setTab]=useState("flights");
+  const [tab,setTab]=useState(()=>{try{return (store.get("fb_nav",{})||{}).tab||"flights";}catch(_){return "flights";}});
   const { pools: serverPools, settled: serverSettled } = usePools(bump);
   const { user, ready: authReady, signOut } = useAuth();
   const serverWallet = useWallet(bump, user);
@@ -3928,7 +3928,7 @@ function App(){
   const [showOnboarding,setShowOnboarding]=useState(false);
   useEffect(()=>{ if(user && !store.get("fb_onboarded_"+user.id,false)){ store.set("fb_onboarded_"+user.id,true); setShowOnboarding(true); } },[user]);
   const [feedbackOpen,setFeedbackOpen]=useState(false);
-  const [view,setView]=useState({page:"home"});
+  const [view,setView]=useState(()=>{try{return (store.get("fb_nav",{})||{}).view||{page:"home"};}catch(_){return {page:"home"};}});
   const [openBet,setOpenBet]=useState(null);
   const [pick,setPick]=useState(null);
   const [stake,setStake]=useState(100);
@@ -3991,7 +3991,8 @@ function App(){
       }catch(_){}
     })();
   },[user]);
-  const [phaseFilter,setPhaseFilter]=useState("aktiv"); // aktiv | laeuft | ergebnisse
+  const [phaseFilter,setPhaseFilter]=useState(()=>{try{return (store.get("fb_nav",{})||{}).phaseFilter||"aktiv";}catch(_){return "aktiv";}}); // aktiv | laeuft | ergebnisse
+  useEffect(()=>{ try{ store.set("fb_nav",{tab,view,phaseFilter}); }catch(_){} },[tab,view,phaseFilter]);
 
   useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);store.set("fb_theme",theme);try{var _mc=document.querySelector('meta[name="theme-color"]');if(_mc)_mc.setAttribute("content",theme==="dark"?"#0C1626":"#EAEEF3");}catch(_e){}},[theme]);
   useEffect(()=>{store.set("fb_lang",lang);try{document.documentElement.setAttribute("lang",lang)}catch(_){}},[lang]);
@@ -4001,6 +4002,9 @@ function App(){
 
   // Live BER board → bettable markets.
   const { flights: boardFlights, status: dataStatus, lastUpdate } = useBoard();
+  // Tick every 20s so the betting-window recompute below follows the live clock.
+  const [,closeTick]=useState(0);
+  useEffect(()=>{ const id=setInterval(()=>closeTick(x=>x+1),20000); return ()=>clearInterval(id); },[]);
 
   // Apply the REAL shared pools from the server onto each market, and mark a
   // market settled if the server has resolved it. Pools start at €0 and grow as
@@ -4020,7 +4024,21 @@ function App(){
   // AeroDataBox coverage (or not yet fetched) are hidden from betting; their bets (if
   // any) still settle server-side. The closed results table uses closedFlights, so it
   // is unaffected.
-  const liveMarkets = boardFlights.filter(f => f.delayStats).map(mergeStakes).map(m => ({ ...m, seed: DEFAULT_SEED }));
+  const liveMarkets = boardFlights.filter(f => f.delayStats).map(mergeStakes).map(m => {
+    // Re-evaluate the betting window against the LIVE clock: boardToMarket sets
+    // bettable/tab only at fetch time, so between refetches a market can pass its
+    // close time yet stay flagged "aktiv". Recompute so a closed market leaves the
+    // Aktiv tab (→ "abgeflogen"/Läuft) instead of showing as closed on Aktiv.
+    let bettable = m.bettable, tab = m.tab;
+    if (m.betCloseISO) {
+      const closeTs = new Date(m.betCloseISO).getTime();
+      if (!isNaN(closeTs) && m.bettable && Date.now() >= closeTs) {
+        bettable = false;
+        if (tab === "aktiv") tab = "abgeflogen";
+      }
+    }
+    return { ...m, seed: DEFAULT_SEED, bettable, tab };
+  });
   const dailyMarkets = markets.filter(m => m.type==="daily").map(mergeStakes);
   const allFindable = [...liveMarkets, ...dailyMarkets];
 
@@ -4272,6 +4290,8 @@ function App(){
       </>}
     </> : detailMarket ? (
       <Detail m={detailMarket} total={total(detailMarket)} initialPick={view.pick} back={()=>{setView({page:"home"});setOpenBet(null)}} {...betProps}/>
+    ) : view.page==="detail" ? (
+      <div className="plane-load-wrap"><span className="plane-load">{"\u2708\uFE0E"}</span></div>
     ) : null}
     </main>
 
