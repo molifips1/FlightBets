@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v317 -->
+<!-- build: v2026-06-16-v319 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1456,7 +1456,7 @@ function FlightStatusRow({ m }){
   const rev = m.to && m.to.arrRevised;
   return (
     <div className="fc-status" style={{color:st.pc}}>
-      <span className="fc-status-label">{t("Aktueller Status:","Current Status:")}</span>
+      <span className="fc-status-label">{m.projArrEst ? t("Voraussichtlich:","Projected:") : t("Aktueller Status:","Current Status:")}</span>
       <span className="fc-status-w">{st.wordTxt}</span>
       <span className="fc-status-v">{st.valTxt}</span>
       {rev && <span className="fc-status-t">{rev}</span>}
@@ -1554,7 +1554,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
             <stop offset="1" stopColor="var(--pc)" stopOpacity="0.04"/>
           </linearGradient></defs>
           <path d={area} fill={`url(#${uid})`}/>
-          <path d={line} fill="none" stroke="color-mix(in srgb, var(--ink) 48%, transparent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+          <path d={line} fill="none" stroke="var(--pc)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{filter:"drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 4px var(--pc))"}}/>
         </svg>
         {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
         {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
