@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v311 -->
+<!-- build: v2026-06-16-v312 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2554,6 +2554,18 @@ function arrDelayFix(schedDep, schedArr, actualDep, actualArr){
 }
 function boardToMarket(f){
   const dirDep = f.direction==="departure";
+  // Normalize every time field to UTC. The worker's times come from the airline's
+  // UTC field, but some arrive WITHOUT a trailing "Z"; iOS Safari then parses such
+  // zone-less timestamps as the device's LOCAL time, shifting them ~2h and making
+  // bettable flights look "closed" hours early. Treat any zone-less stamp as UTC.
+  {
+    const _utc = (x)=> (!x || typeof x!=="string") ? x
+      : (/(Z|[+\-]\d{2}:?\d{2})$/.test(x) ? x : x.replace(" ","T")+"Z");
+    f = { ...f,
+      scheduledDep:_utc(f.scheduledDep), scheduledArr:_utc(f.scheduledArr),
+      revisedDep:_utc(f.revisedDep),     revisedArr:_utc(f.revisedArr),
+      actualDep:_utc(f.actualDep),       actualArr:_utc(f.actualArr) };
+  }
   // Override any upstream arrival delay with the day-safe recomputation so both the
   // live board and the results table (settledRowToMarket → here) are always right.
   if (!f.cancelled) {
