@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v310 -->
+<!-- build: v2026-06-16-v311 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2537,8 +2537,29 @@ function countryFromICAO(icao){
   if(p==="LS") return "CH";
   return null;
 }
+// Landing delay robust to off-by-a-day date errors in arrival timestamps. A
+// neighbouring day's same-number flight can bleed into the plan and leave the
+// scheduled (or actual) arrival carrying the wrong date, which threw the result
+// ~24h off (e.g. "-1326min" for a flight that landed +113). Re-anchor each arrival
+// to its OWN departure via the block time (mod 24h — our flights are always <24h).
+function arrDelayFix(schedDep, schedArr, actualDep, actualArr){
+  const _t = (iso) => { const x = iso ? new Date(iso).getTime() : NaN; return isNaN(x) ? null : x; };
+  const sD=_t(schedDep), sA=_t(schedArr), aD=_t(actualDep), aA=_t(actualArr);
+  if (sA==null || aA==null) return null;
+  const dep0 = aD!=null ? aD : sD;
+  if (dep0!=null && aA <= dep0) return null;            // touchdown before departure → bogus
+  const DAY=86400000;
+  const block=(dep,arr)=> dep==null ? arr : dep + ((((arr-dep)%DAY)+DAY)%DAY);
+  return Math.round((block(dep0, aA) - block(sD, sA)) / 60000);
+}
 function boardToMarket(f){
   const dirDep = f.direction==="departure";
+  // Override any upstream arrival delay with the day-safe recomputation so both the
+  // live board and the results table (settledRowToMarket → here) are always right.
+  if (!f.cancelled) {
+    const _fix = arrDelayFix(f.scheduledDep, f.scheduledArr, f.actualDep, f.actualArr);
+    if (_fix != null) f = { ...f, arrDelayMin: _fix };
+  }
   const other = dirDep ? f.destination : f.origin;
   const otherCode = other?.code || "???";
   const ll = CITY_LL[otherCode] || null;
