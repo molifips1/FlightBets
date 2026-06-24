@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v313 -->
+<!-- build: v2026-06-16-v314 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2552,6 +2552,16 @@ function arrDelayFix(schedDep, schedArr, actualDep, actualArr){
   const block=(dep,arr)=> dep==null ? arr : dep + ((((arr-dep)%DAY)+DAY)%DAY);
   return Math.round((block(dep0, aA) - block(sD, sA)) / 60000);
 }
+// Settled-row landing delay for the results table: drops cross-day contaminated
+// actuals (a neighbouring day's same-number flight that bled in) and is day-safe,
+// so the table never shows a ~24h-wrong number like -1326. null = no reliable result.
+function rowResultDelay(r){
+  const _p = (x)=>{ const v=(x && typeof x==="string")?new Date(x).getTime():NaN; return isNaN(v)?null:v; };
+  const sd=_p(r.schedDep), sa=_p(r.schedArr), ad=_p(r.actualDep), aa=_p(r.actualArr);
+  const off = Math.max((sd!=null&&ad!=null)?Math.abs(ad-sd):0, (sa!=null&&aa!=null)?Math.abs(aa-sa):0);
+  if (off > 8*60*60*1000) return null;                 // contaminated → no result
+  return arrDelayFix(r.schedDep, r.schedArr, r.actualDep, r.actualArr);
+}
 function boardToMarket(f){
   const dirDep = f.direction==="departure";
   // Normalize every time field to UTC. The worker's times come from the airline's
@@ -3930,7 +3940,7 @@ function ClosedTable({ rows, onOpen }){
         <tbody>
           {filtered.map((r,i)=>{
             const cancelled = r.cancelled===1 || r.cancelled===true;
-            const d = r.delayMin;
+            const d = cancelled ? null : rowResultDelay(r);
             const resColor = cancelled ? TONE.bad : d==null ? "var(--muted)" : TONE[winnerTone(d)];
             const label  = cancelled ? t("Annulliert","Cancelled") : d==null ? t("k. A.","n/a") : (d>=0?"+":"")+d+"min";
             const winner = (cancelled || d==null) ? "—" : bucketLabel(d);
