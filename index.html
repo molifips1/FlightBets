@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v309 -->
+<!-- build: v2026-06-16-v310 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2556,12 +2556,21 @@ function boardToMarket(f){
   // only has the AeroDataBox plan (AeroAPI has aged it out) almost certainly
   // landed already — don't leave it "unterwegs" forever or claim it's on time.
   const st = (f.status||"").toLowerCase();
+  const _relMs = (iso) => { if(!iso) return null; const x = new Date(iso).getTime(); return isNaN(x) ? null : x; };
+  // Effective EXPECTED times: prefer the revised/estimated time over the original
+  // plan. A flight delayed to later today is still at the gate — using the stale
+  // ORIGINAL schedule made `now >= dep` (→ "departed") and "STA long past" (→
+  // "landed") fire early, so delayed-but-upcoming flights wrongly showed
+  // "geschlossen". The revised time tracks the delay and keeps them bettable.
   const relSched = dirDep ? f.scheduledDep : f.scheduledArr;
-  const relTime = relSched ? new Date(relSched).getTime() : null; // scheduled DEPARTURE from BER
+  const relRev   = dirDep ? f.revisedDep   : null;
+  const _revMs   = _relMs(relRev);
+  const relTime  = _revMs != null ? _revMs : _relMs(relSched); // effective expected DEPARTURE from BER
   const now = Date.now();
   const adbOnly = (f.dataSource||"adb")==="adb";
-  const schedArrTime = f.scheduledArr ? new Date(f.scheduledArr).getTime() : null;
-  const longPastArr = schedArrTime!=null && (now - schedArrTime) > 90*60*1000; // plan-only & past STA → assume landed
+  const _arrEff = f.revisedArr || f.scheduledArr;
+  const schedArrTime = _relMs(_arrEff);
+  const longPastArr = schedArrTime!=null && (now - schedArrTime) > 90*60*1000; // plan-only & past (revised) STA → assume landed
 
   // Has the plane physically left BER? Betting closes at takeoff. With live data we use
   // the actual off-block time; with only the plan we treat scheduled departure as cutoff.
