@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v314 -->
+<!-- build: v2026-06-16-v315 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2642,8 +2642,15 @@ function boardToMarket(f){
   const landed = st.includes("arrived") || st.includes("landed") || st.includes("gate arrival")
                || f.arrDelayMin!=null || (adbOnly && longPastArr);
 
+  // A plane cannot have departed or landed before its (revised) departure time.
+  // If departure is still in the FUTURE, the flight MUST be upcoming & bettable —
+  // never let a stale, predicted or mis-matched arrival value (arrDelayMin) or a
+  // wrong "Arrived" status lock a flight whose gate time hasn't even arrived yet.
+  // This keeps tomorrow's flights bettable until 1h before departure, feed dead or not.
+  const notYetDeparted = relTime != null && now < relTime;
   let phase;
   if (f.cancelled || st.includes("cancel")) phase = "cancelled";
+  else if (notYetDeparted) phase = "upcoming"; // clock wins — hasn't left the gate yet
   else if (landed)   phase = "landed";
   else if (departed) phase = "enroute"; // airborne — bets locked, landing-delay suspense
   else               phase = "upcoming"; // still at the gate → bettable
