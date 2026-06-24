@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v315 -->
+<!-- build: v2026-06-16-v317 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1772,8 +1772,13 @@ function OddsPanel({ m, total, bettable, onQuickBet, myStake }){
 // Live airport feed shown to the LEFT of the card grid (desktop only). A compact
 // list of the current BER departures from the board, click → opens that flight.
 function FlightFeed({ markets, onOpen, phaseFilter }){
-  const phaseOf = m => (m.phase==="landed"||m.phase==="cancelled") ? "ergebnisse"
-                     : m.phase==="enroute" ? "laeuft" : "aktiv";
+  // Bucket by the canonical `tab` (which already accounts for the betting window),
+  // NOT by raw phase. A flight past its bet-close but not yet departed is phase
+  // "upcoming" yet NOT bettable (tab "abgeflogen"); bucketing by phase wrongly listed
+  // it under "Aktiv" while it actually shows closed. Tab keeps the feed and the main
+  // board in lockstep: aktiv = bettable, abgeflogen = läuft, gelandet = ergebnisse.
+  const phaseOf = m => m.tab==="gelandet" ? "ergebnisse"
+                     : m.tab==="abgeflogen" ? "laeuft" : "aktiv";
   const all = (markets||[]).slice()
     .sort((a,b)=> new Date(a.depISO||0).getTime() - new Date(b.depISO||0).getTime());
   const rows = all.filter(m=> phaseOf(m)===phaseFilter).slice(0,80);
@@ -2552,6 +2557,19 @@ function arrDelayFix(schedDep, schedArr, actualDep, actualArr){
   const block=(dep,arr)=> dep==null ? arr : dep + ((((arr-dep)%DAY)+DAY)%DAY);
   return Math.round((block(dep0, aA) - block(sD, sA)) / 60000);
 }
+// Physical-sanity check on the arrival stamp. A plane cannot beat its scheduled
+// gate-to-gate (block) time by a wide margin: an actual block under half the
+// schedule, a non-positive block, or an arrival before the flight was even due to
+// depart all mean the actual-arrival timestamp is bad/contaminated data — not a real
+// early landing. Catches "-105min"-type results the 8h day-shift guard lets through.
+function implausibleArrival(sd, sa, ad, aa){           // args in ms or null
+  if (sd==null || sa==null) return false;
+  const schedBlock = sa - sd;
+  if (schedBlock <= 0) return false;
+  if (ad!=null && aa!=null){ const b = aa - ad; return b <= 0 || b < schedBlock*0.5; }
+  if (aa!=null) return aa < sd;                        // arrived before scheduled departure
+  return false;
+}
 // Settled-row landing delay for the results table: drops cross-day contaminated
 // actuals (a neighbouring day's same-number flight that bled in) and is day-safe,
 // so the table never shows a ~24h-wrong number like -1326. null = no reliable result.
@@ -2559,7 +2577,8 @@ function rowResultDelay(r){
   const _p = (x)=>{ const v=(x && typeof x==="string")?new Date(x).getTime():NaN; return isNaN(v)?null:v; };
   const sd=_p(r.schedDep), sa=_p(r.schedArr), ad=_p(r.actualDep), aa=_p(r.actualArr);
   const off = Math.max((sd!=null&&ad!=null)?Math.abs(ad-sd):0, (sa!=null&&aa!=null)?Math.abs(aa-sa):0);
-  if (off > 8*60*60*1000) return null;                 // contaminated → no result
+  if (off > 8*60*60*1000) return null;                 // wrong-day contamination → no result
+  if (implausibleArrival(sd,sa,ad,aa)) return null;    // physically impossible arrival → no result
   return arrDelayFix(r.schedDep, r.schedArr, r.actualDep, r.actualArr);
 }
 function boardToMarket(f){
@@ -2589,7 +2608,7 @@ function boardToMarket(f){
       (_sd!=null&&_ad!=null)?Math.abs(_ad-_sd):0,
       (_sa!=null&&_aa!=null)?Math.abs(_aa-_sa):0
     );
-    if (off > 8*60*60*1000) {
+    if (off > 8*60*60*1000 || implausibleArrival(_sd,_sa,_ad,_aa)) {
       f = { ...f, actualDep:null, actualArr:null, arrDelayMin:null,
             status: /arriv|depart|land|en ?route|airborne|active/i.test(f.status||"") ? "Expected" : f.status };
     }
