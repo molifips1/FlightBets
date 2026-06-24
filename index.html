@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v312 -->
+<!-- build: v2026-06-16-v313 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2565,6 +2565,24 @@ function boardToMarket(f){
       scheduledDep:_utc(f.scheduledDep), scheduledArr:_utc(f.scheduledArr),
       revisedDep:_utc(f.revisedDep),     revisedArr:_utc(f.revisedArr),
       actualDep:_utc(f.actualDep),       actualArr:_utc(f.actualArr) };
+  }
+  // Guard against a neighbouring DAY's same-number flight bleeding in via the
+  // flight-number-only AeroAPI match: if the "actual" times sit implausibly far
+  // from the scheduled times (our flights are never >8h off schedule), they belong
+  // to a DIFFERENT instance — drop them (and any arrived/departed status derived
+  // from them) so the flight stays upcoming/bettable and never shows a ~24h-wrong
+  // result like "-1326min".
+  {
+    const _p = (x)=>{ const v = (x && typeof x==="string") ? new Date(x).getTime() : NaN; return isNaN(v)?null:v; };
+    const _sd=_p(f.scheduledDep), _sa=_p(f.scheduledArr), _ad=_p(f.actualDep), _aa=_p(f.actualArr);
+    const off = Math.max(
+      (_sd!=null&&_ad!=null)?Math.abs(_ad-_sd):0,
+      (_sa!=null&&_aa!=null)?Math.abs(_aa-_sa):0
+    );
+    if (off > 8*60*60*1000) {
+      f = { ...f, actualDep:null, actualArr:null, arrDelayMin:null,
+            status: /arriv|depart|land|en ?route|airborne|active/i.test(f.status||"") ? "Expected" : f.status };
+    }
   }
   // Override any upstream arrival delay with the day-safe recomputation so both the
   // live board and the results table (settledRowToMarket → here) are always right.
