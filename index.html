@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v320 -->
+<!-- build: v2026-06-16-v321 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -1554,7 +1554,7 @@ function DelayCurve({ outcomes, seed, status, projDelay, projArr, delayUnknown, 
             <stop offset="1" stopColor="var(--pc)" stopOpacity="0.04"/>
           </linearGradient></defs>
           <path d={area} fill={`url(#${uid})`}/>
-          <path d={line} fill="none" stroke="var(--pc)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" style={{filter:"drop-shadow(0 0 2px var(--pc)) drop-shadow(0 0 4px var(--pc))"}}/>
+          <path d={line} fill="none" stroke="var(--pc)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
         </svg>
         {projX!=null && <span className="dcurve-projline" style={{left:(projX/W*100)+"%"}}/>}
         {projX!=null && <span className="dcurve-diamond" style={{left:(projX/W*100)+"%"}}/>}
