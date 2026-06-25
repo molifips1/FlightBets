@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v319 -->
+<!-- build: v2026-06-16-v320 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2644,8 +2644,17 @@ function boardToMarket(f){
   // "geschlossen". The revised time tracks the delay and keeps them bettable.
   const relSched = dirDep ? f.scheduledDep : f.scheduledArr;
   const relRev   = dirDep ? f.revisedDep   : null;
+  const _schedMs = _relMs(relSched);
   const _revMs   = _relMs(relRev);
-  const relTime  = _revMs != null ? _revMs : _relMs(relSched); // effective expected DEPARTURE from BER
+  // Effective expected DEPARTURE = the LATER of plan and revised. A real delay
+  // (revised later) correctly extends the betting window. But a revised time EARLIER
+  // than the plan is never legitimate here — a flight doesn't leave hours early — it's
+  // the flight-number contamination from a neighbouring day bleeding a PAST time in,
+  // which would make relTime "past", disable the not-yet-departed guard, and wrongly
+  // slam a still-upcoming flight shut. Clamp to the schedule so betting stays open
+  // until 60 min before the planned departure no matter what stale revised time arrives.
+  const relTime  = (_revMs != null && _schedMs != null) ? Math.max(_revMs, _schedMs)
+                 : (_revMs != null ? _revMs : _schedMs); // effective expected DEPARTURE from BER
   const now = Date.now();
   const adbOnly = (f.dataSource||"adb")==="adb";
   const _arrEff = f.revisedArr || f.scheduledArr;
