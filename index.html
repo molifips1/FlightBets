@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v324 -->
+<!-- build: v2026-06-16-v325 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -70,7 +70,8 @@ button{font-family:inherit}
 .wm{font-family:'Eszett',Archivo;font-weight:800;font-size:23px;letter-spacing:-.5px;color:var(--ink);display:flex;align-items:center;gap:6px;cursor:pointer}
 .wm .wmtxt{white-space:nowrap}
 .wm .pin{color:var(--hot)}
-.wm .plane{font-size:17px;transform:translateY(-1px);display:inline-block;transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.wm .plane{display:inline-flex;align-items:center;transform:translateY(-1px);transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.wm .plane svg{width:18px;height:18px;display:block}
 .wm:hover .plane{transform:translate(4px,-5px) rotate(-12deg)}
 .topr{display:flex;align-items:center;gap:10px}
 .iconbtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card);
@@ -4246,7 +4247,7 @@ function App(){
 
   return <div className="app">
     <div className="top">
-      <div className="wm" role="button" title={t("Zu den wettbaren Flügen","To the bettable flights")} onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane">✈</span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
+      <div className="wm" role="button" title={t("Zu den wettbaren Flügen","To the bettable flights")} onClick={()=>{setTab("flights");setView({page:"home"});setPhaseFilter("aktiv");setMenuOpen(false);}}><span className="plane"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span><span className="wmtxt">flug<span className="pin">.</span>bet</span></div>
       <div className="topr">
         <button className="iconbtn" onClick={()=>setTheme(tm=>tm==="light"?"dark":"light")} title={t("Heller / Dunkler Modus","Light / Dark mode")} aria-label={t("Heller / Dunkler Modus","Light / Dark mode")}>{theme==="light"?"🌙":"☀️"}</button>
         <button className="iconbtn lang" onClick={()=>setLang(l=>l==="de"?"en":"de")} title={t("Sprache wechseln","Switch language")} aria-label={t("Sprache wechseln","Switch language")}>{lang==="de"?"DE":"EN"}</button>
@@ -4333,9 +4334,9 @@ function App(){
         <div className="plane-load-wrap"><span className="plane-load">{"\u2708\uFE0E"}</span></div>
       ) : <>
       <div className="subfilter">
-        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>● {t("Aktiv","Active")}</button>
-        <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>🛫 {t("Läuft","In flight")}</button>
-        <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>🏁 {t("Ergebnisse","Results")}</button>
+        <button className={"subpill"+(phaseFilter==="aktiv"?" on":"")} onClick={()=>setPhaseFilter("aktiv")}>{t("Aktiv","Active")}</button>
+        <button className={"subpill"+(phaseFilter==="laeuft"?" on":"")} onClick={()=>setPhaseFilter("laeuft")}>{t("Läuft","In flight")}</button>
+        <button className={"subpill"+(phaseFilter==="ergebnisse"?" on":"")} onClick={()=>setPhaseFilter("ergebnisse")}>{t("Ergebnisse","Results")}</button>
       </div>
       <div className="board-wrap">
         <FlightFeed markets={liveMarkets} phaseFilter={phaseFilter} onOpen={id=>setView({page:"detail",id})}/>
