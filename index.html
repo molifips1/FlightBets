@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v321 -->
+<!-- build: v2026-06-16-v322 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2154,7 +2154,7 @@ function BetCountdown({ closeISO }){
   const pad=n=>String(n).padStart(2,"0");
   const soon = diff < 15*60; // last 15 min → urgent
   return <span className={"betcd"+(soon?" soon":"")}>
-    {t("Wette schließt in","Bet closes in")} <b>{hh>0?hh+"h ":""}{pad(mm)}:{pad(ss)}</b>
+    {t("Wette schließt in","Bet closes in")} <b>{hh>0 ? hh+"h "+pad(mm)+"min " : mm>0 ? mm+"min " : ""}{pad(ss)}s</b>
   </span>;
 }
 
@@ -2175,7 +2175,7 @@ function CloseBadge({ closeISO, tone }){
   const soon = diff < 10*60; // final 10 min → red + pulse
   const col = soon ? "var(--bk-bad)" : base;
   return <span className={"phase phase-cd"+(soon?" cd-pulse":"")} style={tint(col)}>
-    <span className="cd-w">{t("Wette schließt","Betting closes in")}</span><span className="cd-n">{(hh>0?hh+"h ":"")+pad(mm)+":"+pad(ss)}</span>
+    <span className="cd-w">{t("Wette schließt","Betting closes in")}</span><span className="cd-n">{hh>0 ? hh+"h "+pad(mm)+"min "+pad(ss)+"s" : mm>0 ? mm+"min "+pad(ss)+"s" : pad(ss)+"s"}</span>
   </span>;
 }
 
