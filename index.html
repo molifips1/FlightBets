@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v329 -->
+<!-- build: v2026-06-16-v330 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -671,12 +671,14 @@ button{font-family:inherit}
 .fm-status{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
 .fm-status .fm-live{color:var(--good);font-weight:600}
 .panelbox .flightmap{margin-bottom:0}
-.flightmap .lmap{height:210px;width:100%;background:#0b1220}
-.leaflet-container{background:#0b1220;font:inherit;outline:none}
-.leaflet-container .leaflet-control-attribution{background:rgba(11,18,32,.7);color:#9bb0d0}
-.leaflet-container .leaflet-control-attribution a{color:#bcd0f0}
+.flightmap .lmap{height:210px;width:100%;background:#e8eef4}
+.leaflet-container{background:#e8eef4;font:inherit;outline:none}
+.leaflet-container .leaflet-control-attribution{background:rgba(255,255,255,.78);color:#5b6b80}
+.leaflet-container .leaflet-control-attribution a{color:#2E6BFF}
 .plane-icon{background:none;border:none}
-.plane-icon .planewrap{width:26px;height:26px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
+.plane-icon .planewrap{width:26px;height:26px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.fm-citylabel{background:#fff;border:1px solid var(--line);color:var(--ink);font-family:'Eszett','IBM Plex Mono',monospace;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.12);white-space:nowrap}
+.leaflet-tooltip.fm-citylabel::before{display:none}
 .betpanel{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .opt{flex:1 1 46%;text-align:left;background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s}
@@ -2048,13 +2050,13 @@ function FlightMap({ m }){
         scrollWheelZoom: false, dragging: true,
       });
       mapRef.current = map;
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
         subdomains: "abcd", maxZoom: 19,
         attribution: '&copy; OpenStreetMap, &copy; CARTO',
       }).addTo(map);
-      L.polyline([A, B], { color:"#7aa2ff", weight:2, opacity:0.65, dashArray:"4 6" }).addTo(map);
-      const dot = (ll, label) => L.circleMarker(ll, { radius:4, color:"#fff", weight:1, fillColor:"#fff", fillOpacity:0.9 })
-        .addTo(map).bindTooltip(label, { direction:"top" });
+      L.polyline([A, B], { color:"#2E6BFF", weight:2.5, opacity:0.7, dashArray:"4 6" }).addTo(map);
+      const dot = (ll, label) => L.circleMarker(ll, { radius:5, color:"#16447A", weight:2, fillColor:"#2E6BFF", fillOpacity:0.95 })
+        .addTo(map).bindTooltip(label, { permanent:true, direction:"top", className:"fm-citylabel" });
       dot(A, (m.from && m.from.name) || "BER");
       dot(B, (m.to && (m.to.name || m.to.code)) || "Ziel");
       try { map.fitBounds(L.latLngBounds([A, B]).pad(0.4)); } catch(_){}
@@ -2074,7 +2076,7 @@ function FlightMap({ m }){
     if (pos && pos.lat != null && state === "airborne"){
       const ll = [pos.lat, pos.lon];
       const html = '<div class="planewrap" style="transform:rotate(' + (pos.heading || 0) + 'deg)">'
-        + '<svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="0.5">'
+        + '<svg viewBox="0 0 24 24" width="26" height="26" fill="#2E6BFF" stroke="#fff" stroke-width="1.2">'
         + '<path d="M12 2 L14 10 L22 15 L22 16.5 L14 13.5 L14 19 L16.5 20.8 L16.5 22 L12 20.6 L7.5 22 L7.5 20.8 L10 19 L10 13.5 L2 16.5 L2 15 L10 10 Z"/>'
         + '</svg></div>';
       const icon = L.divIcon({ className:"plane-icon", html, iconSize:[26,26], iconAnchor:[13,13] });
