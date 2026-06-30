@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v330 -->
+<!-- build: v2026-06-16-v331 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2050,7 +2050,7 @@ function FlightMap({ m }){
         scrollWheelZoom: false, dragging: true,
       });
       mapRef.current = map;
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         subdomains: "abcd", maxZoom: 19,
         attribution: '&copy; OpenStreetMap, &copy; CARTO',
       }).addTo(map);
