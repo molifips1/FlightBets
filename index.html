@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v328 -->
+<!-- build: v2026-06-16-v329 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2281,6 +2281,9 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="d-statusline"><DelayStatus status={m.neonTone||m.status} projDelay={m.projDelay} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/></div>
           <DelayCurve outcomes={m.outcomes} seed={m.seed} status={m.neonTone||m.status} projDelay={m.projDelay} projArr={m.projArr} delayUnknown={m.delayUnknown} delayStats={m.delayStats}/>
         </div>
+
+        {/* Live map — real aircraft position (OpenSky); flights with coordinates only */}
+        {isFlight && m.fromLL && m.toLL && <div className="panelbox"><FlightMap m={m}/></div>}
 
         {/* Bracket list — pick your bracket, pools visible */}
         <div className="panelbox db-predict">
