@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v326 -->
+<!-- build: v2026-06-16-v328 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -671,6 +671,12 @@ button{font-family:inherit}
 .fm-status{font-family:'Eszett','IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:6px}
 .fm-status .fm-live{color:var(--good);font-weight:600}
 .panelbox .flightmap{margin-bottom:0}
+.flightmap .lmap{height:210px;width:100%;background:#0b1220}
+.leaflet-container{background:#0b1220;font:inherit;outline:none}
+.leaflet-container .leaflet-control-attribution{background:rgba(11,18,32,.7);color:#9bb0d0}
+.leaflet-container .leaflet-control-attribution a{color:#bcd0f0}
+.plane-icon{background:none;border:none}
+.plane-icon .planewrap{width:26px;height:26px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}
 .betpanel{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .opt{flex:1 1 46%;text-align:left;background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s}
@@ -1073,6 +1079,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.52.1/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef} = React;
 
@@ -2000,9 +2008,13 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
  * with the plane parked at origin when there's no live position.
  * ---------------------------------------------------------------- */
 function FlightMap({ m }){
-  const [pos, setPos] = useState(null);   // {lat,lon,heading,airborne} | null
+  const [pos, setPos]     = useState(null);   // {lat,lon,heading,airborne} | null
   const [state, setState] = useState("loading");
+  const mapEl    = useRef(null);   // map container div
+  const mapRef   = useRef(null);   // Leaflet map instance
+  const planeRef = useRef(null);   // live plane marker
 
+  // Poll the live ADS-B position (OpenSky, free) every 30s while mounted.
   useEffect(() => {
     if (!m.liveIdent || !CONFIG.API_BASE){ setState("static"); return; }
     let dead = false;
@@ -2021,97 +2033,69 @@ function FlightMap({ m }){
     return () => { dead = true; clearInterval(h); };
   }, [m.liveIdent]);
 
+  // Initialise the real Leaflet map once: dark CARTO tiles, route line + endpoints.
+  useEffect(() => {
+    if (!m.fromLL || !m.toLL) return;
+    let cancelled = false;
+    function init(){
+      if (cancelled) return;
+      if (typeof L === "undefined" || !mapEl.current){ setTimeout(init, 200); return; }
+      if (mapRef.current) return;
+      const A = [m.fromLL[0], m.fromLL[1]];
+      const B = [m.toLL[0], m.toLL[1]];
+      const map = L.map(mapEl.current, {
+        zoomControl: true, attributionControl: true,
+        scrollWheelZoom: false, dragging: true,
+      });
+      mapRef.current = map;
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        subdomains: "abcd", maxZoom: 19,
+        attribution: '&copy; OpenStreetMap, &copy; CARTO',
+      }).addTo(map);
+      L.polyline([A, B], { color:"#7aa2ff", weight:2, opacity:0.65, dashArray:"4 6" }).addTo(map);
+      const dot = (ll, label) => L.circleMarker(ll, { radius:4, color:"#fff", weight:1, fillColor:"#fff", fillOpacity:0.9 })
+        .addTo(map).bindTooltip(label, { direction:"top" });
+      dot(A, (m.from && m.from.name) || "BER");
+      dot(B, (m.to && (m.to.name || m.to.code)) || "Ziel");
+      try { map.fitBounds(L.latLngBounds([A, B]).pad(0.4)); } catch(_){}
+      setTimeout(() => { try { map.invalidateSize(); } catch(_){} }, 220);
+    }
+    init();
+    return () => {
+      cancelled = true;
+      if (mapRef.current){ mapRef.current.remove(); mapRef.current = null; planeRef.current = null; }
+    };
+  }, [m.id]);
+
+  // Drop / move the plane marker at the exact live position, rotated to heading.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || typeof L === "undefined") return;
+    if (pos && pos.lat != null && state === "airborne"){
+      const ll = [pos.lat, pos.lon];
+      const html = '<div class="planewrap" style="transform:rotate(' + (pos.heading || 0) + 'deg)">'
+        + '<svg viewBox="0 0 24 24" width="26" height="26" fill="#fff" stroke="rgba(0,0,0,.4)" stroke-width="0.5">'
+        + '<path d="M12 2 L14 10 L22 15 L22 16.5 L14 13.5 L14 19 L16.5 20.8 L16.5 22 L12 20.6 L7.5 22 L7.5 20.8 L10 19 L10 13.5 L2 16.5 L2 15 L10 10 Z"/>'
+        + '</svg></div>';
+      const icon = L.divIcon({ className:"plane-icon", html, iconSize:[26,26], iconAnchor:[13,13] });
+      if (!planeRef.current){ planeRef.current = L.marker(ll, { icon, zIndexOffset:1000 }).addTo(map); }
+      else { planeRef.current.setLatLng(ll); planeRef.current.setIcon(icon); }
+      try { map.fitBounds(L.latLngBounds([[m.fromLL[0],m.fromLL[1]],[m.toLL[0],m.toLL[1]],ll]).pad(0.3)); } catch(_){}
+    } else if (planeRef.current){
+      map.removeLayer(planeRef.current); planeRef.current = null;
+    }
+  }, [pos, state]);
+
   if (!m.fromLL || !m.toLL) return null;
-
-  // Equirectangular projection over a bounding box around the route,
-  // padded so the arc and plane sit comfortably inside the frame.
-  const W = 320, H = 150, pad = 28;
-  const lons = [m.fromLL[1], m.toLL[1], pos?.lon].filter(v => v != null);
-  const lats = [m.fromLL[0], m.toLL[0], pos?.lat].filter(v => v != null);
-  let minLon = Math.min(...lons), maxLon = Math.max(...lons);
-  let minLat = Math.min(...lats), maxLat = Math.max(...lats);
-  // enforce a minimum span so short routes aren't absurdly zoomed
-  const spanLon = Math.max(maxLon - minLon, 12), spanLat = Math.max(maxLat - minLat, 8);
-  const cLon = (minLon + maxLon) / 2, cLat = (minLat + maxLat) / 2;
-  minLon = cLon - spanLon/2; maxLon = cLon + spanLon/2;
-  minLat = cLat - spanLat/2; maxLat = cLat + spanLat/2;
-  const px = lon => pad + ( (lon - minLon) / (maxLon - minLon) ) * (W - 2*pad);
-  const py = lat => pad + ( (maxLat - lat) / (maxLat - minLat) ) * (H - 2*pad);
-
-  const o = [px(m.fromLL[1]), py(m.fromLL[0])];
-  const d = [px(m.toLL[1]),   py(m.toLL[0])];
-  // arc control point: midpoint lifted perpendicular for a flight-path curve
-  const mid = [(o[0]+d[0])/2, (o[1]+d[1])/2];
-  const dx = d[0]-o[0], dy = d[1]-o[1];
-  const len = Math.hypot(dx,dy) || 1;
-  const lift = Math.min(len*0.18, 34);
-  const ctrl = [mid[0] - (dy/len)*lift, mid[1] + (dx/len)*lift];
-  const arc = `M ${o[0]},${o[1]} Q ${ctrl[0]},${ctrl[1]} ${d[0]},${d[1]}`;
-  const tone = TONE[m.status] || "var(--brand)";
-
-  const plane = pos && state==="airborne" ? [px(pos.lon), py(pos.lat)] : null;
-  const uid = "fm"+(m.id||"x");
 
   return (
     <div className="flightmap">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMid slice" style={{display:"block"}}>
-        <defs>
-          <linearGradient id={uid+"sky"} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="var(--mapsky1)"/>
-            <stop offset="0.55" stopColor="var(--mapsky2)"/>
-            <stop offset="1" stopColor="var(--mapsky3)"/>
-          </linearGradient>
-          <radialGradient id={uid+"glow"} cx="50%" cy="42%" r="70%">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.18"/>
-            <stop offset="1" stopColor="#fff" stopOpacity="0"/>
-          </radialGradient>
-          <filter id={uid+"blur"} x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.2"/>
-          </filter>
-        </defs>
-        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}sky)`}/>
-        <rect x="0" y="0" width={W} height={H} fill={`url(#${uid}glow)`}/>
-        {/* graticule — curved latitude feel */}
-        {[0.18,0.36,0.54,0.72,0.9].map((t,i)=><line key={"v"+i} x1={W*t} y1="0" x2={W*t} y2={H} stroke="var(--mapgrid)" strokeWidth="1"/>)}
-        {[0.25,0.5,0.75].map((t,i)=><line key={"h"+i} x1="0" y1={H*t} x2={W} y2={H*t} stroke="var(--mapgrid)" strokeWidth="1"/>)}
-        {/* route: soft glow underlay + crisp animated dashes on top */}
-        <path d={arc} fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" opacity="0.18" filter={`url(#${uid}blur)`}/>
-        <path d={arc} fill="none" stroke="#fff" strokeWidth="2.2" strokeDasharray="1 7" strokeLinecap="round" opacity="0.95">
-          <animate attributeName="stroke-dashoffset" from="16" to="0" dur="1.4s" repeatCount="indefinite"/>
-        </path>
-        {/* airports — white pins with halo */}
-        <g>
-          <circle cx={o[0]} cy={o[1]} r="8" fill="#fff" opacity="0.18"/>
-          <circle cx={o[0]} cy={o[1]} r="4.5" fill="#fff" stroke="rgba(0,0,0,.12)" strokeWidth="1"/>
-          <circle cx={d[0]} cy={d[1]} r="8" fill="#fff" opacity="0.18"/>
-          <circle cx={d[0]} cy={d[1]} r="4.5" fill="#fff" stroke="rgba(0,0,0,.12)" strokeWidth="1"/>
-          <text x={o[0]} y={o[1]-11} textAnchor="middle" className="fm-code">{m.from?.name?.split(" ").pop()||"DEP"}</text>
-          <text x={d[0]} y={d[1]-11} textAnchor="middle" className="fm-code">{m.to?.name?.split(" ").pop()||"ARR"}</text>
-        </g>
-        {/* plane */}
-        {plane && (
-          <g transform={`translate(${plane[0]},${plane[1]}) rotate(${(pos.heading||0)})`}>
-            <circle r="13" fill="#fff" opacity="0.22"/>
-            <circle r="13" fill="none" stroke="#fff" strokeWidth="1" opacity="0.5">
-              <animate attributeName="r" from="7" to="15" dur="1.8s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" from="0.6" to="0" dur="1.8s" repeatCount="indefinite"/>
-            </circle>
-            <path d="M0,-8 L2.4,-1 L8,3 L8,5 L1.6,3.2 L1.4,7 L4,9 L4,10.5 L0,9.5 L-4,10.5 L-4,9 L-1.4,7 L-1.6,3.2 L-8,5 L-8,3 L-2.4,-1 Z"
-                  fill="#fff" stroke="rgba(0,0,0,.15)" strokeWidth="0.5"/>
-          </g>
-        )}
-        {!plane && (
-          <g transform={`translate(${o[0]},${o[1]})`} opacity="0.92">
-            <path d="M0,-6 L1.8,-.8 L6,2.2 L6,3.8 L1.2,2.4 L1,5.2 L3,6.8 L3,7.9 L0,7.1 L-3,7.9 L-3,6.8 L-1,5.2 L-1.2,2.4 L-6,3.8 L-6,2.2 L-1.8,-.8 Z"
-                  fill="#fff" stroke="rgba(0,0,0,.15)" strokeWidth="0.5" transform="rotate(45)"/>
-          </g>
-        )}
-      </svg>
+      <div ref={mapEl} className="lmap"></div>
       <div className="fm-status">
-        {state==="loading" && <span>{t("◌ Flugzeug wird geortet…","◌ Locating aircraft…")}</span>}
-        {state==="airborne" && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
-        {state==="ground" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
-        {state==="static" && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
+        {state==="loading"  && <span>{t("\u25CC Flugzeug wird geortet\u2026","\u25CC Locating aircraft\u2026")}</span>}
+        {state==="airborne" && pos && <span className="fm-live">● LIVE · {Math.round((pos.altM||0)/0.3048/100)*100} ft · {Math.round((pos.velocityMs||0)*1.94384)} kt</span>}
+        {state==="ground"   && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
+        {state==="static"   && <span><Countdown dep={m.depISO} fallback={m.from?.dep}/></span>}
       </div>
     </div>
   );
@@ -2332,10 +2316,10 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="sectlbl">{t("Marktregeln","Market rules")}</div>
           <div className="rules">
             <p>{LANG==="de"
-              ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges – die Differenz zwischen geplanter und tatsächlicher Ankunft am Ziel-Gate. Alle Einsätze einer Option wandern in einen gemeinsamen Topf; es gibt keine festen Quoten, du wettest gegen die anderen Tipper, nicht gegen das Haus.</>
-              : <>Each market is a <b>parimutuel pool</b> on this flight&apos;s <b>landing delay</b> – the gap between scheduled and actual arrival at the destination gate. Every stake on an option goes into one shared pot; there are no fixed odds, you bet against the other punters, not against the house.</>}</p>
+              ? <>Jeder Markt ist ein <b>Parimutuel-Pool</b> auf die <b>Landeverspätung</b> dieses Fluges – die Differenz zwischen der geplanten Ankunft und dem tatsächlichen Aufsetzen (Touchdown) am Ziel. Alle Einsätze einer Option wandern in einen gemeinsamen Topf; es gibt keine festen Quoten, du wettest gegen die anderen Tipper, nicht gegen das Haus.</>
+              : <>Each market is a <b>parimutuel pool</b> on this flight&apos;s <b>landing delay</b> – the gap between the scheduled arrival and the actual touchdown at the destination. Every stake on an option goes into one shared pot; there are no fixed odds, you bet against the other punters, not against the house.</>}</p>
 
-            <p style={{marginBottom:6}}><b>{t("Die vier Optionen","The four options")}</b> {t("– gemessen an der Verspätung bei Ankunft:","– based on the delay at arrival:")}</p>
+            <p style={{marginBottom:6}}><b>{t("Die vier Optionen","The four options")}</b> {t("– gemessen an der Verspätung beim Aufsetzen (Touchdown):","– based on the delay at touchdown:")}</p>
             <ul className="rules-opts">
               <li><span className="ro-dot" style={{background:"var(--brand)"}}/><span className="ro-txt"><b>{t("Landet früh","Lands Early")}</b> — {t("deutlich zu früh","well ahead")}</span><span className="ro-rng">≤ −5 min</span></li>
               <li><span className="ro-dot" style={{background:"var(--good)"}}/><span className="ro-txt"><b>{t("Landet pünktlich","Lands On time")}</b> — {t("rund um die Planzeit","around schedule")}</span><span className="ro-rng">−5…+5 min</span></li>
@@ -2352,8 +2336,8 @@ function Detail({m,total,back,initialPick,...bet}){
               : <><b>Data sources:</b> <b>AeroDataBox</b> provides the flight plan – which aircraft depart from BER, the scheduled departure and arrival times, plus the historical delays for the landing curve. <b>FlightAware</b> supplies each flight&apos;s live data, right down to the actual landing time.</>}</p>
 
             <p>{LANG==="de"
-              ? <><b>Schließung &amp; Abrechnung:</b> Wetten schließen 1&nbsp;Stunde vor dem planmäßigen Abflug. Abgerechnet wird über <b>FlightAware</b>: die tatsächliche Landezeit gegen die geplante Ankunft ergibt die Landeverspätung – und damit die Gewinner-Option.</>
-              : <><b>Close &amp; settlement:</b> betting closes 1&nbsp;hour before scheduled departure. Settlement runs via <b>FlightAware</b>: the actual landing time against the scheduled arrival gives the landing delay – and with it the winning option.</>}</p>
+              ? <><b>Schließung &amp; Abrechnung:</b> Wetten schließen 1&nbsp;Stunde vor dem planmäßigen Abflug. Abgerechnet wird über <b>FlightAware</b>: die tatsächliche Landung (Touchdown auf der Bahn) gegen die geplante Ankunft ergibt die Landeverspätung – und damit die Gewinner-Option. Maßgeblich ist das Aufsetzen, nicht das spätere Andocken am Gate.</>
+              : <><b>Close &amp; settlement:</b> betting closes 1&nbsp;hour before scheduled departure. Settlement runs via <b>FlightAware</b>: the actual landing (touchdown on the runway) against the scheduled arrival gives the landing delay – and with it the winning option. What counts is the touchdown, not the later arrival at the gate.</>}</p>
 
             <p>{LANG==="de"
               ? <><b>Automatische Abrechnung:</b> Ein Hintergrundprozess läuft <b>jede Stunde</b>, zieht die aktuellen Flughafen- und Flugdaten (sparsam, im Rahmen der API-Kontingente) und rechnet jeden Flug ab, der seit dem letzten Lauf gelandet ist – ganz ohne dass jemand die App offen haben muss. Die meisten Flüge werden direkt aus der Flughafentafel von AeroDataBox erledigt; einzelne Nachzügler, die schon von der Tafel gerollt sind, fragt der Prozess gezielt bei FlightAware nach. Sobald die Landeverspätung feststeht, wird der Pool ausgezahlt und dein Guthaben aktualisiert.</>
@@ -2810,7 +2794,7 @@ function boardToMarket(f){
       {id:"c",label:"Verspätet",tone:"warn",pool:pools[2]},
       {id:"d",label:"Stark Verspätet",tone:"bad",pool:pools[3]},
     ],
-    settles:"FlightAware · tatsächliche Ankunft am Gate",
+    settles:"FlightAware · tatsächliche Landung (Touchdown)",
   };
 }
 
