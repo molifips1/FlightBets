@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v337 -->
+<!-- build: v2026-06-16-v338 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -766,7 +766,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
   font-family:'Eszett','IBM Plex Mono',monospace;font-size:12px;padding:11px 17px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:60;max-width:92vw;text-align:center}
 [data-theme="dark"] .toast{background:#fff;color:#0A1019}
 .empty{text-align:center;color:var(--muted);padding:26px 10px}
-.empty .e1{font-size:30px}.empty .e2{font-weight:700;margin-top:8px;color:var(--ink)}.empty .e3{font-size:13px;margin-top:3px}
+.empty .e1{display:flex;justify-content:center;color:color-mix(in srgb, var(--muted) 80%, transparent);margin-bottom:5px}.empty .e2{font-weight:700;margin-top:8px;color:var(--ink)}.empty .e3{font-size:13px;margin-top:3px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* airports page */
@@ -2174,6 +2174,19 @@ function BetCountdown({ closeISO }){
 // Raw countdown for the departure-board strip: just the time string in the
 // same "2h 28min 36s" format used elsewhere, no leading label (the "BETTING
 // CLOSES" caption sits beside it on the dark strip).
+// Muted line-icons for empty states (replaces the old oversized emojis so the
+// blank screens match the refined board aesthetic). Uses currentColor → picks up
+// the muted tone from the surrounding .empty block.
+function EIcon({n}){
+  const p = {
+    flag:  <><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></>,
+    plane: <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>,
+    clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    chat:  <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>,
+  }[n];
+  return <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">{p}</svg>;
+}
+
 function BoardCD({ closeISO }){
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
@@ -2448,7 +2461,7 @@ function Detail({m,total,back,initialPick,...bet}){
           <div className="sectlbl">{t("Diskussion","Discussion")}</div>
           <div className="composer" style={{marginTop:0}}><input placeholder={t("Teile deine Einschätzung zu diesem Flug…","Share your take on this flight…")}/></div>
           <button className="betbtn ghost" style={{width:"100%",marginTop:10}}>{t("Posten","Post")}</button>
-          <div className="empty"><div className="e1">💬</div><div className="e2">{t("Noch keine Kommentare","No comments yet")}</div><div className="e3">{t("Sei der/die Erste!","Be the first!")}</div></div>
+          <div className="empty"><div className="e1"><EIcon n="chat"/></div><div className="e2">{t("Noch keine Kommentare","No comments yet")}</div><div className="e3">{t("Sei der/die Erste!","Be the first!")}</div></div>
         </div>
       </div>
     </div>
@@ -4389,7 +4402,7 @@ function App(){
             return <div className="emptyboard"><span className="spin spin-d"/> {t("Lade Ergebnisse…","Loading results…")}</div>;
           }
           if (closedFlights.rows.length===0) {
-            return <div className="empty"><div className="e1">🏁</div><div className="e2">{t("Noch keine Ergebnisse","No results yet")}</div><div className="e3">{t("Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.","Once flights have landed and been recorded, they show up here — with the result and (if bets were placed) the pool.")}</div></div>;
+            return <div className="empty"><div className="e1"><EIcon n="flag"/></div><div className="e2">{t("Noch keine Ergebnisse","No results yet")}</div><div className="e3">{t("Sobald Flüge gelandet und erfasst sind, erscheinen sie hier — mit Ergebnis und (falls darauf gewettet wurde) dem Pool.","Once flights have landed and been recorded, they show up here — with the result and (if bets were placed) the pool.")}</div></div>;
           }
           return <ClosedTable rows={closedFlights.rows} onOpen={(r)=>{ const id="bd_"+r.ident+"_"+r.date; const live=allFindable.find(m=>m.id===id); setView({page:"detail", id, settledRow: live?null:r}); }}/>;
         }
@@ -4402,7 +4415,7 @@ function App(){
             .filter(m => m.tab==="abgeflogen")
             .sort((a,b)=> new Date(a.depISO || 0).getTime() - new Date(b.depISO || 0).getTime());
           if (dataStatus==="live" && running.length===0) {
-            return <div className="empty"><div className="e1">🛫</div><div className="e2">{t("Gerade kein Flug unterwegs","No flight under way right now")}</div><div className="e3">{t("Hier erscheinen Flüge, deren Wetten geschlossen sind und die gerade unterwegs sind — das Ergebnis steht noch aus.","Flights whose betting has closed and that are currently in the air show up here — the result is still pending.")}</div></div>;
+            return <div className="empty"><div className="e1"><EIcon n="plane"/></div><div className="e2">{t("Gerade kein Flug unterwegs","No flight under way right now")}</div><div className="e3">{t("Hier erscheinen Flüge, deren Wetten geschlossen sind und die gerade unterwegs sind — das Ergebnis steht noch aus.","Flights whose betting has closed and that are currently in the air show up here — the result is still pending.")}</div></div>;
           }
           return <div className="grid">
             {running.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
@@ -4420,7 +4433,7 @@ function App(){
             return total(b) - total(a);
           });
         if (dataStatus==="live" && shown.length===0) {
-          return <div className="empty"><div className="e1">🕐</div><div className="e2">{t("Gerade keine wettbaren Flüge","No bettable flights right now")}</div><div className="e3">{t("Wetten schließen 1 Stunde vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.","Betting closes 1 hour before departure. No flight is in the open window right now — often in the evening when BER operations wind down. Check back later.")}</div></div>;
+          return <div className="empty"><div className="e1"><EIcon n="clock"/></div><div className="e2">{t("Gerade keine wettbaren Flüge","No bettable flights right now")}</div><div className="e3">{t("Wetten schließen 1 Stunde vor Abflug. Aktuell ist kein Flug im offenen Fenster — oft abends, wenn der Flugbetrieb am BER ausläuft. Schau später wieder vorbei.","Betting closes 1 hour before departure. No flight is in the open window right now — often in the evening when BER operations wind down. Check back later.")}</div></div>;
         }
         return <div className="grid">
           {shown.map(m=><MarketCard key={m.id} m={m} total={total(m)} onOpen={(id,pickId)=>{if(pickId)setPick(pickId);setView({page:"detail",id,pick:pickId||null});}} {...betProps}/>)}
