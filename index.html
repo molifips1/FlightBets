@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v336 -->
+<!-- build: v2026-06-16-v337 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -269,7 +269,9 @@ button{font-family:inherit}
 .fc-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
 .mystake{font-size:11.5px;color:var(--muted);font-weight:500}
 .mystake b{color:var(--ink);font-weight:700}
-.flightcard .fc-board{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-20px -24px 14px;padding:13px 22px;background:#0F1826;border-radius:13px 13px 0 0}
+.fc-board{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0F1826}
+.flightcard .fc-board{margin:-20px -24px 14px;padding:13px 22px;border-radius:13px 13px 0 0}
+.db-flight .fc-board{margin:-18px -18px 14px;padding:13px 20px;border-radius:17px 17px 0 0}
 .fc-board-l{display:flex;flex-direction:column;min-width:0;gap:3px}
 .fcb-code{font-family:'Eszett',Archivo;font-weight:800;font-size:20px;letter-spacing:.3px;color:#fff;line-height:1}
 .fcb-route{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:#8CA0B8;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2278,6 +2280,9 @@ function Detail({m,total,back,initialPick,...bet}){
   const proj = (o,st)=>{ if(!o) return 0; const sd=seedOf(m); const np=o.pool+(sd[o.id]||0)+st, nt=total+seedSum(sd)+st; return np>0?(st/np)*nt:0; };
   const maxPool = Math.max(1, ...m.outcomes.map(o=>o.pool));
   const st = delayStatusInfo({ status:m.neonTone||m.status, projDelay:m.projDelay, delayUnknown:m.delayUnknown, delayStats:m.delayStats });
+  const _berFrom = m.from && m.from.name==="Berlin BER";
+  const _berTo   = m.to   && m.to.name==="Berlin BER";
+  const routeCodes = isFlight ? ((_berFrom?"BER":(m.otherCode||"???")) + " → " + (_berTo?"BER":(m.otherCode||"???"))) : "";
 
   return <div>
     <button className="back" onClick={back}>{t("← Alle Märkte","← All markets")}</button>
@@ -2286,22 +2291,29 @@ function Detail({m,total,back,initialPick,...bet}){
       <div className="dcol-l">
         {/* Flight info header — same data as the card front */}
         <div className="panelbox db-flight">
-          <div className="chead">
-            <div className="codeline">
-              <span className="code">{m.code}</span>
-              {m.subcode && <span className="subcode">{m.subcode}</span>}
-              {isFlight && m.phase && (m.bettable
-                ? <CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/>
-                : <span className={"phase ph-"+(m.tab||m.phase)}>{
-                    m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
-                    m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
-                    m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
-                    t("🔒 geschlossen","🔒 closed")
-                  }</span>)}
+          {isFlight ? <>
+            <div className="fc-board">
+              <div className="fc-board-l">
+                <span className="fcb-code">{m.code}</span>
+                <span className="fcb-route">{routeCodes}{m.dateLabel ? "  ·  "+m.dateLabel : ""}</span>
+              </div>
+              <div className="fc-board-r">
+                {m.bettable
+                  ? <><span className="fcb-cd"><BoardCD closeISO={m.betCloseISO}/></span><span className="fcb-cdlbl">{t("WETTSCHLUSS","BETTING CLOSES")}</span></>
+                  : (m.phase ? <span className={"phase ph-"+(m.tab||m.phase)}>{
+                      m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
+                      m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
+                      m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
+                      t("🔒 geschlossen","🔒 closed")
+                    }</span> : null)}
+              </div>
             </div>
+            <div className="fc-poolrow"><span className="fcp-pool">{t("Preisgeld","Prize pool")} <b><RollingNumber value={total}/> €</b></span></div>
+          </> : <div className="chead">
+            <div className="codeline"><span className="code">{m.code}</span>{m.subcode && <span className="subcode">{m.subcode}</span>}</div>
             <span className="pool"><RollingNumber value={total}/> €</span>
-          </div>
-          {isFlight ? <div className="route" style={{marginTop:14}}>
+          </div>}
+          {isFlight ? <div className="route" style={{marginTop:2}}>
             <div className="stop">
               <div className="dotline"><span className="rdot"/><span className="rconn"/></div>
               <span className="flag">{m.from.flag}</span>
