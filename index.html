@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v334 -->
+<!-- build: v2026-06-16-v335 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -269,6 +269,18 @@ button{font-family:inherit}
 .fc-head-r{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
 .mystake{font-size:11.5px;color:var(--muted);font-weight:500}
 .mystake b{color:var(--ink);font-weight:700}
+.flightcard .fc-board{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-20px -24px 14px;padding:13px 22px;background:#0F1826;border-radius:13px 13px 0 0}
+.fc-board-l{display:flex;flex-direction:column;min-width:0;gap:3px}
+.fcb-code{font-family:'Eszett',Archivo;font-weight:800;font-size:20px;letter-spacing:.3px;color:#fff;line-height:1}
+.fcb-route{font-family:'Eszett','IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;color:#8CA0B8;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-board-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px;white-space:nowrap;flex:none}
+.fcb-cd{font-family:'Eszett','IBM Plex Mono',monospace;font-weight:600;font-size:17px;letter-spacing:.5px;color:#F2B441}
+.fcb-cdlbl{font-family:'Eszett','IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:2.5px;color:#6E8199}
+.fc-poolrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.fcp-pool{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:flex;flex-direction:column;gap:3px}
+.fcp-pool b{color:var(--ink);font-family:'Eszett',Archivo;font-weight:800;font-size:22px;letter-spacing:-.4px}
+.fcp-stake{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:right;display:flex;flex-direction:column;gap:3px}
+.fcp-stake b{color:var(--muted);font-weight:700;font-size:15px}
 .cb-mob{display:none}
 .fc-betbtn{width:100%;margin-top:16px}
 .betbtn.wette.fc-betbtn{padding:7px 24px}
@@ -296,6 +308,10 @@ button{font-family:inherit}
   .myeinsatz{font-size:12px}
   .myeinsatz b{font-size:18px}
   .fc-subhead{margin:0 0 9px;padding-bottom:9px}
+  .flightcard .fc-board{margin:-16px -16px 11px;padding:11px 16px}
+  .fcb-code{font-size:18px}
+  .fcb-cd{font-size:15px}
+  .fcp-pool b{font-size:19px}
   .fc-left{padding-bottom:8px;margin-bottom:8px}
   .flightcard .fc-left .dcurve{flex:0 0 auto;min-height:0}
   .flightcard .fc-left .dcurve-plot{flex:0 0 auto;height:25px;min-height:0}
@@ -1934,30 +1950,32 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
     return ()=>{ clearTimeout(t1); clearTimeout(t2); };
   },[m.betCloseISO, m.bettable]);
   const myStake = (positions||[]).filter(p=>p && p.flight_id===m.id && !p.settled).reduce((s,p)=>s+(p.stake||0),0);
+  const _berFrom = m.from && m.from.name==="Berlin BER";
+  const _berTo   = m.to   && m.to.name==="Berlin BER";
+  const routeCodes = isFlight ? ((_berFrom?"BER":(m.otherCode||"???")) + " → " + (_berTo?"BER":(m.otherCode||"???"))) : "";
   return (
     <div className={"card click neon flightcard"+(closing?" closing":"")} style={{"--neon": TONE[m.neonTone||m.status] || "var(--brand)"}} onClick={()=>onOpen(m.id)}>
       {m.bettable && <CloseUrgency closeISO={m.betCloseISO} neon={TONE[m.neonTone||m.status]}/>}
 
-      <div className="fc-top">
-        <div className="fc-head-l">
-          <div className="codeline">
-            <span className="code">{m.code}</span>
-            {m.phase && (m.bettable
-              ? <span className="cb-desk"><CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/></span>
-              : <span className={"phase ph-"+(m.tab||m.phase)}>{
-                  m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
-                  m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
-                  m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
-                  t("🔒 geschlossen","🔒 closed")
-                }</span>)}
-          </div>
-          {isFlight && m.dateLabel && <div className="fdate">{m.dateLabel}</div>}
-          {m.bettable && <span className="cb-mob"><CloseBadge closeISO={m.betCloseISO} tone={TONE[m.neonTone||m.status]}/></span>}
+      <div className="fc-board">
+        <div className="fc-board-l">
+          <span className="fcb-code">{m.code}</span>
+          {isFlight && <span className="fcb-route">{routeCodes}{m.dateLabel ? "  ·  "+m.dateLabel : ""}</span>}
         </div>
-        <div className="fc-head-r">
-          <span className="myeinsatz">{t("Preisgeld","Prize pool")}: <b><RollingNumber value={total}/> €</b></span>
-          <span className="mystake">{t("Mein Einsatz","My stake")}: <b>{fmt(myStake||0)} €</b></span>
+        <div className="fc-board-r">
+          {m.bettable
+            ? <><span className="fcb-cd"><BoardCD closeISO={m.betCloseISO}/></span><span className="fcb-cdlbl">{t("WETTSCHLUSS","BETTING CLOSES")}</span></>
+            : <span className={"phase ph-"+(m.tab||m.phase)}>{
+                m.phase==="cancelled" ? t("✕ annulliert","✕ cancelled") :
+                m.phase==="landed"    ? t("✓ gelandet","✓ landed") :
+                m.phase==="enroute"   ? t("✈ abgeflogen","✈ departed") :
+                t("🔒 geschlossen","🔒 closed")
+              }</span>}
         </div>
+      </div>
+      <div className="fc-poolrow">
+        <span className="fcp-pool">{t("Preisgeld","Prize pool")} <b><RollingNumber value={total}/> €</b></span>
+        <span className="fcp-stake">{t("Mein Einsatz","My stake")} <b>{fmt(myStake||0)} €</b></span>
       </div>
 
       <div className="fc-subhead">
@@ -2151,6 +2169,20 @@ function BetCountdown({ closeISO }){
 // colour tint + matching text). Normally tinted in the flight's status colour;
 // turns red in the final 10 minutes. Word + number split so the word can be
 // tightened while the gap to the number stays constant.
+// Raw countdown for the departure-board strip: just the time string in the
+// same "2h 28min 36s" format used elsewhere, no leading label (the "BETTING
+// CLOSES" caption sits beside it on the dark strip).
+function BoardCD({ closeISO }){
+  const [now,setNow]=useState(Date.now());
+  useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
+  if(!closeISO) return <span>—</span>;
+  const diff=Math.floor((new Date(closeISO).getTime()-now)/1000);
+  if(diff<=0) return <span>{t("geschlossen","closed")}</span>;
+  const hh=Math.floor(diff/3600), mm=Math.floor((diff%3600)/60), ss=diff%60;
+  const pad=n=>String(n).padStart(2,"0");
+  return <span>{hh>0 ? hh+"h "+pad(mm)+"min "+pad(ss)+"s" : mm>0 ? mm+"min "+pad(ss)+"s" : pad(ss)+"s"}</span>;
+}
+
 function CloseBadge({ closeISO, tone }){
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{ const h=setInterval(()=>setNow(Date.now()),1000); return ()=>clearInterval(h); },[]);
