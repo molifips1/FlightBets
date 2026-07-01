@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v331 -->
+<!-- build: v2026-06-16-v332 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -2050,9 +2050,9 @@ function FlightMap({ m }){
         scrollWheelZoom: false, dragging: true,
       });
       mapRef.current = map;
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        subdomains: "abcd", maxZoom: 19,
-        attribution: '&copy; OpenStreetMap, &copy; CARTO',
+      L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+        subdomains: "abc", maxZoom: 17,
+        attribution: '&copy; OpenStreetMap-Mitwirkende, SRTM | &copy; OpenTopoMap (CC-BY-SA)',
       }).addTo(map);
       L.polyline([A, B], { color:"#2E6BFF", weight:2.5, opacity:0.7, dashArray:"4 6" }).addTo(map);
       const dot = (ll, label) => L.circleMarker(ll, { radius:5, color:"#16447A", weight:2, fillColor:"#2E6BFF", fillOpacity:0.95 })
