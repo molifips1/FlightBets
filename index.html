@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: v2026-06-16-v335 -->
+<!-- build: v2026-06-16-v336 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
@@ -283,7 +283,7 @@ button{font-family:inherit}
 .fcp-stake b{color:var(--muted);font-weight:700;font-size:15px}
 .cb-mob{display:none}
 .fc-betbtn{width:100%;margin-top:16px}
-.betbtn.wette.fc-betbtn{padding:7px 24px}
+.betbtn.wette.fc-betbtn{padding:12px 24px;text-transform:none;letter-spacing:0;font-weight:600;font-size:15px;border-radius:12px}
 .fc-subhead{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .fc-subhead .dcurve-head{justify-content:flex-start;gap:7px;margin:7px 0 0}
 .fc-subhead .dcurve-w{font-size:14px;font-weight:700}
@@ -329,7 +329,7 @@ button{font-family:inherit}
   .cb-mob{display:inline-flex;margin-top:4px;align-self:flex-start}
   .topr .chip.streak{display:none}
   .oddspanel .pooldist{display:none}
-  .betbtn.wette.fc-betbtn{padding:14px 24px;font-size:15px;font-weight:800;letter-spacing:1.4px;border-radius:12px}
+  .betbtn.wette.fc-betbtn{padding:14px 24px;font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;border-radius:12px}
   .top{padding-top:6px;padding-bottom:6px;border-bottom:none;background:var(--bg);backdrop-filter:none}
   [data-theme="dark"] .app .top{background:#0C1626;border-bottom-color:transparent}
   .topr .iconbtn{width:36px;height:32px;border-radius:9px;display:grid;place-items:center;line-height:1}
@@ -2015,7 +2015,7 @@ function MarketCard({m,total,onOpen,onQuickBet,openBet,setOpenBet,pick,setPick,s
 
       <button className="betbtn wette fc-betbtn" disabled={!m.bettable}
         onClick={(e)=>{e.stopPropagation(); if(m.bettable){ Sound.bet(); onQuickBet(m.id, favOutcome(m.outcomes, m.seed)); }}}>
-        {m.bettable ? t("Wetten","Bet") : t("Geschlossen","Closed")}
+        {m.bettable ? t("Wette platzieren","Place bet") : t("Geschlossen","Closed")}
       </button>
     </div>
   );
